@@ -1,0 +1,160 @@
+import prisma from '../config/database.js';
+import { USER_PUBLIC_FIELDS, USER_BASIC_FIELDS } from '../constants/index.js';
+/**
+ * Repository layer for User database operations
+ */
+export class UserRepository {
+    /**
+     * Find user by ID
+     */
+    static async findById(userId, includePublicOnly = true) {
+        return await prisma.user.findUnique({
+            where: { id: userId },
+            select: includePublicOnly ? USER_PUBLIC_FIELDS : undefined,
+        });
+    }
+    /**
+     * Find user by email
+     */
+    static async findByEmail(email) {
+        return await prisma.user.findUnique({
+            where: { email },
+        });
+    }
+    /**
+     * Find user by Google ID
+     */
+    static async findByGoogleId(googleId) {
+        return await prisma.user.findUnique({
+            where: { googleId },
+        });
+    }
+    /**
+     * Find user by email verification token
+     */
+    static async findByEmailVerificationToken(token) {
+        return await prisma.user.findUnique({
+            where: { emailVerificationToken: token },
+        });
+    }
+    /**
+     * Find user by password reset token
+     */
+    static async findByPasswordResetToken(token) {
+        return await prisma.user.findUnique({
+            where: { passwordResetToken: token },
+        });
+    }
+    /**
+     * Create new user
+     */
+    static async create(data) {
+        return await prisma.user.create({
+            data,
+            select: USER_PUBLIC_FIELDS,
+        });
+    }
+    /**
+     * Update user
+     */
+    static async update(userId, data) {
+        return await prisma.user.update({
+            where: { id: userId },
+            data,
+            select: USER_PUBLIC_FIELDS,
+        });
+    }
+    /**
+     * Update user password
+     */
+    static async updatePassword(userId, hashedPassword) {
+        return await prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword },
+        });
+    }
+    /**
+     * Set email verification token
+     */
+    static async setEmailVerificationToken(userId, token, expiresAt) {
+        return await prisma.user.update({
+            where: { id: userId },
+            data: {
+                emailVerificationToken: token,
+                emailVerificationExpires: expiresAt,
+            },
+        });
+    }
+    /**
+     * Verify email
+     */
+    static async verifyEmail(userId) {
+        return await prisma.user.update({
+            where: { id: userId },
+            data: {
+                emailVerified: true,
+                emailVerificationToken: null,
+                emailVerificationExpires: null,
+            },
+        });
+    }
+    /**
+     * Set password reset token
+     */
+    static async setPasswordResetToken(userId, hashedToken, expiresAt) {
+        return await prisma.user.update({
+            where: { id: userId },
+            data: {
+                passwordResetToken: hashedToken,
+                passwordResetExpires: expiresAt,
+            },
+        });
+    }
+    /**
+     * Clear password reset token
+     */
+    static async clearPasswordResetToken(userId) {
+        return await prisma.user.update({
+            where: { id: userId },
+            data: {
+                passwordResetToken: null,
+                passwordResetExpires: null,
+            },
+        });
+    }
+    /**
+     * Delete user
+     */
+    static async delete(userId) {
+        return await prisma.user.delete({
+            where: { id: userId },
+        });
+    }
+    /**
+     * Search users by name or email
+     */
+    static async search(query, limit = 10) {
+        return await prisma.user.findMany({
+            where: {
+                OR: [
+                    { name: { contains: query, mode: 'insensitive' } },
+                    { email: { contains: query, mode: 'insensitive' } },
+                ],
+            },
+            select: USER_BASIC_FIELDS,
+            take: limit,
+        });
+    }
+    /**
+     * Get multiple users by IDs
+     */
+    static async findManyByIds(userIds) {
+        return await prisma.user.findMany({
+            where: {
+                id: { in: userIds },
+            },
+            select: USER_BASIC_FIELDS,
+        });
+    }
+}
+//# sourceMappingURL=user.repository.js.map

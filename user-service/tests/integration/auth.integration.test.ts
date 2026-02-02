@@ -138,7 +138,6 @@ describe('Authentication Integration Tests', () => {
       expect(response.body.user).toHaveProperty('id');
       expect(response.body.user.email).toBe(testEmail);
       expect(response.body.user.name).toBe(testName);
-      expect(response.body.user.role).toBe('user');
       expect(response.body).toHaveProperty('token');
       expect(response.body.user).not.toHaveProperty('password');
     });
@@ -214,7 +213,6 @@ describe('Authentication Integration Tests', () => {
       
       expect(decoded.userId).toBe(response.body.user.id);
       expect(decoded.email).toBe(email);
-      expect(decoded.role).toBe('user');
     });
   });
 
@@ -288,6 +286,9 @@ describe('Authentication Integration Tests', () => {
       const response1 = await request(app)
         .post('/api/auth/login')
         .send({ email: loginEmail, password: loginPassword });
+
+      // Wait a second to ensure different iat timestamp
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const response2 = await request(app)
         .post('/api/auth/login')

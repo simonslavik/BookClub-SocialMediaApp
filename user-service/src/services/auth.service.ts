@@ -5,6 +5,8 @@ import { TokenRepository } from '../repositories/token.repository.js';
 import { generateTokens } from '../utils/tokenUtils.js';
 import { BCRYPT_SALT_ROUNDS } from '../constants/index.js';
 import { logger } from '../utils/logger.js';
+import { ConflictError, UnauthorizedError, NotFoundError, BadRequestError } from '../utils/errors.js';
+import { authenticationAttempts } from '../utils/metrics.js';
 
 /**
  * Service layer for authentication operations
@@ -17,7 +19,8 @@ export class AuthService {
     // Check if user exists
     const existingUser = await UserRepository.findByEmail(email);
     if (existingUser) {
-      throw new Error('EMAIL_EXISTS');
+      authenticationAttempts.inc({ type: 'register', result: 'failure' });
+      throw new ConflictError('Email already in use');
     }
 
     // Hash password
@@ -38,6 +41,7 @@ export class AuthService {
       name: newUser.name,
     });
 
+    authenticationAttempts.inc({ type: 'register', result: 'success' });
     logger.info({
       type: 'USER_REGISTERED',
       userId: newUser.id,
@@ -58,17 +62,20 @@ export class AuthService {
     // Find user
     const user = await UserRepository.findByEmail(email);
     if (!user) {
-      throw new Error('INVALID_CREDENTIALS');
+      authenticationAttempts.inc({ type: 'login', result: 'failure' });
+      throw new UnauthorizedError('Invalid email or password');
     }
 
     // Verify password
     if (!user.password) {
-      throw new Error('OAUTH_USER');
+      authenticationAttempts.inc({ type: 'login', result: 'failure' });
+      throw new UnauthorizedError('Please use Google login for this account');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new Error('INVALID_CREDENTIALS');
+      authenticationAttempts.inc({ type: 'login', result: 'failure' });
+      throw new UnauthorizedError('Invalid email or password');
     }
 
     // Generate tokens
@@ -289,5 +296,19 @@ export class AuthService {
     });
 
     return { message: 'Password changed successfully' };
+  }
+
+  /**
+   * Revoke all refresh tokens for a user (logout from all devices)
+   */
+  static async revokeAllRefreshTokens(userId: string) {
+    await TokenRepository.deleteAllUserTokens(userId);
+
+    logger.info({
+      type: 'ALL_TOKENS_REVOKED',
+      userId,
+    });
+
+    return { message: 'Logged out from all devices successfully' };
   }
 }

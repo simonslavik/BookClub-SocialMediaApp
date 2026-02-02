@@ -1,0 +1,20 @@
+import joi from 'joi';
+export declare const registerSchema: joi.ObjectSchema<any>;
+export declare const loginSchema: joi.ObjectSchema<any>;
+export declare const refreshTokenSchema: joi.ObjectSchema<any>;
+export declare const logoutSchema: joi.ObjectSchema<any>;
+export declare const sendFriendRequestSchema: joi.ObjectSchema<any>;
+export declare const acceptFriendRequestSchema: joi.ObjectSchema<any>;
+export declare const rejectFriendRequestSchema: joi.ObjectSchema<any>;
+export declare const removeFriendSchema: joi.ObjectSchema<any>;
+export declare const sendDirectMessageSchema: joi.ObjectSchema<any>;
+export declare const updateProfileSchema: joi.ObjectSchema<any>;
+export declare const googleAuthSchema: joi.ObjectSchema<any>;
+export declare const uuidParamSchema: joi.ObjectSchema<any>;
+export declare const otherUserIdParamSchema: joi.ObjectSchema<any>;
+export declare const forgotPasswordSchema: joi.ObjectSchema<any>;
+export declare const paginationSchema: joi.ObjectSchema<any>;
+export declare const resetPasswordSchema: joi.ObjectSchema<any>;
+export declare const verifyEmailSchema: joi.ObjectSchema<any>;
+export declare const resendVerificationSchema: joi.ObjectSchema<any>;
+//# sourceMappingURL=validation.d.ts.map

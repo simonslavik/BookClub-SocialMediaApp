@@ -1,19 +1,16 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service.js';
-import { verifyRefreshToken, revokeRefreshToken, revokeAllUserTokens } from '../utils/tokenUtils.js';
+import { verifyRefreshToken, generateAccessToken, generateRefreshToken } from '../utils/tokenUtils.js';
 import logger, { logError } from '../utils/logger.js';
 import { sendVerificationEmail } from './authController.js';
+import { ConflictError, UnauthorizedError, NotFoundError } from '../utils/errors.js';
 import { 
     sendCreated, 
     sendSuccess, 
-    sendConflict, 
-    sendUnauthorized, 
-    sendNotFound,
     sendServerError 
 } from '../utils/responseHelpers.js';
 import { 
     LogType,
-    ErrorMessage,
     SuccessMessage 
 } from '../constants/index.js';
 
@@ -30,20 +27,16 @@ export const registerUser = async (req: Request, res: Response) => {
 
         return sendCreated(res, result, SuccessMessage.USER_REGISTERED);
     } catch (error: any) {
-        if (error.message === 'EMAIL_EXISTS') {
-            logger.warn({
-                type: LogType.REGISTRATION_FAILED,
-                reason: 'EMAIL_EXISTS',
-                email: req.body.email
-            });
-            return sendConflict(res, ErrorMessage.EMAIL_EXISTS);
+        // AppError instances will be handled by errorHandler middleware
+        if (error instanceof ConflictError || error instanceof UnauthorizedError) {
+            throw error;
         }
         
         logError(error, 'Registration error', {
             type: 'REGISTRATION_ERROR',
             email: req.body.email
         });
-        return sendServerError(res, 'Error registering user');
+        throw error;
     }
 };
 
@@ -55,20 +48,15 @@ export const loginUser = async (req: Request, res: Response) => {
 
         return sendSuccess(res, result, SuccessMessage.LOGIN_SUCCESS);
     } catch (error: any) {
-        if (error.message === 'INVALID_CREDENTIALS' || error.message === 'OAUTH_USER') {
-            logger.warn({
-                type: LogType.LOGIN_FAILED,
-                reason: error.message,
-                email: req.body.email
-            });
-            return sendUnauthorized(res, ErrorMessage.INVALID_CREDENTIALS);
+        if (error instanceof UnauthorizedError) {
+            throw error;
         }
 
         logError(error, 'Login error', {
             type: 'LOGIN_ERROR',
             email: req.body.email
         });
-        return sendServerError(res, 'Error logging in');
+        throw error;
     }
 };
 
@@ -87,10 +75,12 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
                 type: LogType.REFRESH_TOKEN_INVALID,
                 action: 'REFRESH_TOKEN'
             });
-            return sendUnauthorized(res, 'Invalid or expired refresh token');
+            throw new UnauthorizedError('Invalid or expired refresh token');
         }
 
-        const { accessToken, refreshToken: newRefreshToken } = await AuthService.refreshAccessToken(refreshToken, user);
+        // Generate new tokens
+        const newAccessToken = generateAccessToken(user.id);
+        const newRefreshToken = generateRefreshToken(user.id);
 
         logger.info({
             type: LogType.TOKEN_REFRESHED,
@@ -98,8 +88,11 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
             email: user.email
         });
 
-        return sendSuccess(res, { accessToken, refreshToken: newRefreshToken }, SuccessMessage.TOKEN_REFRESHED);
+        return sendSuccess(res, { accessToken: newAccessToken, refreshToken: newRefreshToken }, SuccessMessage.TOKEN_REFRESHED);
     } catch (error: any) {
+        if (error instanceof UnauthorizedError) {
+            throw error;
+        }
         logError(error, 'Token refresh error');
         return sendServerError(res, 'Error refreshing token');
     }
@@ -127,7 +120,7 @@ export const logoutUser = async (req: Request, res: Response) => {
                 action: 'LOGOUT',
                 error: 'Refresh token not found'
             });
-            return sendNotFound(res, 'Refresh token');
+            throw new NotFoundError('Refresh token');
         }
 
         logError(error, 'Logout error');
@@ -148,10 +141,11 @@ export const logoutAllDevices = async (req: Request, res: Response) => {
                 action: 'LOGOUT_ALL_DEVICES',
                 error: 'Authentication required'
             });
-            return sendUnauthorized(res);
+            throw new UnauthorizedError('Authentication required');
         }
 
-        await AuthService.logoutAllDevices(userId);
+        // Revoke all refresh tokens for this user
+        await AuthService.revokeAllRefreshTokens(userId);
 
         logger.info({
             type: LogType.USER_LOGOUT_ALL_DEVICES,
@@ -160,6 +154,9 @@ export const logoutAllDevices = async (req: Request, res: Response) => {
 
         return sendSuccess(res, null, SuccessMessage.LOGOUT_ALL_SUCCESS);
     } catch (error: any) {
+        if (error instanceof UnauthorizedError) {
+            throw error;
+        }
         logError(error, 'Logout all error');
         return sendServerError(res, 'Error logging out from all devices');
     }

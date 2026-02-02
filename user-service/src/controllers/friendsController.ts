@@ -13,19 +13,22 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
             });
         }
 
-        const friendship = await FriendshipService.sendFriendRequest(senderId, recipientId);
+        const result = await FriendshipService.sendFriendRequest(senderId, recipientId);
+
+        // Check if result contains message (auto-accepted) or is just the friendship
+        const friendshipId = 'id' in result ? result.id : result.friendship?.id;
 
         logger.info({
             type: 'FRIEND_REQUEST_SENT',
             senderId,
             recipientId,
-            friendshipId: friendship.id
+            friendshipId
         });
 
         return res.status(200).json({
             success: true,
-            message: 'Friend request sent successfully',
-            data: friendship
+            message: 'message' in result ? result.message : 'Friend request sent successfully',
+            data: 'id' in result ? result : result.friendship
         });
     } catch (error: any) {
         if (error.message === 'CANNOT_ADD_YOURSELF') {
