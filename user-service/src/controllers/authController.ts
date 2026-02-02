@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
-import crypto from 'crypto';
-import bcrypt from 'bcrypt';
-import prisma from '../config/database.js';
+import { AuthService } from '../services/auth.service.js';
 import { logger, logError } from '../utils/logger.js';
 
 /**
@@ -10,65 +8,22 @@ import { logger, logError } from '../utils/logger.js';
  */
 export const forgotPassword = async (req: Request, res: Response) => {
     try {
-        // Request body is already validated by middleware
         const { email } = req.body;
 
-        // Find user by email
-        const user = await prisma.user.findUnique({
-            where: { email }
-        });
+        const resetToken = await AuthService.requestPasswordReset(email);
 
         // Always return success to prevent email enumeration
-        // (Don't reveal if email exists or not)
-        if (!user) {
-            logger.warn({
-                type: 'PASSWORD_RESET_REQUESTED',
-                email,
-                found: false
-            });
-            return res.status(200).json({
-                message: 'If an account with that email exists, a password reset link has been sent'
-            });
-        }
-
-        // Generate reset token (random 32-byte hex string)
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        
-        // Hash the token before storing (prevent token theft from DB breach)
-        const hashedToken = crypto
-            .createHash('sha256')
-            .update(resetToken)
-            .digest('hex');
-
-        // Set expiration to 1 hour from now
-        const resetExpires = new Date();
-        resetExpires.setHours(resetExpires.getHours() + 1);
-
-        // Save hashed token to database
-        await prisma.user.update({
-            where: { id: user.id },
-            data: {
-                passwordResetToken: hashedToken,
-                passwordResetExpires: resetExpires
-            }
-        });
-
-        // TODO: Send email with reset link
-        // const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-        // await sendEmail(user.email, 'Password Reset', resetUrl);
-
         logger.info({
             type: 'PASSWORD_RESET_REQUESTED',
-            userId: user.id,
-            email: user.email
+            email,
+            found: !!resetToken
         });
 
         // For development, return the token (REMOVE IN PRODUCTION)
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development' && resetToken) {
             return res.status(200).json({
                 message: 'Password reset token generated',
                 resetToken, // Only for development!
-                expiresAt: resetExpires
             });
         }
 
@@ -89,26 +44,19 @@ export const forgotPassword = async (req: Request, res: Response) => {
  */
 export const resetPassword = async (req: Request, res: Response) => {
     try {
-        // Request body is already validated by middleware
         const { token, password } = req.body;
 
-        // Hash the token to compare with DB
-        const hashedToken = crypto
-            .createHash('sha256')
-            .update(token)
-            .digest('hex');
+        await AuthService.resetPassword(token, password);
 
-        // Find user with valid reset token
-        const user = await prisma.user.findFirst({
-            where: {
-                passwordResetToken: hashedToken,
-                passwordResetExpires: {
-                    gt: new Date() // Token not expired
-                }
-            }
+        logger.info({
+            type: 'PASSWORD_RESET_SUCCESS'
         });
 
-        if (!user) {
+        res.status(200).json({
+            message: 'Password has been reset successfully. Please login with your new password.'
+        });
+    } catch (error: any) {
+        if (error.message === 'INVALID_TOKEN' || error.message === 'TOKEN_EXPIRED') {
             logger.warn({
                 type: 'PASSWORD_RESET_FAILED',
                 reason: 'Invalid or expired token'
@@ -118,34 +66,6 @@ export const resetPassword = async (req: Request, res: Response) => {
             });
         }
 
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(password, 12);
-
-        // Update password and clear reset token
-        await prisma.user.update({
-            where: { id: user.id },
-            data: {
-                password: hashedPassword,
-                passwordResetToken: null,
-                passwordResetExpires: null
-            }
-        });
-
-        // Revoke all existing refresh tokens (force re-login on all devices)
-        await prisma.refreshToken.deleteMany({
-            where: { userId: user.id }
-        });
-
-        logger.info({
-            type: 'PASSWORD_RESET_SUCCESS',
-            userId: user.id,
-            email: user.email
-        });
-
-        res.status(200).json({
-            message: 'Password has been reset successfully. Please login with your new password.'
-        });
-    } catch (error: any) {
         logError(error, 'Reset password error');
         res.status(500).json({
             message: 'Error resetting password'
@@ -159,31 +79,7 @@ export const resetPassword = async (req: Request, res: Response) => {
  */
 export const sendVerificationEmail = async (userId: string, email: string) => {
     try {
-        // Generate verification token
-        const verificationToken = crypto.randomBytes(32).toString('hex');
-        
-        // Hash the token
-        const hashedToken = crypto
-            .createHash('sha256')
-            .update(verificationToken)
-            .digest('hex');
-
-        // Set expiration to 24 hours
-        const verificationExpires = new Date();
-        verificationExpires.setHours(verificationExpires.getHours() + 24);
-
-        // Save to database
-        await prisma.user.update({
-            where: { id: userId },
-            data: {
-                emailVerificationToken: hashedToken,
-                emailVerificationExpires: verificationExpires
-            }
-        });
-
-        // TODO: Send email
-        // const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-        // await sendEmail(email, 'Verify Your Email', verifyUrl);
+        const verificationToken = await AuthService.sendEmailVerification(userId, email);
 
         logger.info({
             type: 'EMAIL_VERIFICATION_SENT',
@@ -204,26 +100,19 @@ export const sendVerificationEmail = async (userId: string, email: string) => {
  */
 export const verifyEmail = async (req: Request, res: Response) => {
     try {
-        // Request query is already validated by middleware
         const { token } = req.query;
 
-        // Hash the token
-        const hashedToken = crypto
-            .createHash('sha256')
-            .update(token as string)
-            .digest('hex');
+        await AuthService.verifyEmail(token as string);
 
-        // Find user with valid verification token
-        const user = await prisma.user.findFirst({
-            where: {
-                emailVerificationToken: hashedToken,
-                emailVerificationExpires: {
-                    gt: new Date()
-                }
-            }
+        logger.info({
+            type: 'EMAIL_VERIFIED'
         });
 
-        if (!user) {
+        res.status(200).json({
+            message: 'Email verified successfully! You can now login.'
+        });
+    } catch (error: any) {
+        if (error.message === 'INVALID_TOKEN' || error.message === 'TOKEN_EXPIRED') {
             logger.warn({
                 type: 'EMAIL_VERIFICATION_FAILED',
                 reason: 'Invalid or expired token'
@@ -233,26 +122,6 @@ export const verifyEmail = async (req: Request, res: Response) => {
             });
         }
 
-        // Mark email as verified and clear token
-        await prisma.user.update({
-            where: { id: user.id },
-            data: {
-                emailVerified: true,
-                emailVerificationToken: null,
-                emailVerificationExpires: null
-            }
-        });
-
-        logger.info({
-            type: 'EMAIL_VERIFIED',
-            userId: user.id,
-            email: user.email
-        });
-
-        res.status(200).json({
-            message: 'Email verified successfully! You can now login.'
-        });
-    } catch (error: any) {
         logError(error, 'Verify email error');
         res.status(500).json({
             message: 'Error verifying email'
@@ -266,34 +135,27 @@ export const verifyEmail = async (req: Request, res: Response) => {
  */
 export const resendVerification = async (req: Request, res: Response) => {
     try {
-        // Request body is already validated by middleware
         const { email } = req.body;
 
-        const user = await prisma.user.findUnique({
-            where: { email }
-        });
-
-        // Don't reveal if email exists
-        if (!user) {
-            return res.status(200).json({
-                message: 'If an account with that email exists and is unverified, a verification email has been sent'
-            });
-        }
-
-        // Check if already verified
-        if (user.emailVerified) {
-            return res.status(200).json({
-                message: 'Email is already verified'
-            });
-        }
-
-        // Send new verification email
-        await sendVerificationEmail(user.id, user.email);
+        await AuthService.sendEmailVerification(null, email);
 
         res.status(200).json({
             message: 'Verification email sent'
         });
     } catch (error: any) {
+        if (error.message === 'USER_NOT_FOUND') {
+            // Don't reveal if email exists
+            return res.status(200).json({
+                message: 'If an account with that email exists and is unverified, a verification email has been sent'
+            });
+        }
+
+        if (error.message === 'EMAIL_ALREADY_VERIFIED') {
+            return res.status(200).json({
+                message: 'Email is already verified'
+            });
+        }
+
         logError(error, 'Resend verification error', { email: req.body.email });
         res.status(500).json({
             message: 'Error sending verification email'

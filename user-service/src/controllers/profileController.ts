@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import { UserService } from '../services/user.service.js';
+import { FriendshipService } from '../services/friendship.service.js';
 import prisma from '../config/database.js';
 import { logger, logError } from '../utils/logger.js';
 
@@ -10,7 +12,7 @@ import { logger, logError } from '../utils/logger.js';
 export const getProfileById = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
-        const currentUserId = req.user?.userId; // Get the logged-in user ID if available
+        const currentUserId = req.user?.userId;
 
         if (!userId) {
             return res.status(400).json({ 
@@ -18,17 +20,7 @@ export const getProfileById = async (req: Request, res: Response) => {
             });
         }
 
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                createdAt: true,
-                updatedAt: true,
-                profileImage: true
-            }
-        });
+        const user = await UserService.getProfile(userId);
 
         if (!user) {
             return res.status(404).json({ 
@@ -39,28 +31,31 @@ export const getProfileById = async (req: Request, res: Response) => {
         // If there's a logged-in user and they're viewing someone else's profile, check friendship status
         let friendshipStatus = null;
         if (currentUserId && currentUserId !== userId) {
-            const friendship = await prisma.friendship.findFirst({
-                where: {
-                    OR: [
-                        { userId: currentUserId, friendId: userId },
-                        { userId: userId, friendId: currentUserId }
-                    ]
-                }
-            });
+            const areFriends = await FriendshipService.areFriends(currentUserId, userId);
+            if (areFriends) {
+                friendshipStatus = 'friends';
+            } else {
+                // Check for pending requests
+                const friendship = await prisma.friendship.findFirst({
+                    where: {
+                        OR: [
+                            { userId: currentUserId, friendId: userId },
+                            { userId: userId, friendId: currentUserId }
+                        ]
+                    }
+                });
 
-            if (friendship) {
-                // Determine the relationship from current user's perspective
-                if (friendship.status === 'ACCEPTED') {
-                    friendshipStatus = 'friends';
-                } else if (friendship.userId === currentUserId) {
-                    friendshipStatus = 'request_sent'; // Current user sent the request
-                } else {
-                    friendshipStatus = 'request_received'; // Current user received the request
+                if (friendship) {
+                    if (friendship.userId === currentUserId) {
+                        friendshipStatus = 'request_sent';
+                    } else {
+                        friendshipStatus = 'request_received';
+                    }
                 }
             }
         }
 
-        let numberOfFriends = await prisma.friendship.count({
+        const numberOfFriends = await prisma.friendship.count({
             where: {
                 OR: [
                     { userId: userId },
@@ -115,17 +110,7 @@ export const updateMyProfile = async (req: Request, res: Response) => {
             });
         }
 
-        const updatedUser = await prisma.user.update({
-            where: { id: userId },
-            data: { name: name.trim() },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                updatedAt: true,
-                profileImage: true
-            }
-        });
+        const updatedUser = await UserService.updateProfile(userId, { name: name.trim() });
 
         return res.status(200).json({
             success: true,
@@ -148,17 +133,7 @@ export const getUserById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
-        const user = await prisma.user.findUnique({
-            where: { id },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                createdAt: true,
-                updatedAt: true,
-                profileImage: true
-            }
-        });
+        const user = await UserService.getProfile(id);
 
         if (!user) {
             return res.status(404).json({ 
@@ -224,17 +199,7 @@ export const getUsersByIds = async (req: Request, res: Response) => {
             });
         }
 
-        const users = await prisma.user.findMany({
-            where: {
-                id: { in: userIds }
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                profileImage: true
-            }
-        });
+        const users = await UserService.getUsersByIds(userIds);
 
         return res.status(200).json({
             success: true,

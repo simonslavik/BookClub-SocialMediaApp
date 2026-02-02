@@ -1,10 +1,9 @@
 import { Request, Response } from 'express';
-import prisma from '../config/database.js';
+import { FriendshipService } from '../services/friendship.service.js';
 import { logger, logError } from '../utils/logger.js';
 
 export const sendFriendRequest = async (req: Request, res: Response) => {
     try {
-        // Request body is already validated by middleware
         const { recipientId } = req.body;
         const senderId = req.user?.userId;
         
@@ -14,70 +13,7 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
             });
         }
 
-        if (senderId === recipientId) {
-            logger.warn({
-                type: 'VALIDATION_ERROR',
-                action: 'SEND_FRIEND_REQUEST',
-                senderId,
-                error: 'Cannot send friend request to yourself'
-            });
-            return res.status(400).json({ 
-                message: 'Cannot send friend request to yourself' 
-            });
-        }
-
-        // Check if users exist
-        const recipient = await prisma.user.findUnique({ where: { id: recipientId } });
-
-        if (!recipient) {
-            return res.status(404).json({ 
-                message: 'User not found' 
-            });
-        }
-
-        // Check if friendship already exists (in either direction)
-        const existingFriendship = await prisma.friendship.findFirst({
-            where: {
-                OR: [
-                    { userId: senderId, friendId: recipientId },
-                    { userId: recipientId, friendId: senderId }
-                ]
-            }
-        });
-
-        if (existingFriendship) {
-            logger.warn({
-                type: 'FRIEND_REQUEST_DUPLICATE',
-                action: 'SEND_FRIEND_REQUEST',
-                senderId,
-                recipientId,
-                status: existingFriendship.status
-            });
-            return res.status(400).json({ 
-                message: existingFriendship.status === 'PENDING' 
-                    ? 'Friend request already sent' 
-                    : 'Already friends'
-            });
-        }
-
-        // Create friend request
-        const friendship = await prisma.friendship.create({
-            data: {
-                userId: senderId,
-                friendId: recipientId,
-                status: 'PENDING'
-            },
-            include: {
-                friend: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        profileImage: true
-                    }
-                }
-            }
-        });
+        const friendship = await FriendshipService.sendFriendRequest(senderId, recipientId);
 
         logger.info({
             type: 'FRIEND_REQUEST_SENT',
@@ -92,6 +28,38 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
             data: friendship
         });
     } catch (error: any) {
+        if (error.message === 'CANNOT_ADD_YOURSELF') {
+            logger.warn({
+                type: 'VALIDATION_ERROR',
+                action: 'SEND_FRIEND_REQUEST',
+                senderId: req.user?.userId,
+                error: 'Cannot send friend request to yourself'
+            });
+            return res.status(400).json({ 
+                message: 'Cannot send friend request to yourself' 
+            });
+        }
+        
+        if (error.message === 'USER_NOT_FOUND') {
+            return res.status(404).json({ 
+                message: 'User not found' 
+            });
+        }
+        
+        if (error.message === 'ALREADY_FRIENDS' || error.message === 'REQUEST_ALREADY_SENT') {
+            logger.warn({
+                type: 'FRIEND_REQUEST_DUPLICATE',
+                action: 'SEND_FRIEND_REQUEST',
+                senderId: req.user?.userId,
+                recipientId: req.body.recipientId
+            });
+            return res.status(400).json({ 
+                message: error.message === 'REQUEST_ALREADY_SENT' 
+                    ? 'Friend request already sent' 
+                    : 'Already friends'
+            });
+        }
+
         logError(error, 'Send friend request error', { senderId: req.user?.userId, recipientId: req.body.recipientId });
         return res.status(500).json({ 
             message: 'Failed to send friend request'
@@ -101,7 +69,6 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
 
 export const acceptFriendRequest = async (req: Request, res: Response) => {
     try {
-        // Request body is already validated by middleware
         const { requestId } = req.body;
         const userId = req.user?.userId;
 
@@ -111,72 +78,41 @@ export const acceptFriendRequest = async (req: Request, res: Response) => {
             });
         }
 
-        // Find the friendship request
-        const friendship = await prisma.friendship.findUnique({
-            where: { id: requestId },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        profileImage: true
-                    }
-                }
-            }
-        });
-
-        if (!friendship || friendship.friendId !== userId) {
-            return res.status(404).json({ 
-                message: 'Friend request not found' 
-            });
-        }
-
-        if (friendship.status !== 'PENDING') {
-            return res.status(400).json({ 
-                message: 'Friend request is not pending' 
-            });
-        }
-
-        // Update the friendship status to accepted
-        const updatedFriendship = await prisma.friendship.update({
-            where: { id: requestId },
-            data: { status: 'ACCEPTED' },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        profileImage: true
-                    }
-                }
-            }
-        });
+        const updatedFriendship = await FriendshipService.acceptFriendRequest(userId, requestId);
 
         logger.info({
             type: 'FRIEND_REQUEST_ACCEPTED',
-            userId,
-            senderId: updatedFriendship.userId,
-            friendshipId: requestId
+            requestId,
+            accepterId: userId
         });
 
         return res.status(200).json({
             success: true,
-            message: 'Friend request accepted successfully',
+            message: 'Friend request accepted',
             data: updatedFriendship
         });
     } catch (error: any) {
-        logError(error, 'Accept friend request error', { userId: req.user?.userId, requestId: req.body.requestId });
+        if (error.message === 'FRIENDSHIP_NOT_FOUND') {
+            return res.status(404).json({ 
+                message: 'Friend request not found' 
+            });
+        }
+        
+        if (error.message === 'INVALID_STATUS') {
+            return res.status(400).json({ 
+                message: 'Friend request is not pending' 
+            });
+        }
+
+        logError(error, 'Accept friend request error', { requestId: req.body.requestId, userId: req.user?.userId });
         return res.status(500).json({ 
             message: 'Failed to accept friend request'
         });
-    }  
+    }
 };
 
 export const rejectFriendRequest = async (req: Request, res: Response) => {
     try {
-        // Request body is already validated by middleware
         const { requestId } = req.body;
         const userId = req.user?.userId;
 
@@ -186,33 +122,25 @@ export const rejectFriendRequest = async (req: Request, res: Response) => {
             });
         }
 
-        // Find the friendship request
-        const friendship = await prisma.friendship.findUnique({
-            where: { id: requestId }
-        });
-
-        if (!friendship || friendship.friendId !== userId) {
-            return res.status(404).json({ 
-                message: 'Friend request not found' 
-            });
-        }
-
-        if (friendship.status !== 'PENDING') {
-            return res.status(400).json({ 
-                message: 'Friend request is not pending' 
-            });
-        }
-
-        // Delete the friendship request instead of updating status
-        await prisma.friendship.delete({
-            where: { id: requestId }
-        });
+        await FriendshipService.rejectFriendRequest(userId, requestId);
 
         return res.status(200).json({
             success: true,
             message: 'Friend request rejected successfully'
         });
     } catch (error: any) {
+        if (error.message === 'FRIENDSHIP_NOT_FOUND') {
+            return res.status(404).json({ 
+                message: 'Friend request not found' 
+            });
+        }
+        
+        if (error.message === 'INVALID_STATUS') {
+            return res.status(400).json({ 
+                message: 'Friend request is not pending' 
+            });
+        }
+
         logError(error, 'Reject friend request error', { userId: req.user?.userId, requestId: req.body.requestId });
         return res.status(500).json({ 
             message: 'Failed to reject friend request'
@@ -222,7 +150,6 @@ export const rejectFriendRequest = async (req: Request, res: Response) => {
 
 export const removeFriend = async (req: Request, res: Response) => {
     try {
-        // Request body is already validated by middleware
         const { friendId } = req.body;
         const userId = req.user?.userId;
 
@@ -232,27 +159,19 @@ export const removeFriend = async (req: Request, res: Response) => {
             });
         }
 
-        // Delete friendship (check both directions)
-        const deleted = await prisma.friendship.deleteMany({
-            where: {
-                OR: [
-                    { userId: userId, friendId: friendId, status: 'ACCEPTED' },
-                    { userId: friendId, friendId: userId, status: 'ACCEPTED' }
-                ]
-            }
-        });
-
-        if (deleted.count === 0) {
-            return res.status(404).json({ 
-                message: 'Friendship not found' 
-            });
-        }
+        await FriendshipService.removeFriend(userId, friendId);
 
         return res.status(200).json({
             success: true,
             message: 'Friend removed successfully'
         });
     } catch (error: any) {
+        if (error.message === 'FRIENDSHIP_NOT_FOUND') {
+            return res.status(404).json({ 
+                message: 'Friendship not found' 
+            });
+        }
+
         logError(error, 'Remove friend error', { userId: req.user?.userId, friendId: req.body.friendId });
         return res.status(500).json({ 
             message: 'Failed to remove friend'
@@ -270,58 +189,10 @@ export const listFriends = async (req: Request, res: Response) => {
             });
         }
 
-        // Parse pagination params (already validated by middleware)
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 20;
-        const skip = (page - 1) * limit;
 
-        // Get total count for pagination metadata
-        const totalCount = await prisma.friendship.count({
-            where: {
-                OR: [
-                    { userId: userId, status: 'ACCEPTED' },
-                    { friendId: userId, status: 'ACCEPTED' }
-                ]
-            }
-        });
-
-        // Fetch accepted friendships with pagination
-        const friendships = await prisma.friendship.findMany({
-            where: {
-                OR: [
-                    { userId: userId, status: 'ACCEPTED' },
-                    { friendId: userId, status: 'ACCEPTED' }
-                ]
-            },
-            skip,
-            take: limit,
-            orderBy: {
-                createdAt: 'desc'
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        profileImage: true
-                    }
-                },
-                friend: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        profileImage: true
-                    }
-                }
-            }
-        });
-
-        // Extract friend data (the user who is not the current user)
-        const friends = friendships.map(f => 
-            f.userId === userId ? f.friend : f.user
-        );
+        const { friends, totalCount } = await FriendshipService.getFriends(userId, page, limit);
 
         const totalPages = Math.ceil(totalCount / limit);
 
@@ -354,47 +225,16 @@ export const listFriendRequests = async (req: Request, res: Response) => {
             });
         }
 
-        // Parse pagination params (already validated by middleware)
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 20;
-        const skip = (page - 1) * limit;
 
-        // Get total count for pagination metadata
-        const totalCount = await prisma.friendship.count({
-            where: {
-                friendId: userId,
-                status: 'PENDING'
-            }
-        });
-
-        // Fetch pending friend requests with pagination
-        const friendRequests = await prisma.friendship.findMany({
-            where: {
-                friendId: userId,
-                status: 'PENDING'
-            },
-            skip,
-            take: limit,
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        profileImage: true
-                    }
-                }
-            },
-            orderBy: {
-                createdAt: 'desc'
-            }
-        });
+        const { requests, totalCount } = await FriendshipService.getPendingRequests(userId, page, limit);
 
         const totalPages = Math.ceil(totalCount / limit);
 
         return res.status(200).json({
             success: true,
-            data: friendRequests,
+            data: requests,
             pagination: {
                 page,
                 limit,
