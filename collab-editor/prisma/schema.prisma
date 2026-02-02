@@ -27,8 +27,9 @@ model BookClub {
   lastActiveAt DateTime @default(now())
 
   // Relations
-  rooms  Room[]
-  events BookClubEvent[]
+  rooms   Room[]
+  events  BookClubEvent[]
+  invites BookClubInvite[]
 
   @@index([creatorId])
   @@index([lastActiveAt])
@@ -55,16 +56,35 @@ model Room {
 
 // Message model - stores chat messages in rooms (like Discord messages)
 model Message {
-  id        String   @id @default(uuid())
-  roomId    String
-  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  userId    String // User ID from user-service
-  username  String // Cached username for display
-  content   String
-  createdAt DateTime @default(now())
+  id          String     @id @default(uuid())
+  roomId      String
+  room        Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId      String // User ID from user-service
+  username    String // Cached username for display
+  content     String?
+  createdAt   DateTime   @default(now())
+  attachments ChatFile[]
 
   @@index([roomId, createdAt])
   @@map("messages")
+}
+
+// ChatFile model - stores uploaded files/images in chat
+model ChatFile {
+  id           String   @id @default(uuid())
+  filename     String // Stored filename on disk
+  originalName String // Original filename from user
+  mimetype     String
+  size         Int
+  url          String // Relative path to file
+  uploadedBy   String // User ID from user-service
+  messageId    String? // Optional: associated message
+  message      Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@index([messageId])
+  @@index([uploadedBy])
+  @@map("chat_files")
 }
 
 // BookClubEvent model - stores calendar events for book clubs
@@ -82,4 +102,22 @@ model BookClubEvent {
 
   @@index([bookClubId, eventDate])
   @@map("bookclub_events")
+}
+
+// BookClubInvite model - stores invite links for book clubs (like Discord invites)
+model BookClubInvite {
+  id          String    @id @default(uuid())
+  bookClubId  String
+  bookClub    BookClub  @relation(fields: [bookClubId], references: [id], onDelete: Cascade)
+  code        String    @unique // Short unique code like "abc123xyz"
+  createdBy   String // User ID from user-service
+  expiresAt   DateTime? // Null means never expires
+  maxUses     Int? // Null means unlimited uses
+  currentUses Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([bookClubId])
+  @@index([code])
+  @@map("bookclub_invites")
 }

@@ -18,6 +18,7 @@ model Book {
 
   bookClubBooks BookClubBook[]
   userBooks     UserBook[]
+  suggestions   BookSuggestion[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -94,5 +95,39 @@ model BookClubBookReview {
 
   @@unique([bookClubBookId, userId])
   @@index([bookClubBookId])
+  @@index([userId])
+}
+
+model BookSuggestion {
+  id            String   @id @default(uuid())
+  bookClubId    String
+  bookId        String
+  suggestedById String
+  reason        String?
+  status        String   @default("pending") // pending, accepted, rejected
+  upvotes       Int      @default(0)
+  downvotes     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  book  Book                 @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  votes BookSuggestionVote[]
+
+  @@index([bookClubId])
+  @@index([status])
+}
+
+model BookSuggestionVote {
+  id           String   @id @default(uuid())
+  suggestionId String
+  userId       String
+  voteType     String // upvote, downvote
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  suggestion BookSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+
+  @@unique([suggestionId, userId])
+  @@index([suggestionId])
   @@index([userId])
 }

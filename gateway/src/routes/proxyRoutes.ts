@@ -1,9 +1,24 @@
 import proxy from 'express-http-proxy';
 import { Express, Request, Response } from 'express';
-import logger from '../utils/logger.js';
 import { randomUUID } from 'crypto';
+import logger from '../utils/logger.js';
 import authHandler from '../middleware/authHandler.js';
+import { TIMEOUTS, HTTP_STATUS } from '../config/constants.js';
 
+/**
+ * Service route configuration
+ */
+interface ServiceConfig {
+  envVar: string;
+  route: string;
+  name: string;
+  requireAuth: boolean;
+  pathTransform?: (path: string) => string;
+}
+
+/**
+ * Proxy configuration interface
+ */
 interface ProxyConfig {
   proxyReqPathResolver: (req: Request) => string;
   proxyReqOptDecorator: (proxyReqOpts: any, srcReq: Request) => any;
@@ -12,89 +27,158 @@ interface ProxyConfig {
   timeout: number;
 }
 
-const createProxyConfig = (serviceName: string, pathTransform?: (path: string) => string): ProxyConfig => ({
+/**
+ * Service definitions
+ */
+const SERVICES: ServiceConfig[] = [
+  // User Service routes
+  { envVar: 'USER_SERVICE_URL', route: '/v1/auth', name: 'Auth Service', requireAuth: false },
+  { envVar: 'USER_SERVICE_URL', route: '/v1/profile', name: 'Profile Service', requireAuth: false },
+  { envVar: 'USER_SERVICE_URL', route: '/v1/users', name: 'User Service', requireAuth: true },
+  { envVar: 'USER_SERVICE_URL', route: '/v1/friends', name: 'Friends Service', requireAuth: true },
+  { envVar: 'USER_SERVICE_URL', route: '/v1/messages', name: 'Messages Service', requireAuth: true },
+  
+  // Collab Editor Service
+  { 
+    envVar: 'COLLAB_EDITOR_URL', 
+    route: '/v1/editor', 
+    name: 'Collab Editor Service', 
+    requireAuth: false,
+    pathTransform: (path: string) => path.replace(/^\/v1\/editor/, ''),
+  },
+  
+  // Books Service routes
+  { 
+    envVar: 'BOOKS_SERVICE_URL', 
+    route: '/v1/books', 
+    name: 'Books Service', 
+    requireAuth: false, 
+    pathTransform: (path: string) => path,
+  },
+  { 
+    envVar: 'BOOKS_SERVICE_URL', 
+    route: '/v1/bookclubs', 
+    name: 'Bookclubs Service', 
+    requireAuth: true, 
+    pathTransform: (path: string) => path,
+  },
+  { 
+    envVar: 'BOOKS_SERVICE_URL', 
+    route: '/v1/user-books', 
+    name: 'User Books Service', 
+    requireAuth: true, 
+    pathTransform: (path: string) => path,
+  },
+  { 
+    envVar: 'BOOKS_SERVICE_URL', 
+    route: '/v1/bookclub', 
+    name: 'BookClub Book Service', 
+    requireAuth: false, 
+    pathTransform: (path: string) => path,
+  },
+  { 
+    envVar: 'BOOKS_SERVICE_URL', 
+    route: '/v1/bookclub-books', 
+    name: 'BookClub Book Progress Service', 
+    requireAuth: true, 
+    pathTransform: (path: string) => path,
+  },
+];
+
+/**
+ * Create proxy configuration for a service
+ * @param serviceName - Name of the service for logging
+ * @param pathTransform - Optional function to transform the request path
+ */
+const createProxyConfig = (
+  serviceName: string, 
+  pathTransform?: (path: string) => string
+): ProxyConfig => ({
+  /**
+   * Resolve the path to forward to the service
+   */
   proxyReqPathResolver: (req: Request) => {
-    // Use custom path transform if provided, otherwise default transformation
     if (pathTransform) {
       return pathTransform(req.originalUrl);
     }
     // Default: Transform /v1/users -> /api/users
-    return req.originalUrl.replace(/^\/v1/, "/api");
+    return req.originalUrl.replace(/^\/v1/, '/api');
   },
-  
+
+  /**
+   * Decorate proxy request with headers
+   */
   proxyReqOptDecorator: (proxyReqOpts: any, srcReq: Request) => {
     const requestId = (srcReq as any).id || randomUUID();
-    
-    // Add gateway headers
+
+    // Add gateway tracking headers
     proxyReqOpts.headers['X-Gateway-Source'] = 'api-gateway';
     proxyReqOpts.headers['X-Request-ID'] = requestId;
     proxyReqOpts.headers['X-Forwarded-For'] = srcReq.ip;
     proxyReqOpts.headers['X-Service-Name'] = serviceName;
-    
-    // Forward authorization header (services will verify JWT)
+
+    // Forward user information if authenticated
+    if (srcReq.user) {
+      proxyReqOpts.headers['X-User-Id'] = (srcReq.user as any).userId;
+      proxyReqOpts.headers['X-User-Email'] = (srcReq.user as any).email;
+    }
+
+    // Forward authorization header
     if (srcReq.headers.authorization) {
       proxyReqOpts.headers['Authorization'] = srcReq.headers.authorization;
     }
-    
-    logger.info(`[${requestId}] Proxying ${srcReq.method} ${srcReq.url} to ${serviceName}`);
+
+    logger.info(`[${requestId}] Proxying ${srcReq.method} ${srcReq.url} → ${serviceName}`);
     return proxyReqOpts;
   },
-  
+
+  /**
+   * Decorate response from service
+   */
   userResDecorator: (proxyRes: any, proxyResData: Buffer, userReq: Request) => {
     const requestId = (userReq as any).id || 'unknown';
-    logger.info(`[${requestId}] ${serviceName} responded with ${proxyRes.statusCode} for ${userReq.url}`);
-    // Don't log response body - may contain sensitive data
+    logger.info(`[${requestId}] ${serviceName} → ${proxyRes.statusCode}`);
     return proxyResData;
   },
-  
+
+  /**
+   * Handle proxy errors
+   */
   proxyErrorHandler: (err: Error, res: Response) => {
-    logger.error(`Proxy error for ${serviceName}: ${err.message}`);
-    res.status(503).json({
+    logger.error(`Proxy error [${serviceName}]: ${err.message}`);
+    
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.status(HTTP_STATUS.SERVICE_UNAVAILABLE).json({
       success: false,
       message: `${serviceName} is currently unavailable`,
-      error: process.env.NODE_ENV === 'production' ? 'Service unavailable' : err.message
+      error: isProduction ? 'Service unavailable' : err.message,
     });
   },
-  
-  timeout: 10000 // 10 seconds
+
+  timeout: TIMEOUTS.DEFAULT,
 });
 
+/**
+ * Setup proxy routes for all microservices
+ * @param app - Express application instance
+ */
 export const setupProxyRoutes = (app: Express): void => {
-  const services = [
-    { envVar: 'USER_SERVICE_URL', route: '/v1/profile', name: 'Profile Service', requireAuth: false },
-    { envVar: 'USER_SERVICE_URL', route: '/v1/friends', name: 'Friends Service', requireAuth: true },
-    { envVar: 'USER_SERVICE_URL', route: '/v1/messages', name: 'Messages Service', requireAuth: true },
-    { envVar: 'USER_SERVICE_URL', route: '/v1/users', name: 'User Service', requireAuth: true },
-    { envVar: 'USER_SERVICE_URL', route: '/v1/auth', name: 'Auth Service', requireAuth: false },
-    { 
-      envVar: 'COLLAB_EDITOR_URL', 
-      route: '/v1/editor', 
-      name: 'Collab Editor Service', 
-      requireAuth: false,
-      pathTransform: (path: string) => path.replace(/^\/v1\/editor/, '') // /v1/editor/health -> /health
-    },
-    { envVar: 'BOOKS_SERVICE_URL', route: '/v1/books', name: 'Books Service', requireAuth: false, pathTransform: (path: string) => path },
-    { envVar: 'BOOKS_SERVICE_URL', route: '/v1/bookclubs', name: 'Bookclubs Service', requireAuth: true, pathTransform: (path: string) => path },
-    { envVar: 'BOOKS_SERVICE_URL', route: '/v1/user-books', name: 'User Books Service', requireAuth: true, pathTransform: (path: string) => path },
-    { envVar: 'BOOKS_SERVICE_URL', route: '/v1/bookclub', name: 'BookClub Book Service', requireAuth: false, pathTransform: (path: string) => path },
-    { envVar: 'BOOKS_SERVICE_URL', route: '/v1/bookclub-books', name: 'BookClub Book Progress Service', requireAuth: true, pathTransform: (path: string) => path }
-  ];
-  
-  services.forEach(({ envVar, route, name, requireAuth, pathTransform }: any) => {
+  SERVICES.forEach(({ envVar, route, name, requireAuth, pathTransform }) => {
     const serviceUrl = process.env[envVar];
-    
+
     if (!serviceUrl) {
-      logger.warn(`${envVar} not configured, skipping ${name} proxy setup`);
+      logger.warn(`⚠️  ${envVar} not configured, skipping ${name}`);
       return;
     }
-    
-    // Apply auth middleware only to protected routes
-    if (requireAuth) {
-      app.use(route, authHandler, proxy(serviceUrl, createProxyConfig(name, pathTransform)));
-      logger.info(`✓ Proxy configured (protected): ${route} → ${serviceUrl}`);
-    } else {
-      app.use(route, proxy(serviceUrl, createProxyConfig(name, pathTransform)));
-      logger.info(`✓ Proxy configured (public): ${route} → ${serviceUrl}`);
-    }
+
+    const proxyConfig = createProxyConfig(name, pathTransform);
+    const middleware = requireAuth 
+      ? [authHandler, proxy(serviceUrl, proxyConfig)]
+      : [proxy(serviceUrl, proxyConfig)];
+
+    app.use(route, ...middleware);
+
+    const authStatus = requireAuth ? '🔒 protected' : '🌐 public';
+    logger.info(`✓ ${authStatus}: ${route} → ${serviceUrl} [${name}]`);
   });
 };

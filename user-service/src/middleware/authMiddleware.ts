@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { logError } from '../utils/logger.js';
 
 // Extend Express Request to include user property
 declare global {
@@ -8,7 +9,6 @@ declare global {
             user?: {
                 userId: string;
                 email: string;
-                role: string;
             };
         }
     }
@@ -17,7 +17,6 @@ declare global {
 interface TokenPayload {
     userId: string;
     email: string;
-    role: string;
     iat: number;
     exp: number;
 }
@@ -73,10 +72,9 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
             });
         }
 
-        console.error('Auth middleware error:', error);
+        logError(error, 'Auth middleware error');
         return res.status(500).json({ 
-            message: 'Authentication error',
-            error: error.message 
+            message: 'Authentication error'
         });
     }
 };
@@ -116,8 +114,7 @@ export const optionalAuthMiddleware = async (req: Request, res: Response, next: 
             
             req.user = {
                 userId: decoded.userId,
-                email: decoded.email,
-                role: decoded.role
+                email: decoded.email
             };
         } catch {
             // Invalid token - continue without user

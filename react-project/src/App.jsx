@@ -7,6 +7,7 @@ import ChangeProfilePage from "./pages/changeProfile";
 import ProfilePage from "./pages/profilePage/:id";
 import BookClubPage from "./pages/bookclubPage/:id";
 import DiscoverBookClubs from "./pages/discover";
+import InviteJoinPage from "./pages/invite/:code";
 
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
         </ProtectedRoute>
       }/>
       <Route path="/discover" element={<DiscoverBookClubs />}/>
+      <Route path="/invite/:code" element={<InviteJoinPage />}/>
       
     </Routes>
   );

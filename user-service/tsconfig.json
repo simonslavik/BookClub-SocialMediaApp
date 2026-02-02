@@ -5,7 +5,7 @@
     "module": "NodeNext",
     "target": "ES2022",
     "lib": ["ES2022"],
-    "types": ["node"],
+    "types": ["node", "jest"],
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
@@ -17,7 +17,7 @@
     "moduleResolution": "NodeNext",
     "isolatedModules": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist"],
   "ts-node": {
     "esm": true,

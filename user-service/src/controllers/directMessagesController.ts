@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database.js';
+import { logger, logError } from '../utils/logger.js';
 
 /**
  * Get direct message conversation between two users
@@ -21,7 +22,23 @@ export const getDirectMessages = async (req: Request, res: Response) => {
             });
         }
 
-        // Get messages between the two users
+        // Parse pagination params (already validated by middleware)
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 50; // Higher default for messages
+        const skip = (page - 1) * limit;
+
+        // Get total count for pagination metadata
+        const totalCount = await prisma.directMessage.count({
+            where: {
+                OR: [
+                    { senderId: currentUserId, receiverId: otherUserId },
+                    { senderId: otherUserId, receiverId: currentUserId }
+                ]
+            }
+        });
+
+        // Get messages between the two users with pagination
+        // Note: We fetch in descending order and reverse to show newest at bottom
         const messages = await prisma.directMessage.findMany({
             where: {
                 OR: [
@@ -29,8 +46,10 @@ export const getDirectMessages = async (req: Request, res: Response) => {
                     { senderId: otherUserId, receiverId: currentUserId }
                 ]
             },
+            skip,
+            take: limit,
             orderBy: {
-                createdAt: 'asc'
+                createdAt: 'desc' // Get newest first, then reverse
             },
             include: {
                 sender: {
@@ -42,6 +61,9 @@ export const getDirectMessages = async (req: Request, res: Response) => {
                 }
             }
         });
+
+        // Reverse to show oldest first (chronological order)
+        const messagesChronological = messages.reverse();
 
         // Mark messages as read
         await prisma.directMessage.updateMany({
@@ -66,18 +88,35 @@ export const getDirectMessages = async (req: Request, res: Response) => {
             }
         });
 
+        logger.info({
+            type: 'DM_MESSAGES_FETCHED',
+            userId: currentUserId,
+            otherUserId,
+            messageCount: messagesChronological.length,
+            page,
+            totalCount
+        });
+
+        const totalPages = Math.ceil(totalCount / limit);
+
         return res.status(200).json({
             success: true,
             data: {
-                messages,
+                messages: messagesChronological,
                 otherUser
+            },
+            pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages,
+                hasMore: page < totalPages
             }
         });
     } catch (error: any) {
-        console.error('Get direct messages error:', error);
+        logError(error, 'Get direct messages error', { userId: req.user?.userId });
         return res.status(500).json({ 
-            message: 'Failed to fetch messages',
-            error: error.message 
+            message: 'Failed to fetch messages'
         });
     }
 };
@@ -89,7 +128,8 @@ export const sendDirectMessage = async (req: Request, res: Response) => {
     try {
         // Support both authenticated requests and internal service calls
         const currentUserId = req.user?.userId || req.headers['x-user-id'] as string;
-        const { receiverId, content } = req.body;
+        // Request body is already validated by middleware
+        const { receiverId, content, attachments = [] } = req.body;
 
         if (!currentUserId) {
             return res.status(401).json({ 
@@ -97,17 +137,12 @@ export const sendDirectMessage = async (req: Request, res: Response) => {
             });
         }
 
-        if (!receiverId || !content || !content.trim()) {
-            return res.status(400).json({ 
-                message: 'Receiver ID and message content are required' 
-            });
-        }
-
         const message = await prisma.directMessage.create({
             data: {
                 senderId: currentUserId,
                 receiverId: receiverId,
-                content: content.trim(),
+                content: content?.trim() || '',
+                attachments: attachments,
                 isRead: false
             },
             include: {
@@ -121,15 +156,25 @@ export const sendDirectMessage = async (req: Request, res: Response) => {
             }
         });
 
+        logger.info({
+            type: 'DM_SENT',
+            senderId: currentUserId,
+            receiverId,
+            messageId: message.id,
+            hasAttachments: attachments.length > 0
+        });
+
         return res.status(200).json({
             success: true,
             data: message
         });
     } catch (error: any) {
-        console.error('Send direct message error:', error);
+        logError(error, 'Send direct message error', { 
+            senderId: req.user?.userId || req.headers['x-user-id'],
+            receiverId: req.body.receiverId
+        });
         return res.status(500).json({ 
-            message: 'Failed to send message',
-            error: error.message 
+            message: 'Failed to send message'
         });
     }
 };
@@ -147,47 +192,44 @@ export const getConversations = async (req: Request, res: Response) => {
             });
         }
 
-        // Get all friends
-        const friendships = await prisma.friendship.findMany({
+        // Get all unique users who have exchanged messages with current user
+        const messages = await prisma.directMessage.findMany({
             where: {
                 OR: [
-                    { userId: currentUserId, status: 'ACCEPTED' },
-                    { friendId: currentUserId, status: 'ACCEPTED' }
+                    { senderId: currentUserId },
+                    { receiverId: currentUserId }
                 ]
             },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        profileImage: true
-                    }
-                },
-                friend: {
-                    select: {
-                        id: true,
-                        name: true,
-                        profileImage: true
-                    }
-                }
+            select: {
+                senderId: true,
+                receiverId: true
             }
         });
 
-        // Get last message with each friend
+        // Extract unique user IDs
+        const userIds = new Set<string>();
+        messages.forEach(msg => {
+            if (msg.senderId !== currentUserId) userIds.add(msg.senderId);
+            if (msg.receiverId !== currentUserId) userIds.add(msg.receiverId);
+        });
+
+        // Get user details and conversation info for each user
         const conversations = await Promise.all(
-            friendships.map(async (friendship) => {
-                const friendId = friendship.userId === currentUserId 
-                    ? friendship.friendId 
-                    : friendship.userId;
-                const friend = friendship.userId === currentUserId 
-                    ? friendship.friend 
-                    : friendship.user;
+            Array.from(userIds).map(async (otherUserId) => {
+                const otherUser = await prisma.user.findUnique({
+                    where: { id: otherUserId },
+                    select: {
+                        id: true,
+                        name: true,
+                        profileImage: true
+                    }
+                });
 
                 const lastMessage = await prisma.directMessage.findFirst({
                     where: {
                         OR: [
-                            { senderId: currentUserId, receiverId: friendId },
-                            { senderId: friendId, receiverId: currentUserId }
+                            { senderId: currentUserId, receiverId: otherUserId },
+                            { senderId: otherUserId, receiverId: currentUserId }
                         ]
                     },
                     orderBy: {
@@ -197,14 +239,14 @@ export const getConversations = async (req: Request, res: Response) => {
 
                 const unreadCount = await prisma.directMessage.count({
                     where: {
-                        senderId: friendId,
+                        senderId: otherUserId,
                         receiverId: currentUserId,
                         isRead: false
                     }
                 });
 
                 return {
-                    friend,
+                    friend: otherUser,
                     lastMessage,
                     unreadCount
                 };
@@ -224,10 +266,9 @@ export const getConversations = async (req: Request, res: Response) => {
             data: conversations
         });
     } catch (error: any) {
-        console.error('Get conversations error:', error);
+        logError(error, 'Get conversations error', { userId: req.user?.userId });
         return res.status(500).json({ 
-            message: 'Failed to fetch conversations',
-            error: error.message 
+            message: 'Failed to fetch conversations'
         });
     }
 };

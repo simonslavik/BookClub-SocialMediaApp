@@ -13,6 +13,14 @@ declare global {
     }
 }
 
+// Export AuthRequest type for use in controllers
+export interface AuthRequest extends Request {
+    user?: {
+        userId: string;
+        email: string;
+    };
+}
+
 interface TokenPayload {
     userId: string;
     email: string;

@@ -12,16 +12,21 @@ datasource db {
 
 // User model for authentication and user management
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  password      String? // Hashed with bcrypt (optional for OAuth users)
-  name          String
-  googleId      String?        @unique // Google OAuth ID
-  authProvider  String         @default("local") // 'local' or 'google'
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  profileImage  String? // Optional profile image URL
-  refreshTokens RefreshToken[]
+  id                       String         @id @default(uuid())
+  email                    String         @unique
+  password                 String? // Hashed with bcrypt (optional for OAuth users)
+  name                     String
+  googleId                 String?        @unique // Google OAuth ID
+  authProvider             String         @default("local") // 'local' or 'google'
+  emailVerified            Boolean        @default(false) // Email verification status
+  emailVerificationToken   String?        @unique // Token for email verification
+  emailVerificationExpires DateTime? // Expiration time for verification token
+  passwordResetToken       String?        @unique // Token for password reset
+  passwordResetExpires     DateTime? // Expiration time for reset token
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  profileImage             String? // Optional profile image URL
+  refreshTokens            RefreshToken[]
 
   // Friend relationships
   friendships Friendship[] @relation("UserFriendships")
@@ -72,13 +77,14 @@ enum FriendshipStatus {
 }
 
 model DirectMessage {
-  id         String   @id @default(uuid())
-  senderId   String
-  receiverId String
-  content    String   @db.Text
-  isRead     Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(uuid())
+  senderId    String
+  receiverId  String
+  content     String   @db.Text
+  attachments Json?    @default("[]")
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)

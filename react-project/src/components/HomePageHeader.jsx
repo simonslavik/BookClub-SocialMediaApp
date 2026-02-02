@@ -3,8 +3,8 @@ import { useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { FiBell, FiMail, FiMenu, FiX, FiUser, FiSettings, FiLogOut, FiPlusCircle } from 'react-icons/fi';
-import LoginModule from './loginModule';
-import RegisterModule from './registerModule';
+import LoginModule from '../components/Modals/loginModule';
+import RegisterModule from '../components/Modals/registerModule';
 
 
     

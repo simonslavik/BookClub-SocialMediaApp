@@ -4,8 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AuthContext from '../../../context';
 import HomePageHeader from '../../../components/HomePageHeader';
 import { FiInfo, FiMail, FiMessageCircle, FiPlus } from 'react-icons/fi';
-import AddBookToLibraryModal from '../../../components/AddBookToLibraryModal';
-import BookDetailsModal from '../../../components/BookDetails';
+import AddBookToLibraryModal from '../../../components/Modals/AddBookToLibraryModal';
+import BookDetailsModal from '../../../components/Modals/BookDetails';
 
 
 const ProfilePage = () => {
@@ -16,6 +16,7 @@ const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [createdBookClubs, setCreatedBookClubs] = useState([]);
   const [memberBookClubs, setMemberBookClubs] = useState([]);
+  const [currentUserBookClubs, setCurrentUserBookClubs] = useState([]); // Current user's bookclubs for messaging
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [friendRequestLoading, setFriendRequestLoading] = useState(false);
@@ -59,6 +60,16 @@ const ProfilePage = () => {
           : {};
           
         const profileResponse = await fetch(`http://localhost:3000/v1/profile/${id}`, { headers });
+        
+        // Check if response is JSON
+        const contentType = profileResponse.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await profileResponse.text();
+          console.error('Profile endpoint returned non-JSON:', text);
+          setError('Failed to load profile - server error');
+          return;
+        }
+        
         const profileData = await profileResponse.json();
         
         if (profileResponse.ok && profileData.success) {
@@ -68,19 +79,27 @@ const ProfilePage = () => {
           return;
         }
         
-        // Fetch user's created bookclubs
-        const createdBookClubsResponse = await fetch(`http://localhost:3000/v1/editor/users/${id}/bookclubs`, { headers });
-        const createdBookClubsData = await createdBookClubsResponse.json();
+        // Fetch user's created bookclubs - filter from all bookclubs
+        // Fetch all bookclubs and filter for ones created by or where user is a member
+        const allBookClubsResponse = await fetch('http://localhost:3000/v1/editor/bookclubs', { headers });
+        let allBookClubsData = { bookClubs: [] };
         
-        if (createdBookClubsResponse.ok) {
-          setCreatedBookClubs(createdBookClubsData.bookClubs || []);
+        if (!allBookClubsResponse.ok) {
+          console.warn('Failed to fetch all bookclubs:', allBookClubsResponse.status);
+        } else {
+          const contentType = allBookClubsResponse.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            allBookClubsData = await allBookClubsResponse.json();
+            
+            // Filter for created bookclubs
+            const created = (allBookClubsData.bookClubs || []).filter(club => club.creatorId === id);
+            setCreatedBookClubs(created);
+          } else {
+            console.warn('All bookclubs endpoint returned non-JSON');
+          }
         }
         
-        // Fetch all bookclubs and filter for ones where user is a member
-        const allBookClubsResponse = await fetch('http://localhost:3000/v1/editor/bookclubs', { headers });
-        const allBookClubsData = await allBookClubsResponse.json();
-        
-        if (allBookClubsResponse.ok) {
+        if (allBookClubsData.bookClubs) {
           // Filter bookclubs where this user is a member (but not creator to avoid duplicates)
           const memberClubs = (allBookClubsData.bookClubs || []).filter(club => {
             const isMember = club.members.some(member => 
@@ -92,44 +111,98 @@ const ProfilePage = () => {
           setMemberBookClubs(memberClubs);
         }
 
-        const favoriteBooksResponse = await fetch(`${GATEWAY_URL}/v1/user-books?status=favorite`, {
-          headers: auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}
-        });
-        const data2 = await favoriteBooksResponse.json();
-        
-        if (data2.success) {
-          setFavoriteBooks(data2.data || []);
-        } 
+        // Fetch books with error handling
+        try {
+          const favoriteBooksResponse = await fetch(`${GATEWAY_URL}/v1/user-books?status=favorite`, {
+            headers: auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}
+          });
+          if (favoriteBooksResponse.ok) {
+            const data2 = await favoriteBooksResponse.json();
+            if (data2.success) {
+              setFavoriteBooks(data2.data || []);
+            }
+          }
+        } catch (err) {
+          console.warn('Failed to fetch favorite books:', err);
+        }
 
-        const booksImReadingResponse = await fetch(`${GATEWAY_URL}/v1/user-books?status=reading`, {
-          headers: auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}
-        });
-        const data3 = await booksImReadingResponse.json();
-        
-        if (data3.success) {
-          setBooksImReading(data3.data || []);
-        } 
+        try {
+          const booksImReadingResponse = await fetch(`${GATEWAY_URL}/v1/user-books?status=reading`, {
+            headers: auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}
+          });
+          if (booksImReadingResponse.ok) {
+            const data3 = await booksImReadingResponse.json();
+            if (data3.success) {
+              setBooksImReading(data3.data || []);
+            }
+          }
+        } catch (err) {
+          console.warn('Failed to fetch reading books:', err);
+        }
 
-        const booksToReadResponse = await fetch(`${GATEWAY_URL}/v1/user-books?status=want_to_read`, {
-          headers: auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}
-        });
-        const data4 = await booksToReadResponse.json();
-        
-        if (data4.success) {
-          setBooksToRead(data4.data || []);
-        } 
+        try {
+          const booksToReadResponse = await fetch(`${GATEWAY_URL}/v1/user-books?status=want_to_read`, {
+            headers: auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}
+          });
+          if (booksToReadResponse.ok) {
+            const data4 = await booksToReadResponse.json();
+            if (data4.success) {
+              setBooksToRead(data4.data || []);
+            }
+          }
+        } catch (err) {
+          console.warn('Failed to fetch want_to_read books:', err);
+        }
 
-        const booksReadResponse = await fetch(`${GATEWAY_URL}/v1/user-books?status=completed`, {
-          headers: auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}
-        });
-        const data5 = await booksReadResponse.json();
-        
-        if (data5.success) {
-          setBooksRead(data5.data || []);
+        try {
+          const booksReadResponse = await fetch(`${GATEWAY_URL}/v1/user-books?status=completed`, {
+            headers: auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}
+          });
+          if (booksReadResponse.ok) {
+            const data5 = await booksReadResponse.json();
+            if (data5.success) {
+              setBooksRead(data5.data || []);
+            }
+          }
+        } catch (err) {
+          console.warn('Failed to fetch completed books:', err);
         } 
+        
+        // Fetch current user's bookclubs for messaging functionality
+        if (auth?.user?.id && !isOwnProfile) {
+          try {
+            // Filter from already fetched bookclubs for current user
+            const currentUserAllClubs = [];
+            
+            if (allBookClubsData.bookClubs) {
+              // Get bookclubs created by current user
+              const currentUserCreated = (allBookClubsData.bookClubs || []).filter(club => club.creatorId === auth.user.id);
+              currentUserAllClubs.push(...currentUserCreated);
+              
+              // Get bookclubs where current user is a member
+              const currentUserMemberClubs = (allBookClubsData.bookClubs || []).filter(club => {
+                const isMember = club.members.some(member => 
+                  typeof member === 'string' ? member === auth.user.id : member.id === auth.user.id
+                );
+                const isCreator = club.creatorId === auth.user.id;
+                return isMember && !isCreator;
+              });
+              currentUserAllClubs.push(...currentUserMemberClubs);
+            }
+            
+            setCurrentUserBookClubs(currentUserAllClubs);
+          } catch (err) {
+            console.warn('Failed to fetch current user bookclubs:', err);
+          }
+        }
         
       } catch (err) {
         console.error('Error fetching profile:', err);
+        console.error('Error details:', {
+          message: err.message,
+          stack: err.stack,
+          name: err.name
+        });
         setError('Failed to load profile data');
       } finally {
         setLoading(false);
@@ -323,21 +396,33 @@ const ProfilePage = () => {
                 )}
                 {!isOwnProfile && (
                   <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        // Use any bookclub the current user is in
+                        if (currentUserBookClubs.length > 0) {
+                          const firstClub = currentUserBookClubs[0];
+                          // Store DM intent in sessionStorage
+                          sessionStorage.setItem('openDM', JSON.stringify({
+                            userId: id,
+                            username: profile.name
+                          }));
+                          navigate(`/bookclub/${firstClub.id}`);
+                        } else {
+                          alert('You need to join a bookclub first to send messages');
+                        }
+                      }}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      Message
+                    </button>
+                    
                     {profile.friendshipStatus === 'friends' ? (
-                      <>
-                        <button
-                          onClick={() => navigate(`/messages/${id}`)}
-                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                        >
-                          Message
-                        </button>
-                        <button
-                          className="px-4 py-2 bg-gray-500 text-white rounded-lg cursor-not-allowed"
-                          disabled
-                        >
-                          Friends
-                        </button>
-                      </>
+                      <button
+                        className="px-4 py-2 bg-gray-500 text-white rounded-lg cursor-not-allowed"
+                        disabled
+                      >
+                        Friends
+                      </button>
                     ) : profile.friendshipStatus === 'request_sent' ? (
                       <button
                         className="px-4 py-2 bg-yellow-500 text-white rounded-lg cursor-not-allowed"

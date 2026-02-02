@@ -1,49 +1,91 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import logger from '../utils/logger.js';
-import dotenv from 'dotenv';
+import { HTTP_STATUS } from '../config/constants.js';
 
-dotenv.config();
+/**
+ * JWT payload interface
+ */
+interface JwtPayload {
+  userId: string;
+  email: string;
+  iat: number;
+  exp: number;
+}
 
-// Extend Express Request type to include user property
+/**
+ * Extend Express Request type
+ */
 declare global {
   namespace Express {
     interface Request {
-      user?: any;
+      user?: JwtPayload;
     }
   }
 }
 
-const authHandler = (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader?.split(" ")[1];
+/**
+ * Authentication middleware
+ * Validates JWT tokens and attaches user info to request
+ */
+const authHandler = (req: Request, res: Response, next: NextFunction): void => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader?.split(' ')[1];
 
-    if (!token) {
-        logger.warn('No authorization token provided while requesting protected route');
-        return res.status(401).json({ message: 'Authorization required', success: false });
-    }
-
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-        logger.error('JWT_SECRET is not defined in environment variables');
-        return res.status(500).json({ message: 'Server configuration error', success: false });
-    }
-
-    jwt.verify(token, jwtSecret, (err, decoded: any) => {
-        if (err) {
-            logger.warn("Invalid token!");
-            return res.status(403).json({
-                message: "Invalid token!",
-                success: false,
-            });
-        }
-
-        // Attach user to request
-        req.user = decoded;
-        
-        logger.info(`Authenticated user ${decoded.id || decoded.userId} for ${req.method} ${req.url}`);
-        next();
+  if (!token) {
+    logger.warn(`No authorization token for ${req.method} ${req.path}`);
+    res.status(HTTP_STATUS.UNAUTHORIZED).json({
+      message: 'Authorization required',
+      success: false,
     });
+    return;
+  }
+
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    logger.error('JWT_SECRET is not defined in environment variables');
+    res.status(HTTP_STATUS.INTERNAL_ERROR).json({
+      message: 'Server configuration error',
+      success: false,
+    });
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
+    req.user = decoded;
+
+    // Add user info to headers for microservices
+    req.headers['x-user-id'] = decoded.userId;
+    req.headers['x-user-email'] = decoded.email;
+
+    logger.info(`Authenticated user ${decoded.userId} for ${req.method} ${req.path}`);
+    next();
+  } catch (err) {
+    if (err instanceof jwt.TokenExpiredError) {
+      logger.warn(`Expired token for ${req.method} ${req.path}`);
+      res.status(HTTP_STATUS.UNAUTHORIZED).json({
+        message: 'Token expired',
+        success: false,
+      });
+      return;
+    }
+
+    if (err instanceof jwt.JsonWebTokenError) {
+      logger.warn(`Invalid token for ${req.method} ${req.path}`);
+      res.status(HTTP_STATUS.FORBIDDEN).json({
+        message: 'Invalid token',
+        success: false,
+      });
+      return;
+    }
+
+    logger.error(`Token verification error: ${err}`);
+    res.status(HTTP_STATUS.INTERNAL_ERROR).json({
+      message: 'Authentication error',
+      success: false,
+    });
+  }
 };
 
 export default authHandler;

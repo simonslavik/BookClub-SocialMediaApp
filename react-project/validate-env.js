@@ -5,6 +5,29 @@
  * Checks that all required environment variables are set before starting
  */
 
+// Load environment variables from .env file
+import { readFileSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const envPath = join(__dirname, '.env');
+if (existsSync(envPath)) {
+  const envContent = readFileSync(envPath, 'utf-8');
+  envContent.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      if (key && valueParts.length > 0) {
+        const value = valueParts.join('=').replace(/^["']|["']$/g, '');
+        process.env[key] = value;
+      }
+    }
+  });
+}
+
 const requiredVars = {
   'VITE_GOOGLE_CLIENT_ID': process.env.VITE_GOOGLE_CLIENT_ID
 };

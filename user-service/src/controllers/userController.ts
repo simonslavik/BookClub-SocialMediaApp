@@ -1,25 +1,29 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import { registerSchema, loginSchema } from '../utils/validation.js';
 import prisma from '../config/database.js';
 import { generateTokens, verifyRefreshToken, revokeRefreshToken, revokeAllUserTokens } from '../utils/tokenUtils.js';
+import logger, { logError } from '../utils/logger.js';
+import { sendVerificationEmail } from './authController.js';
+import { 
+    sendCreated, 
+    sendSuccess, 
+    sendConflict, 
+    sendUnauthorized, 
+    sendNotFound,
+    sendServerError 
+} from '../utils/responseHelpers.js';
+import { 
+    BCRYPT_SALT_ROUNDS, 
+    USER_PUBLIC_FIELDS,
+    USER_BASIC_FIELDS,
+    LogType,
+    ErrorMessage,
+    SuccessMessage 
+} from '../constants/index.js';
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
-        // Validate request body with Joi
-        const { error, value } = registerSchema.validate(req.body, {
-            abortEarly: false  // Return all errors
-        });
-
-        if (error) {
-            const errors = error.details.map(detail => detail.message);
-            return res.status(400).json({ 
-                message: 'Validation failed',
-                errors 
-            });
-        }
-
-        const { name, email, password } = value;
+        const { name, email, password } = req.body;
 
         // Check if user already exists
         const existingUser = await prisma.user.findUnique({
@@ -27,69 +31,71 @@ export const registerUser = async (req: Request, res: Response) => {
         });
 
         if (existingUser) {
-            return res.status(409).json({ 
-                message: 'User with this email already exists' 
+            logger.warn({
+                type: LogType.REGISTRATION_FAILED,
+                reason: 'EMAIL_EXISTS',
+                email
             });
+            return sendConflict(res, ErrorMessage.EMAIL_EXISTS);
         }
 
         // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 12);
+        const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
-        // Create new user
-        const newUser = await prisma.user.create({
-            data: {
-                name,
-                email,
-                password: hashedPassword,
-                profileImage: null
-            },  
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                createdAt: true,
-                profileImage: true
-            }
+        // Create user and generate tokens in a transaction
+        const result = await prisma.$transaction(async (tx) => {
+            const newUser = await tx.user.create({
+                data: {
+                    name,
+                    email,
+                    password: hashedPassword,
+                    profileImage: null
+                },  
+                select: USER_PUBLIC_FIELDS
+            });
+
+            // Generate tokens
+            const tokens = await generateTokens({
+                id: newUser.id,
+                email: newUser.email,
+                name: newUser.name
+            });
+
+            return { user: newUser, ...tokens };
         });
 
-        // Generate access token and refresh token
-        const { accessToken, refreshToken } = await generateTokens({
-            id: newUser.id,
+        const { user: newUser, accessToken, refreshToken } = result;
+
+        // Send verification email (don't block response)
+        sendVerificationEmail(newUser.id, newUser.email).catch(err => {
+            logError(err, 'Failed to send verification email', { userId: newUser.id });
+        });
+
+        logger.info({
+            type: LogType.USER_REGISTERED,
+            userId: newUser.id,
             email: newUser.email,
-            name: newUser.name
+            name: newUser.name,
+            emailVerified: false
         });
 
-        res.status(201).json({ 
-            message: 'User registered successfully',
-            user: newUser,
+        return sendCreated(res, {
+            user: { ...newUser, emailVerified: false },
             accessToken,
             refreshToken
-        });
+        }, SuccessMessage.USER_REGISTERED);
     } catch (error: any) {
-        console.error('Registration error:', error);
-        res.status(500).json({ 
-            message: 'Error registering user',
-            error: error.message 
+        logError(error, 'Registration error', {
+            type: 'REGISTRATION_ERROR',
+            email: req.body.email
         });
+        return sendServerError(res, 'Error registering user');
     }
 };
 
 export const loginUser = async (req: Request, res: Response) => {
     try {
-        // Validate request body with Joi
-        const { error, value } = loginSchema.validate(req.body, {
-            abortEarly: false
-        });
-
-        if (error) {
-            const errors = error.details.map(detail => detail.message);
-            return res.status(400).json({ 
-                message: 'Validation failed',
-                errors 
-            });
-        }
-
-        const { email, password } = value;
+        const { email, password } = req.body;
 
         // Find user by email
         const user = await prisma.user.findUnique({
@@ -97,18 +103,25 @@ export const loginUser = async (req: Request, res: Response) => {
         });
 
         if (!user) {
-            return res.status(401).json({ 
-                message: 'Invalid email or password' 
+            logger.warn({
+                type: LogType.LOGIN_FAILED,
+                reason: 'USER_NOT_FOUND',
+                email
             });
+            return sendUnauthorized(res, ErrorMessage.INVALID_CREDENTIALS);
         }
 
         // Compare password
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
-            return res.status(401).json({ 
-                message: 'Invalid email or password' 
+            logger.warn({
+                type: LogType.LOGIN_FAILED,
+                reason: 'INVALID_PASSWORD',
+                userId: user.id,
+                email
             });
+            return sendUnauthorized(res, ErrorMessage.INVALID_CREDENTIALS);
         }
 
         // Generate access token and refresh token
@@ -118,8 +131,13 @@ export const loginUser = async (req: Request, res: Response) => {
             name: user.name
         });
 
-        res.status(200).json({ 
-            message: 'Login successful',
+        logger.info({
+            type: LogType.USER_LOGIN,
+            userId: user.id,
+            email: user.email
+        });
+
+        return sendSuccess(res, {
             user: {
                 id: user.id,
                 name: user.name,
@@ -128,38 +146,32 @@ export const loginUser = async (req: Request, res: Response) => {
             },
             accessToken,
             refreshToken
-        });
+        }, SuccessMessage.LOGIN_SUCCESS);
     } catch (error: any) {
-        console.error('Login error:', error);
-        res.status(500).json({ 
-            message: 'Error logging in',
-            error: error.message 
+        logError(error, 'Login error', {
+            type: 'LOGIN_ERROR',
+            email: req.body.email
         });
+        return sendServerError(res, 'Error logging in');
     }
 };
 
 /**
  * Refresh access token using refresh token
- * POST /auth/refresh
- * Body: { refreshToken: string }
  */
 export const refreshAccessToken = async (req: Request, res: Response) => {
     try {
         const { refreshToken } = req.body;
 
-        if (!refreshToken) {
-            return res.status(400).json({ 
-                message: 'Refresh token is required' 
-            });
-        }
-
         // Verify refresh token and get user
         const user = await verifyRefreshToken(refreshToken);
 
         if (!user) {
-            return res.status(401).json({ 
-                message: 'Invalid or expired refresh token' 
+            logger.warn({
+                type: LogType.REFRESH_TOKEN_INVALID,
+                action: 'REFRESH_TOKEN'
             });
+            return sendUnauthorized(res, 'Invalid or expired refresh token');
         }
 
         // Delete old refresh token (token rotation)
@@ -168,83 +180,77 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
         // Generate new tokens
         const tokens = await generateTokens(user);
 
-        res.status(200).json({ 
-            message: 'Token refreshed successfully',
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken
+        logger.info({
+            type: LogType.TOKEN_REFRESHED,
+            userId: user.id,
+            email: user.email
         });
+
+        return sendSuccess(res, tokens, SuccessMessage.TOKEN_REFRESHED);
     } catch (error: any) {
-        console.error('Token refresh error:', error);
-        res.status(500).json({ 
-            message: 'Error refreshing token',
-            error: error.message 
-        });
+        logError(error, 'Token refresh error');
+        return sendServerError(res, 'Error refreshing token');
     }
 };
 
 /**
  * Logout user (revoke refresh token)
- * POST /auth/logout
- * Body: { refreshToken: string }
  */
 export const logoutUser = async (req: Request, res: Response) => {
     try {
         const { refreshToken } = req.body;
 
-        if (!refreshToken) {
-            return res.status(400).json({ 
-                message: 'Refresh token is required' 
-            });
-        }
-
         // Revoke the refresh token
         const revoked = await revokeRefreshToken(refreshToken);
 
         if (!revoked) {
-            return res.status(404).json({ 
-                message: 'Refresh token not found' 
+            logger.warn({
+                type: LogType.VALIDATION_ERROR,
+                action: 'LOGOUT',
+                error: 'Refresh token not found'
             });
+            return sendNotFound(res, 'Refresh token');
         }
 
-        res.status(200).json({ 
-            message: 'Logged out successfully' 
+        logger.info({
+            type: LogType.USER_LOGOUT,
+            action: 'LOGOUT'
         });
+
+        return sendSuccess(res, null, SuccessMessage.LOGOUT_SUCCESS);
     } catch (error: any) {
-        console.error('Logout error:', error);
-        res.status(500).json({ 
-            message: 'Error logging out',
-            error: error.message 
-        });
+        logError(error, 'Logout error');
+        return sendServerError(res, 'Error logging out');
     }
 };
 
 /**
  * Logout from all devices (revoke all refresh tokens)
- * POST /auth/logout-all
- * Requires authentication (get userId from JWT token in Authorization header)
  */
 export const logoutAllDevices = async (req: Request, res: Response) => {
     try {
-        // Get userId from authenticated request (you'll need auth middleware for this)
-        const userId = (req as any).user?.userId;
+        const userId = req.user?.userId;
 
         if (!userId) {
-            return res.status(401).json({ 
-                message: 'Authentication required' 
+            logger.warn({
+                type: LogType.VALIDATION_ERROR,
+                action: 'LOGOUT_ALL_DEVICES',
+                error: 'Authentication required'
             });
+            return sendUnauthorized(res);
         }
 
         // Revoke all refresh tokens for this user
         await revokeAllUserTokens(userId);
 
-        res.status(200).json({ 
-            message: 'Logged out from all devices successfully' 
+        logger.info({
+            type: LogType.USER_LOGOUT_ALL_DEVICES,
+            userId
         });
+
+        return sendSuccess(res, null, SuccessMessage.LOGOUT_ALL_SUCCESS);
     } catch (error: any) {
-        console.error('Logout all error:', error);
-        res.status(500).json({ 
-            message: 'Error logging out from all devices',
-            error: error.message 
-        });
+        logError(error, 'Logout all error');
+        return sendServerError(res, 'Error logging out from all devices');
     }
 };

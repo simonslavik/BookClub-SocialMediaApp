@@ -2,6 +2,15 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
 // Extend Express Request to include user property
+export interface AuthRequest extends Request {
+    user?: {
+        userId: string;
+        email: string;
+        role: string;
+        name?: string;
+    };
+}
+
 declare global {
     namespace Express {
         interface Request {
@@ -9,6 +18,7 @@ declare global {
                 userId: string;
                 email: string;
                 role: string;
+                name?: string;
             };
         }
     }
@@ -18,6 +28,7 @@ interface TokenPayload {
     userId: string;
     email: string;
     role?: string;
+    name?: string;
     iat: number;
     exp: number;
 }

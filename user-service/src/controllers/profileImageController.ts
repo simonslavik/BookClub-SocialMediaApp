@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/database.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { logger, logError } from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -77,10 +78,14 @@ export const addProfileImage = async (req: Request, res: Response) => {
       data: { profileImage: imageUrl }
     });
     
-    console.log(`📷 Profile image uploaded for user ${userId}`);
+    logger.info({
+      type: 'PROFILE_IMAGE_UPLOADED',
+      userId,
+      imageUrl
+    });
     res.json({ message: 'Profile image uploaded successfully', imageUrl: updatedUser.profileImage });
   } catch (error) {
-    console.error('Error uploading profile image:', error);
+    logError(error, 'Error uploading profile image', { userId: req.user?.userId });
     // Clean up uploaded file on error
     if (req.file && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
@@ -119,10 +124,13 @@ export const deleteProfileImage = async (req: Request, res: Response) => {
       data: { profileImage: null }
     });
     
-    console.log(`🗑️  Profile image deleted for user ${userId}`);
+    logger.info({
+      type: 'PROFILE_IMAGE_DELETED',
+      userId
+    });
     res.json({ message: 'Profile image deleted successfully' });
   } catch (error) {
-    console.error('Error deleting profile image:', error);
+    logError(error, 'Error deleting profile image', { userId: req.user?.userId });
     res.status(500).json({ error: 'Failed to delete profile image' });
   }
 };

@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database.js';
+import { logger, logError } from '../utils/logger.js';
 
 export const sendFriendRequest = async (req: Request, res: Response) => {
     try {
+        // Request body is already validated by middleware
         const { recipientId } = req.body;
         const senderId = req.user?.userId;
         
@@ -12,13 +14,13 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
             });
         }
 
-        if (!recipientId) {
-            return res.status(400).json({ 
-                message: 'Recipient ID is required' 
-            });
-        }
-
         if (senderId === recipientId) {
+            logger.warn({
+                type: 'VALIDATION_ERROR',
+                action: 'SEND_FRIEND_REQUEST',
+                senderId,
+                error: 'Cannot send friend request to yourself'
+            });
             return res.status(400).json({ 
                 message: 'Cannot send friend request to yourself' 
             });
@@ -44,6 +46,13 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
         });
 
         if (existingFriendship) {
+            logger.warn({
+                type: 'FRIEND_REQUEST_DUPLICATE',
+                action: 'SEND_FRIEND_REQUEST',
+                senderId,
+                recipientId,
+                status: existingFriendship.status
+            });
             return res.status(400).json({ 
                 message: existingFriendship.status === 'PENDING' 
                     ? 'Friend request already sent' 
@@ -70,34 +79,35 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
             }
         });
 
+        logger.info({
+            type: 'FRIEND_REQUEST_SENT',
+            senderId,
+            recipientId,
+            friendshipId: friendship.id
+        });
+
         return res.status(200).json({
             success: true,
             message: 'Friend request sent successfully',
             data: friendship
         });
     } catch (error: any) {
-        console.error('Send friend request error:', error);
+        logError(error, 'Send friend request error', { senderId: req.user?.userId, recipientId: req.body.recipientId });
         return res.status(500).json({ 
-            message: 'Failed to send friend request',
-            error: error.message 
+            message: 'Failed to send friend request'
         });
     }
 };
 
 export const acceptFriendRequest = async (req: Request, res: Response) => {
     try {
+        // Request body is already validated by middleware
         const { requestId } = req.body;
         const userId = req.user?.userId;
 
         if (!userId) {
             return res.status(401).json({ 
                 message: 'User not authenticated' 
-            });
-        }
-        
-        if (!requestId) {
-            return res.status(400).json({ 
-                message: 'Request ID is required' 
             });
         }
 
@@ -144,34 +154,35 @@ export const acceptFriendRequest = async (req: Request, res: Response) => {
             }
         });
 
+        logger.info({
+            type: 'FRIEND_REQUEST_ACCEPTED',
+            userId,
+            senderId: updatedFriendship.userId,
+            friendshipId: requestId
+        });
+
         return res.status(200).json({
             success: true,
             message: 'Friend request accepted successfully',
             data: updatedFriendship
         });
     } catch (error: any) {
-        console.error('Accept friend request error:', error);
+        logError(error, 'Accept friend request error', { userId: req.user?.userId, requestId: req.body.requestId });
         return res.status(500).json({ 
-            message: 'Failed to accept friend request',
-            error: error.message 
+            message: 'Failed to accept friend request'
         });
     }  
 };
 
 export const rejectFriendRequest = async (req: Request, res: Response) => {
     try {
+        // Request body is already validated by middleware
         const { requestId } = req.body;
         const userId = req.user?.userId;
 
         if (!userId) {
             return res.status(401).json({ 
                 message: 'User not authenticated' 
-            });
-        }
-        
-        if (!requestId) {
-            return res.status(400).json({ 
-                message: 'Request ID is required' 
             });
         }
 
@@ -202,28 +213,22 @@ export const rejectFriendRequest = async (req: Request, res: Response) => {
             message: 'Friend request rejected successfully'
         });
     } catch (error: any) {
-        console.error('Reject friend request error:', error);
+        logError(error, 'Reject friend request error', { userId: req.user?.userId, requestId: req.body.requestId });
         return res.status(500).json({ 
-            message: 'Failed to reject friend request',
-            error: error.message 
+            message: 'Failed to reject friend request'
         });
     }  
 };
 
 export const removeFriend = async (req: Request, res: Response) => {
     try {
+        // Request body is already validated by middleware
         const { friendId } = req.body;
         const userId = req.user?.userId;
 
         if (!userId) {
             return res.status(401).json({ 
                 message: 'User not authenticated' 
-            });
-        }
-
-        if (!friendId) {
-            return res.status(400).json({ 
-                message: 'Friend ID is required' 
             });
         }
 
@@ -248,10 +253,9 @@ export const removeFriend = async (req: Request, res: Response) => {
             message: 'Friend removed successfully'
         });
     } catch (error: any) {
-        console.error('Remove friend error:', error);
+        logError(error, 'Remove friend error', { userId: req.user?.userId, friendId: req.body.friendId });
         return res.status(500).json({ 
-            message: 'Failed to remove friend',
-            error: error.message 
+            message: 'Failed to remove friend'
         });
     }
 };
@@ -266,13 +270,33 @@ export const listFriends = async (req: Request, res: Response) => {
             });
         }
 
-        // Fetch accepted friendships (check both directions)
+        // Parse pagination params (already validated by middleware)
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
+        const skip = (page - 1) * limit;
+
+        // Get total count for pagination metadata
+        const totalCount = await prisma.friendship.count({
+            where: {
+                OR: [
+                    { userId: userId, status: 'ACCEPTED' },
+                    { friendId: userId, status: 'ACCEPTED' }
+                ]
+            }
+        });
+
+        // Fetch accepted friendships with pagination
         const friendships = await prisma.friendship.findMany({
             where: {
                 OR: [
                     { userId: userId, status: 'ACCEPTED' },
                     { friendId: userId, status: 'ACCEPTED' }
                 ]
+            },
+            skip,
+            take: limit,
+            orderBy: {
+                createdAt: 'desc'
             },
             include: {
                 user: {
@@ -299,15 +323,23 @@ export const listFriends = async (req: Request, res: Response) => {
             f.userId === userId ? f.friend : f.user
         );
 
+        const totalPages = Math.ceil(totalCount / limit);
+
         return res.status(200).json({
             success: true,
-            data: friends
+            data: friends,
+            pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages,
+                hasMore: page < totalPages
+            }
         });
     } catch (error: any) {
-        console.error('List friends error:', error);
+        logError(error, 'List friends error', { userId: req.user?.userId });
         return res.status(500).json({ 
-            message: 'Failed to list friends',
-            error: error.message 
+            message: 'Failed to list friends'
         });
     }
 };
@@ -322,12 +354,27 @@ export const listFriendRequests = async (req: Request, res: Response) => {
             });
         }
 
-        // Fetch pending friend requests where user is the recipient
+        // Parse pagination params (already validated by middleware)
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
+        const skip = (page - 1) * limit;
+
+        // Get total count for pagination metadata
+        const totalCount = await prisma.friendship.count({
+            where: {
+                friendId: userId,
+                status: 'PENDING'
+            }
+        });
+
+        // Fetch pending friend requests with pagination
         const friendRequests = await prisma.friendship.findMany({
             where: {
                 friendId: userId,
                 status: 'PENDING'
             },
+            skip,
+            take: limit,
             include: {
                 user: {
                     select: {
@@ -343,16 +390,24 @@ export const listFriendRequests = async (req: Request, res: Response) => {
             }
         });
 
+        const totalPages = Math.ceil(totalCount / limit);
+
         return res.status(200).json({
             success: true,
-            data: friendRequests
+            data: friendRequests,
+            pagination: {
+                page,
+                limit,
+                totalCount,
+                totalPages,
+                hasMore: page < totalPages
+            }
         });
 
     } catch (error: any) {
-        console.error('List friend requests error:', error);
+        logError(error, 'List friend requests error', { userId: req.user?.userId });
         return res.status(500).json({ 
-            message: 'Failed to list friend requests',
-            error: error.message 
+            message: 'Failed to list friend requests'
         });
     }
 };

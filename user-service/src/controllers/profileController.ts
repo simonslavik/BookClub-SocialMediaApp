@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database.js';
+import { logger, logError } from '../utils/logger.js';
 
 
 /**
@@ -69,6 +70,13 @@ export const getProfileById = async (req: Request, res: Response) => {
             }
         });
 
+        logger.info({
+            type: 'PROFILE_VIEWED',
+            viewedUserId: userId,
+            viewerUserId: currentUserId,
+            friendshipStatus
+        });
+
         return res.status(200).json({
             success: true,
             data: {
@@ -78,10 +86,9 @@ export const getProfileById = async (req: Request, res: Response) => {
             }
         });
     } catch (error: any) {
-        console.error('Get profile error:', error);
+        logError(error, 'Get profile error', { userId: req.params.userId });
         return res.status(500).json({ 
-            message: 'Failed to fetch profile',
-            error: error.message 
+            message: 'Failed to fetch profile'
         });
     }
 };
@@ -126,10 +133,9 @@ export const updateMyProfile = async (req: Request, res: Response) => {
             data: updatedUser
         });
     } catch (error: any) {
-        console.error('Update profile error:', error);
+        logError(error, 'Update profile error', { userId: req.user?.userId });
         return res.status(500).json({ 
-            message: 'Failed to update profile',
-            error: error.message 
+            message: 'Failed to update profile'
         });
     }
 };
@@ -165,10 +171,9 @@ export const getUserById = async (req: Request, res: Response) => {
             data: user
         });
     } catch (error: any) {
-        console.error('Get user error:', error);
+        logError(error, 'Get user error', { userId: req.params.userId });
         return res.status(500).json({ 
-            message: 'Failed to fetch user',
-            error: error.message 
+            message: 'Failed to fetch user'
         });
     }
 };
@@ -198,10 +203,9 @@ export const listUsers = async (req: Request, res: Response) => {
             data: users
         });
     } catch (error: any) {
-        console.error('List users error:', error);
+        logError(error, 'List users error');
         return res.status(500).json({ 
-            message: 'Failed to fetch users',
-            error: error.message 
+            message: 'Failed to fetch users'
         });
     }
 };
@@ -242,10 +246,9 @@ export const getUsersByIds = async (req: Request, res: Response) => {
             }))
         });
     } catch (error: any) {
-        console.error('Batch get users error:', error);
+        logError(error, 'Batch get users error', { userIds: req.query.userIds });
         return res.status(500).json({ 
-            message: 'Failed to fetch users',
-            error: error.message 
+            message: 'Failed to fetch users'
         });
     }
 };
