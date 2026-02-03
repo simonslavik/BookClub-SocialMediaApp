@@ -197,12 +197,7 @@ const BookClub = () => {
           ? { Authorization: `Bearer ${auth.token}` }
           : {};
         
-        // Use preview endpoint for non-members, or full endpoint for members
-        const endpoint = auth?.token 
-          ? `http://localhost:3000/v1/bookclubs/${bookClubId}`
-          : `http://localhost:3000/v1/bookclubs/${bookClubId}/preview`;
-        
-        const response = await fetch(endpoint, { headers });
+        const response = await fetch(`http://localhost:3000/v1/bookclubs/${bookClubId}`, { headers });
         const responseData = await response.json();
         
         if (response.ok) {

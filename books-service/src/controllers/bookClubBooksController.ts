@@ -126,3 +126,22 @@ export const deleteBookClubBook = async (req: AuthRequest, res: Response): Promi
     res.status(statusCode).json({ error: error.message });
   }
 };
+
+/**
+ * Get current books for multiple bookclubs (batch)
+ */
+export const getBatchCurrentBooks = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { bookClubIds } = req.body;
+
+    if (!Array.isArray(bookClubIds)) {
+      res.status(400).json({ error: 'bookClubIds must be an array' });
+      return;
+    }
+
+    const currentBooks = await BookClubBooksService.getBatchCurrentBooks(bookClubIds);
+    res.json({ success: true, currentBooks });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};

@@ -6,6 +6,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FiUsers, FiBook, FiCalendar, FiMessageSquare, FiStar, FiArrowRight, FiClock, FiTrendingUp } from 'react-icons/fi';
 import HomePageHeader from '../../../components/layout/Header';
 import AuthContext from '../../../context';
+import LoginModule from '../../../components/common/modals/loginModule';
+import RegisterModule from '../../../components/common/modals/registerModule';
 
 const BookClubPage = () => {
     const { id: bookClubId } = useParams();
@@ -20,6 +22,8 @@ const BookClubPage = () => {
     const [completedBooks, setCompletedBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [openLogin, setOpenLogin] = useState(false);
+    const [openRegister, setOpenRegister] = useState(false);
 
     // Fetch bookclub details
     useEffect(() => {
@@ -29,22 +33,17 @@ const BookClubPage = () => {
                     ? { Authorization: `Bearer ${auth.token}` }
                     : {};
                 
-                // Use preview endpoint for non-members, or full endpoint for members
-                const endpoint = auth?.token 
-                    ? `http://localhost:3000/v1/bookclubs/${bookClubId}`
-                    : `http://localhost:3000/v1/bookclubs/${bookClubId}/preview`;
-                    
-                const response = await fetch(endpoint, { headers });
+                const response = await fetch(`http://localhost:3000/v1/bookclubs/${bookClubId}/preview`, { headers });
                 const responseData = await response.json();
                 
                 if (response.ok) {
-                    // Handle new API response format { success: true, data: {...} }
+                    // Handle new response format { success: true, data: {...} }
                     const data = responseData.success ? responseData.data : responseData;
                     setBookClub(data);
                     setConnectedUsers(data.connectedUsers || []);
                     setBookClubMembers(data.members || []);
                 } else {
-                    setError(responseData.message || responseData.error || 'Failed to load book club');
+                    setError(responseData.error || responseData.message || 'Failed to load book club');
                 }
             } catch (err) {
                 console.error('Error fetching book club:', err);
@@ -189,11 +188,17 @@ const BookClubPage = () => {
 
                             {/* Action Button */}
                             <button
-                                onClick={() => navigate(`/bookclub/${bookClubId}`)}
+                                onClick={() => {
+                                    if (auth?.user) {
+                                        navigate(`/bookclub/${bookClubId}`);
+                                    } else {
+                                        setOpenLogin(true);
+                                    }
+                                }}
                                 className="px-8 py-4 bg-white text-purple-600 rounded-xl font-semibold hover:bg-purple-50 transition-all transform hover:scale-105 shadow-xl flex items-center gap-2"
                             >
                                 <FiMessageSquare size={20} />
-                                Enter BookClub
+                                {auth?.user ? 'Enter BookClub' : 'Login to Join'}
                                 <FiArrowRight size={20} />
                             </button>
                         </div>
@@ -445,6 +450,20 @@ const BookClubPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Login/Register Modals */}
+            {openLogin && (
+                <LoginModule 
+                    onClose={() => setOpenLogin(false)} 
+                    onSwitchToRegister={() => { setOpenLogin(false); setOpenRegister(true); }}
+                />
+            )}
+            {openRegister && (
+                <RegisterModule 
+                    onClose={() => setOpenRegister(false)} 
+                    onSwitchToLogin={() => { setOpenRegister(false); setOpenLogin(true); }}
+                />
+            )}
         </>
     );
 }

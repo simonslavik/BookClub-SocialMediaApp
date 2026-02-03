@@ -68,6 +68,13 @@ export class BookClubService {
         visibility: true,
         creatorId: true,
         createdAt: true,
+        members: {
+          where: { status: MembershipStatus.ACTIVE },
+          select: {
+            id: true,
+            userId: true
+          }
+        },
         _count: {
           select: {
             members: {
@@ -78,6 +85,30 @@ export class BookClubService {
       },
       orderBy: { lastActiveAt: 'desc' }
     });
+
+    // Fetch user details from user-service for member avatars
+    const allUserIds = [...new Set(clubs.flatMap(club => club.members.map(m => m.userId)))];
+    let userMap = new Map<string, any>();
+    
+    if (allUserIds.length > 0) {
+      try {
+        // Fetch user details from user-service
+        const userResponse = await fetch(`${process.env.USER_SERVICE_URL || 'http://user-service:3001'}/users/batch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userIds: allUserIds.slice(0, 100) }) // Limit to 100 users
+        });
+        
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          if (userData.success && Array.isArray(userData.users)) {
+            userMap = new Map(userData.users.map((u: any) => [u.id, u]));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch user details:', error);
+      }
+    }
 
     // Add membership status for each club if userId provided
     if (userId) {
@@ -93,6 +124,15 @@ export class BookClubService {
       return clubs.map(club => ({
         ...club,
         memberCount: club._count.members,
+        members: club.members.slice(0, 10).map(m => {
+          const user = userMap.get(m.userId);
+          return {
+            id: user?.id || m.userId,
+            username: user?.username || 'User',
+            profileImage: user?.profileImage || null
+          };
+        }),
+        activeUsers: 0, // This would need WebSocket tracking
         membership: membershipMap.get(club.id),
         isMember: membershipMap.get(club.id)?.status === MembershipStatus.ACTIVE
       }));
@@ -100,7 +140,16 @@ export class BookClubService {
 
     return clubs.map(club => ({
       ...club,
-      memberCount: club._count.members
+      memberCount: club._count.members,
+      members: club.members.slice(0, 10).map(m => {
+        const user = userMap.get(m.userId);
+        return {
+          id: user?.id || m.userId,
+          username: user?.username || 'User',
+          profileImage: user?.profileImage || null
+        };
+      }),
+      activeUsers: 0 // This would need WebSocket tracking
     }));
   }
 

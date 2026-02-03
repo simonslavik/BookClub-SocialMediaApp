@@ -65,7 +65,7 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
             });
             
             onClose && onClose();
-            navigate('/');
+            window.location.reload();
         } catch (err) {
             const respMsg = err?.response?.data?.message;
             const respErrors = err?.response?.data?.errors;
@@ -105,7 +105,7 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
                 });
                 
                 onClose && onClose();
-                navigate('/');
+                window.location.reload();
             } else {
                 setErrors(['Google registration succeeded but received incomplete data from server']);
             }

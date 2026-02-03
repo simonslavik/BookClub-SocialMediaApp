@@ -4,6 +4,9 @@ import * as bookClubBooksController from '../controllers/bookClubBooksController
 
 const router = Router();
 
+// Batch endpoint for fetching current books (public)
+router.post('/batch-current-books', bookClubBooksController.getBatchCurrentBooks);
+
 // Get books for a bookclub (public)
 router.get('/:bookClubId/books', bookClubBooksController.getBookClubBooks);
 

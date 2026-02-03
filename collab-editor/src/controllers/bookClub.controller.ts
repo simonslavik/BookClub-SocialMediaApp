@@ -16,7 +16,43 @@ export class BookClubController {
         category as string | undefined
       );
 
-      res.json({ success: true, data: clubs });
+      // Fetch current books for all clubs from books-service
+      const clubIds = clubs.map(c => c.id);
+      const booksMap = new Map<string, any>();
+
+      if (clubIds.length > 0) {
+        try {
+          const booksResponse = await fetch(
+            `${process.env.BOOKS_SERVICE_URL || 'http://books-service:3002'}/bookclub/batch-current-books`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ bookClubIds: clubIds })
+            }
+          );
+
+          if (booksResponse.ok) {
+            const booksData = await booksResponse.json();
+            if (booksData.success && Array.isArray(booksData.currentBooks)) {
+              booksData.currentBooks.forEach((item: any) => {
+                if (item.currentBook) {
+                  booksMap.set(item.bookClubId, item.currentBook);
+                }
+              });
+            }
+          }
+        } catch (error) {
+          logger.error('Failed to fetch current books', { error });
+        }
+      }
+
+      // Enhance clubs with current book data
+      const enhancedClubs = clubs.map(club => ({
+        ...club,
+        currentBook: booksMap.get(club.id) || null
+      }));
+
+      res.json({ success: true, data: enhancedClubs });
     } catch (error: any) {
       logger.error('ERROR_DISCOVER_CLUBS', { error: error.message });
       res.status(500).json({ success: false, message: 'Failed to discover clubs' });

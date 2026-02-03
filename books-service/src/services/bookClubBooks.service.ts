@@ -103,4 +103,26 @@ export class BookClubBooksService {
       throw error;
     }
   }
+
+  /**
+   * Get current books for multiple bookclubs (batch operation)
+   */
+  static async getBatchCurrentBooks(bookClubIds: string[]) {
+    try {
+      const results = await Promise.all(
+        bookClubIds.map(async (bookClubId) => {
+          const books = await BookClubBooksRepository.findByBookClubId(bookClubId, 'current');
+          return {
+            bookClubId,
+            currentBook: books.length > 0 ? books[0] : null
+          };
+        })
+      );
+      
+      return results;
+    } catch (error: any) {
+      logger.error('Error fetching batch current books:', { error: error.message });
+      throw error;
+    }
+  }
 }
