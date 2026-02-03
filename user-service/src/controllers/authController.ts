@@ -10,20 +10,20 @@ export const forgotPassword = async (req: Request, res: Response) => {
     try {
         const { email } = req.body;
 
-        const resetToken = await AuthService.requestPasswordReset(email);
+        const result = await AuthService.requestPasswordReset(email);
 
         // Always return success to prevent email enumeration
         logger.info({
             type: 'PASSWORD_RESET_REQUESTED',
             email,
-            found: !!resetToken
+            found: !!result
         });
 
         // For development, return the token (REMOVE IN PRODUCTION)
-        if (process.env.NODE_ENV === 'development' && resetToken) {
+        if (process.env.NODE_ENV === 'development' && result) {
             return res.status(200).json({
                 message: 'Password reset token generated',
-                resetToken, // Only for development!
+                resetToken: result.resetToken, // Extract token from result object
             });
         }
 
@@ -159,6 +159,69 @@ export const resendVerification = async (req: Request, res: Response) => {
         logError(error, 'Resend verification error', { email: req.body.email });
         res.status(500).json({
             message: 'Error sending verification email'
+        });
+    }
+};
+
+/**
+ * Change password (for authenticated users)
+ * PUT /auth/change-password
+ */
+export const changePassword = async (req: Request, res: Response) => {
+    try {
+        const userId = (req as any).user?.userId;
+        const { currentPassword, newPassword } = req.body;
+
+        logger.info('PASSWORD_CHANGE_REQUEST', {
+            userId,
+            hasCurrentPassword: !!currentPassword,
+            hasNewPassword: !!newPassword,
+            currentPasswordLength: currentPassword?.length || 0,
+            newPasswordLength: newPassword?.length || 0
+        });
+
+        if (!userId) {
+            logger.warn('PASSWORD_CHANGE_NO_AUTH');
+            return res.status(401).json({
+                message: 'Authentication required'
+            });
+        }
+
+        await AuthService.changePassword(userId, currentPassword, newPassword);
+
+        logger.info('PASSWORD_CHANGED_SUCCESS', { userId });
+
+        res.status(200).json({
+            message: 'Password changed successfully. Please login again with your new password.'
+        });
+    } catch (error: any) {
+        logger.error('PASSWORD_CHANGE_ERROR', {
+            userId: (req as any).user?.userId,
+            errorMessage: error.message,
+            errorType: error.message
+        });
+
+        if (error.message === 'INVALID_PASSWORD') {
+            return res.status(400).json({
+                message: 'Current password is incorrect'
+            });
+        }
+
+        if (error.message === 'OAUTH_USER_NO_PASSWORD') {
+            return res.status(400).json({
+                message: 'You signed in with Google. Password changes are not available for OAuth accounts.'
+            });
+        }
+
+        if (error.message === 'USER_NOT_FOUND') {
+            return res.status(404).json({
+                message: 'User not found'
+            });
+        }
+
+        logError(error, 'Change password error', { userId: (req as any).user?.userId });
+        res.status(500).json({
+            message: 'Error changing password'
         });
     }
 };

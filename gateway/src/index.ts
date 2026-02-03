@@ -13,6 +13,7 @@ dotenv.config();
 // Constants
 const PORT = Number(process.env.PORT) || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 /**
  * Initialize Express application
@@ -22,7 +23,16 @@ const initializeApp = async (): Promise<Express> => {
 
   // Security and parsing middleware
   app.use(helmet());
-  app.use(cors());
+  
+  // CORS configuration - must specify origin when using credentials
+  // Allow both 5173 and 5174 for development (Vite may use either port)
+  app.use(cors({
+    origin: [FRONTEND_URL, 'http://localhost:5174', 'http://localhost:5173'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
+  
   app.use(express.json());
 
   // Initialize Redis connection

@@ -14,7 +14,18 @@ const apiClient = axios.create({
 // Request interceptor - add auth token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    // Get token from 'auth' object in localStorage
+    let token = null;
+    try {
+      const authData = localStorage.getItem('auth');
+      if (authData) {
+        const parsed = JSON.parse(authData);
+        token = parsed.token;
+      }
+    } catch (e) {
+      console.error('[AXIOS] Error parsing auth from localStorage:', e);
+    }
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -31,8 +42,7 @@ apiClient.interceptors.response.use(
   (error) => {
     // Handle 401 Unauthorized - token expired
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.removeItem('auth');
       window.location.href = '/';
     }
     

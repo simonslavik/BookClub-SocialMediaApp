@@ -75,6 +75,7 @@ services:
       USER_SERVICE_URL: http://user-service:3001
       COLLAB_EDITOR_URL: http://collab-editor:4000
       BOOKS_SERVICE_URL: http://books-service:3002
+      FRONTEND_URL: http://localhost:5173
       NODE_ENV: development
     depends_on:
       - redis

@@ -22,8 +22,10 @@ const developmentFormat = winston.format.combine(
   winston.format.errors({ stack: true }),
   winston.format.colorize(),
   winston.format.printf(({ timestamp, level, message, service, ...meta }) => {
-    const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
-    return `${timestamp} [${service}] ${level}: ${message} ${metaStr}`;
+    // If message is missing, stringify the meta object
+    const logMessage = message || JSON.stringify(meta);
+    const metaStr = message && Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
+    return `${timestamp} [${service}] ${level}: ${logMessage} ${metaStr}`.trim();
   })
 );
 

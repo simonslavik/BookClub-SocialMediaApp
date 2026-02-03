@@ -32,24 +32,25 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       setError('New password must be different from current password');
       return;
     }
-
     setLoading(true);
 
     try {
       await authAPI.changePassword(currentPassword, newPassword);
       setSuccess(true);
+      
+      // Redirect to login after 2 seconds
       setTimeout(() => {
-        // Clear local storage and redirect to login
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        localStorage.removeItem('auth');
         window.location.href = '/';
       }, 2000);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Failed to change password';
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to change password';
       
       // Special handling for OAuth users
       if (errorMessage.includes('OAuth') || errorMessage.includes('Google')) {
         setError('You signed in with Google. Password changes are not available for OAuth accounts.');
+      } else if (err.response?.status === 401) {
+        setError('Session expired. Please log in again.');
       } else {
         setError(errorMessage);
       }

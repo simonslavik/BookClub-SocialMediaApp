@@ -1,6 +1,6 @@
 import { WebSocket } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, MembershipStatus } from '@prisma/client';
 import { verifyWebSocketToken } from '../utils/websocketAuth.js';
 import { 
   Client, 
@@ -60,6 +60,41 @@ export const handleJoin = (
         return;
       }
 
+      // ===== MEMBERSHIP VERIFICATION =====
+      // Check if user is an active member of this bookclub
+      const membership = await prisma.bookClubMember.findUnique({
+        where: {
+          bookClubId_userId: {
+            bookClubId: bookClubId,
+            userId: userId
+          }
+        }
+      });
+
+      if (!membership || membership.status !== MembershipStatus.ACTIVE) {
+        console.error('❌ Access denied: User is not an active member');
+        ws.send(JSON.stringify({
+          type: 'access-denied',
+          message: 'You must be a member to access this book club',
+          shouldReconnect: false
+        }));
+        ws.close();
+        return;
+      }
+
+      if (membership.status === MembershipStatus.BANNED) {
+        console.error('❌ Access denied: User is banned');
+        ws.send(JSON.stringify({
+          type: 'access-denied',
+          message: 'You have been banned from this book club',
+          shouldReconnect: false
+        }));
+        ws.close();
+        return;
+      }
+
+      console.log('✅ Membership verified:', { userId, bookClubId, role: membership.role });
+
       // If no roomId provided, use first room (general)
       const targetRoomId = roomId || bookClub.rooms[0]?.id;
       
@@ -91,23 +126,11 @@ export const handleJoin = (
       const activeClub = activeBookClubs.get(bookClubId)!;
       activeClub.clients.set(clientId, currentClient);
 
-      // Add user to members if not already
-      let wasNewMember = false;
-      if (!bookClub.members.includes(userId)) {
-        await prisma.bookClub.update({
-          where: { id: bookClubId },
-          data: { 
-            members: { push: userId },
-            lastActiveAt: new Date()
-          }
-        });
-        wasNewMember = true;
-      } else {
-        await prisma.bookClub.update({
-          where: { id: bookClubId },
-          data: { lastActiveAt: new Date() }
-        });
-      }
+      // Update last active timestamp
+      await prisma.bookClub.update({
+        where: { id: bookClubId },
+        data: { lastActiveAt: new Date() }
+      });
 
       // Get recent messages for the current room
       const recentMessages = await prisma.message.findMany({
@@ -119,16 +142,24 @@ export const handleJoin = (
         }
       });
 
-      // Fetch all member details from user service
+      // Fetch all active member details from user service
+      const activeMembers = await prisma.bookClubMember.findMany({
+        where: {
+          bookClubId: bookClubId,
+          status: MembershipStatus.ACTIVE
+        },
+        select: { userId: true }
+      });
+
       const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001/api';
       let memberDetails = [];
-      const allMembers = wasNewMember ? [...bookClub.members, userId] : bookClub.members;
+      const memberIds = activeMembers.map(m => m.userId);
       
       try {
         const response = await fetch(`${userServiceUrl}/users/batch`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userIds: allMembers })
+          body: JSON.stringify({ userIds: memberIds })
         });
         
         if (response.ok) {

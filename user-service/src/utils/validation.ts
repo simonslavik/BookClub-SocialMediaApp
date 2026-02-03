@@ -164,6 +164,22 @@ export const resetPasswordSchema = joi.object({
         })
 });
 
+export const changePasswordSchema = joi.object({
+    currentPassword: joi.string().required().messages({
+        'any.required': 'Current password is required'
+    }),
+    newPassword: joi.string()
+        .min(8)
+        .max(128)
+        .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&#]{8,}$'))
+        .required()
+        .messages({
+            'string.min': 'New password must be at least 8 characters long',
+            'string.pattern.base': 'New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+            'any.required': 'New password is required'
+        })
+});
+
 // Email verification validation
 export const verifyEmailSchema = joi.object({
     token: joi.string().required().messages({

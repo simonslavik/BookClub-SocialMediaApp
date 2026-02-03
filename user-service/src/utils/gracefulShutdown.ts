@@ -41,12 +41,21 @@ export const setupGracefulShutdown = (server: Server) => {
 
   // Handle uncaught errors
   process.on('uncaughtException', (error: Error) => {
-    logger.error('Uncaught Exception:', error);
+    logger.error({
+      message: 'Uncaught Exception',
+      error: error.message,
+      stack: error.stack
+    });
     shutdown('UNCAUGHT_EXCEPTION');
   });
 
   process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
-    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    logger.error({
+      message: 'Unhandled Rejection',
+      reason: reason instanceof Error ? reason.message : reason,
+      stack: reason instanceof Error ? reason.stack : undefined,
+      promise: String(promise)
+    });
     shutdown('UNHANDLED_REJECTION');
   });
 

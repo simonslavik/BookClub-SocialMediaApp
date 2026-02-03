@@ -17,7 +17,7 @@ import uploadRoutes from './routes/uploadRoutes.js';
 // WebSocket setup
 import { setupWebSocket } from './websocket/index.js';
 import { activeBookClubs } from './websocket/types.js';
-import { setActiveBookClubs } from './controllers/bookClubController.js';
+// import { setActiveBookClubs } from './controllers/bookClubController.js'; // Removed: Not needed with new service
 
 // New utilities
 import { logger } from './utils/logger.js';
@@ -49,7 +49,7 @@ const wss = new WebSocketServer({ server });
 setupWebSocket(wss);
 
 // Share active bookclubs with controller
-setActiveBookClubs(activeBookClubs);
+// setActiveBookClubs(activeBookClubs); // Removed: Not needed with new service
 
 // Health and monitoring endpoints
 app.get('/health', healthCheck);

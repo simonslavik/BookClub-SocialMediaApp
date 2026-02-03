@@ -7,6 +7,7 @@ import { BCRYPT_SALT_ROUNDS } from '../constants/index.js';
 import { logger } from '../utils/logger.js';
 import { ConflictError, UnauthorizedError, NotFoundError, BadRequestError } from '../utils/errors.js';
 import { authenticationAttempts } from '../utils/metrics.js';
+import * as EmailService from './email.service.js';
 
 /**
  * Service layer for authentication operations
@@ -97,6 +98,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         profileImage: user.profileImage,
+        authProvider: user.authProvider || 'local',
       },
       accessToken,
       refreshToken,
@@ -131,6 +133,17 @@ export class AuthService {
       return { resetToken: null };
     }
 
+    // Check if user signed up with OAuth (Google, etc.)
+    if (!user.password || user.authProvider === 'google') {
+      logger.warn({ 
+        type: 'PASSWORD_RESET_REQUESTED_OAUTH_USER', 
+        email, 
+        authProvider: user.authProvider 
+      });
+      // Don't reveal that this is an OAuth account for security
+      return { resetToken: null };
+    }
+
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
     const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
@@ -147,6 +160,18 @@ export class AuthService {
       userId: user.id,
       email: user.email,
     });
+
+    // Send password reset email
+    try {
+      await EmailService.sendPasswordResetEmail(user.email, resetToken, user.name);
+    } catch (emailError) {
+      // Log but don't throw - token is still valid even if email fails
+      logger.error({
+        type: 'PASSWORD_RESET_EMAIL_FAILED',
+        userId: user.id,
+        email: user.email,
+      });
+    }
 
     // Return token for email sending (in development, for testing)
     return { resetToken, expiresAt: resetExpires };
@@ -228,10 +253,24 @@ export class AuthService {
       email: user.email,
     });
 
-    // TODO: Send email with verification link
-    // const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+    // Send verification email
+    try {
+      await EmailService.sendVerificationEmail(user.email, verificationToken, user.name);
+    } catch (emailError) {
+      // Log but don't throw - token is still valid even if email fails
+      logger.error({
+        type: 'VERIFICATION_EMAIL_FAILED',
+        userId: user.id,
+        email: user.email,
+      });
+    }
     
-    return verificationToken; // Return for development (changed from object)
+    // Return token in development mode for testing
+    if (process.env.NODE_ENV === 'development') {
+      return verificationToken;
+    }
+    
+    return null; // Don't return token in production
   }
 
   /**
@@ -269,31 +308,56 @@ export class AuthService {
    * Change password for authenticated user
    */
   static async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    logger.info('CHANGE_PASSWORD_SERVICE_START', { userId });
+    
     const user = await UserRepository.findById(userId, false);
     
-    if (!user || !user.password) {
+    if (!user) {
+      logger.warn('CHANGE_PASSWORD_USER_NOT_FOUND', { userId });
       throw new Error('USER_NOT_FOUND');
+    }
+
+    logger.info('CHANGE_PASSWORD_USER_FOUND', {
+      userId,
+      hasPassword: !!user.password,
+      authProvider: user.authProvider
+    });
+
+    // Check if user signed up with OAuth (Google, etc.)
+    if (!user.password || user.authProvider === 'google') {
+      logger.warn('CHANGE_PASSWORD_OAUTH_USER', { userId, authProvider: user.authProvider });
+      throw new Error('OAUTH_USER_NO_PASSWORD');
     }
 
     // Verify current password
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    logger.info('CHANGE_PASSWORD_CURRENT_PASSWORD_CHECK', {
+      userId,
+      isValid: isPasswordValid
+    });
+    
     if (!isPasswordValid) {
+      logger.warn('CHANGE_PASSWORD_INVALID_PASSWORD', { userId });
       throw new Error('INVALID_PASSWORD');
     }
 
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS);
+    logger.info('CHANGE_PASSWORD_NEW_PASSWORD_HASHED', { userId });
 
     // Update password
-    await UserRepository.updatePassword(userId, hashedPassword);
+    const updatedUser = await UserRepository.updatePassword(userId, hashedPassword);
+    logger.info('CHANGE_PASSWORD_DB_UPDATED', {
+      userId,
+      passwordChanged: updatedUser.password !== user.password,
+      newPasswordHash: updatedUser.password.substring(0, 10) + '...'
+    });
 
     // Revoke all refresh tokens
     await TokenRepository.deleteAllUserTokens(userId);
+    logger.info('CHANGE_PASSWORD_TOKENS_REVOKED', { userId });
 
-    logger.info({
-      type: 'PASSWORD_CHANGED',
-      userId,
-    });
+    logger.info('CHANGE_PASSWORD_SUCCESS', { userId });
 
     return { message: 'Password changed successfully' };
   }
