@@ -41,17 +41,31 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
         setLoading(true);
         try {
             const res = await axios.post('/v1/auth/register', form);
-            // If registration returns token, auto-login then redirect
-            const token = res?.data?.token || res?.data?.accessToken || res?.data?.data?.token;
-            const user = res?.data?.user || res?.data?.data?.user || null;
-            if (token) {
-                setAuth({ token, user });
-                onClose && onClose();
-                window.location.reload();
+            
+            console.log('Register response:', res.data);
+            
+            // Handle both nested and direct response formats
+            const responseData = res?.data?.data || res?.data;
+            const accessToken = responseData?.accessToken || res?.data?.accessToken || res?.data?.token;
+            const refreshToken = responseData?.refreshToken || res?.data?.refreshToken;
+            const user = responseData?.user || res?.data?.user;
+            
+            console.log('Extracted register data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
+            
+            if (!accessToken || !user) {
+                console.error('Missing required data - accessToken:', !!accessToken, 'user:', !!user);
+                setErrors(['Registration succeeded but received incomplete data from server']);
                 return;
             }
-            setMessage(res.data?.message || 'Registered');
-            setForm({ name: '', email: '', password: '' });
+            
+            setAuth({ 
+                token: accessToken,
+                refreshToken: refreshToken,
+                user: user
+            });
+            
+            onClose && onClose();
+            window.location.reload();
         } catch (err) {
             const respMsg = err?.response?.data?.message;
             const respErrors = err?.response?.data?.errors;
@@ -73,9 +87,15 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
                 credential: credentialResponse.credential
             });
 
-            const accessToken = res?.data?.accessToken;
-            const refreshToken = res?.data?.refreshToken;
-            const user = res?.data?.user;
+            console.log('Google register response:', res.data);
+
+            // Handle both nested and direct response formats
+            const responseData = res?.data?.data || res?.data;
+            const accessToken = responseData?.accessToken || res?.data?.accessToken;
+            const refreshToken = responseData?.refreshToken || res?.data?.refreshToken;
+            const user = responseData?.user || res?.data?.user;
+
+            console.log('Extracted Google register data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
 
             if (accessToken && user) {
                 setAuth({ 
@@ -86,6 +106,8 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
                 
                 onClose && onClose();
                 window.location.reload();
+            } else {
+                setErrors(['Google registration succeeded but received incomplete data from server']);
             }
         } catch (err) {
             const respMsg = err?.response?.data?.message;

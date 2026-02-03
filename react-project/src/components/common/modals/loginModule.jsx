@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import AuthContext from '../../../context';
 import { FiX } from 'react-icons/fi';
 import { GoogleLogin } from '@react-oauth/google';
+import ForgotPasswordModal from './ForgotPasswordModal';
 
 const Login = ({ onClose, onSwitchToRegister }) => {
 
@@ -17,6 +18,7 @@ const Login = ({ onClose, onSwitchToRegister }) => {
     const [errors, setErrors] = useState([]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [showForgotPassword, setShowForgotPassword] = useState(false);
 
     const validate = () => {
         const errs = [];
@@ -46,27 +48,31 @@ const Login = ({ onClose, onSwitchToRegister }) => {
         try {
             const res = await axios.post('/v1/auth/login', formData);
             
-            // Extract token, refreshToken, and user from response
-            const accessToken = res?.data?.accessToken || res?.data?.token;
-            const refreshToken = res?.data?.refreshToken;
-            const user = res?.data?.user;
-            
             console.log('Login response:', res.data);
-            console.log('User data:', user);
             
-            if (accessToken && user) {
-                setAuth({ 
-                    token: accessToken,
-                    refreshToken: refreshToken,
-                    user: user
-                });
-                
-                onClose && onClose();
-                window.location.reload();
+            // Extract token, refreshToken, and user from response
+            // Handle both nested and direct response formats
+            const responseData = res?.data?.data || res?.data;
+            const accessToken = responseData?.accessToken || res?.data?.accessToken || res?.data?.token;
+            const refreshToken = responseData?.refreshToken || res?.data?.refreshToken;
+            const user = responseData?.user || res?.data?.user;
+            
+            console.log('Extracted data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
+            
+            if (!accessToken || !user) {
+                console.error('Missing required data - accessToken:', !!accessToken, 'user:', !!user);
+                setErrors(['Login succeeded but received incomplete data from server']);
                 return;
             }
-            setMessage(res.data?.message || 'Logged in');
-            setFormData({ email: '', password: '' });
+            
+            setAuth({ 
+                token: accessToken,
+                refreshToken: refreshToken,
+                user: user
+            });
+            
+            onClose && onClose();
+            window.location.reload();
         } catch (err) {
             const respMsg = err?.response?.data?.message;
             const respErrors = err?.response?.data?.errors;
@@ -88,9 +94,15 @@ const Login = ({ onClose, onSwitchToRegister }) => {
                 credential: credentialResponse.credential
             });
 
-            const accessToken = res?.data?.accessToken;
-            const refreshToken = res?.data?.refreshToken;
-            const user = res?.data?.user;
+            console.log('Google login response:', res.data);
+
+            // Handle both nested and direct response formats
+            const responseData = res?.data?.data || res?.data;
+            const accessToken = responseData?.accessToken || res?.data?.accessToken;
+            const refreshToken = responseData?.refreshToken || res?.data?.refreshToken;
+            const user = responseData?.user || res?.data?.user;
+
+            console.log('Extracted Google data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
 
             if (accessToken && user) {
                 setAuth({ 
@@ -101,6 +113,8 @@ const Login = ({ onClose, onSwitchToRegister }) => {
                 
                 onClose && onClose();
                 window.location.reload();
+            } else {
+                setErrors(['Google login succeeded but received incomplete data from server']);
             }
         } catch (err) {
             const respMsg = err?.response?.data?.message;
@@ -184,6 +198,15 @@ const Login = ({ onClose, onSwitchToRegister }) => {
                             placeholder="Enter your password"
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
                         />
+                        <div className="text-right mt-1">
+                            <button
+                                type="button"
+                                onClick={() => setShowForgotPassword(true)}
+                                className="text-sm text-purple-600 hover:text-purple-700"
+                            >
+                                Forgot password?
+                            </button>
+                        </div>
                     </div>
 
                     <button 
@@ -237,6 +260,12 @@ const Login = ({ onClose, onSwitchToRegister }) => {
                         <span className="px-2 bg-white text-gray-500">Don't have an account?</span>
                     </div>
                 </div>
+
+            {/* Forgot Password Modal */}
+            <ForgotPasswordModal 
+                isOpen={showForgotPassword}
+                onClose={() => setShowForgotPassword(false)}
+            />
 
                 {/* Register Link */}
                 <button 

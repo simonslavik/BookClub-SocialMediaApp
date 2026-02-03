@@ -8,6 +8,8 @@ import ProfilePage from "./pages/Profile/:id";
 import BookClubPage from "./pages/BookClubDetails/:id";
 import DiscoverBookClubs from "./pages/Discover";
 import InviteJoinPage from "./pages/Invite/:code";
+import ResetPasswordPage from "./pages/ResetPassword";
+import VerifyEmailPage from "./pages/VerifyEmail";
 
 
 function App() {
@@ -37,6 +39,8 @@ function App() {
       }/>
       <Route path="/discover" element={<DiscoverBookClubs />}/>
       <Route path="/invite/:code" element={<InviteJoinPage />}/>
+      <Route path="/reset-password" element={<ResetPasswordPage />}/>
+      <Route path="/verify-email" element={<VerifyEmailPage />}/>
       
     </Routes>
   );

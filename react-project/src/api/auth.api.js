@@ -36,4 +36,51 @@ export const authAPI = {
     const response = await apiClient.get('/auth/verify');
     return response.data;
   },
+
+  // Forgot password - request reset token
+  forgotPassword: async (email) => {
+    const response = await apiClient.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  // Reset password with token
+  resetPassword: async (token, password) => {
+    const response = await apiClient.post('/auth/reset-password', { token, password });
+    return response.data;
+  },
+
+  // Change password (authenticated users)
+  changePassword: async (currentPassword, newPassword) => {
+    const response = await apiClient.put('/auth/change-password', { 
+      currentPassword, 
+      newPassword 
+    });
+    return response.data;
+  },
+
+  // Verify email with token
+  verifyEmail: async (token) => {
+    const response = await apiClient.get(`/auth/verify-email?token=${token}`);
+    return response.data;
+  },
+
+  // Resend verification email
+  resendVerification: async (email) => {
+    const response = await apiClient.post('/auth/resend-verification', { email });
+    return response.data;
+  },
 };
+
+// Named exports for convenience
+export const { 
+  register, 
+  login, 
+  googleLogin, 
+  logout, 
+  refreshToken, 
+  forgotPassword, 
+  resetPassword, 
+  changePassword,
+  verifyEmail,
+  resendVerification,
+} = authAPI;

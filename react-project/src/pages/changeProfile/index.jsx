@@ -2,7 +2,8 @@ import React, { useContext, useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AuthContext from '../../context';
-import { FiImage, FiX, FiTrash2, FiUser } from 'react-icons/fi';
+import { FiImage, FiX, FiTrash2, FiUser, FiLock } from 'react-icons/fi';
+import ChangePasswordModal from '../../components/common/modals/ChangePasswordModal';
 
 const ChangeProfilePage = () => {
     const { auth, setAuth } = useContext(AuthContext);
@@ -19,6 +20,7 @@ const ChangeProfilePage = () => {
     const [fetchingProfile, setFetchingProfile] = useState(true);
     const [error, setError] = useState('');
     const [deleteImage, setDeleteImage] = useState(false);
+    const [showChangePassword, setShowChangePassword] = useState(false);
 
     // Fetch current profile data
     useEffect(() => {
@@ -205,14 +207,17 @@ const ChangeProfilePage = () => {
                                         className="w-32 h-32 rounded-full object-cover border-4 border-purple-200"
                                         onError={(e) => { e.target.src = '/images/default-avatar.png'; }}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={removeImage}
-                                        className="absolute top-0 right-0 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg"
-                                        title="Remove image"
-                                    >
-                                        <FiX size={16} />
-                                    </button>
+                                    {/* Only show delete button if user has a custom profile image or selected a new one */}
+                                    {(currentProfileImage || selectedImage) && (
+                                        <button
+                                            type="button"
+                                            onClick={removeImage}
+                                            className="absolute top-0 right-0 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg"
+                                            title="Remove image"
+                                        >
+                                            <FiX size={16} />
+                                        </button>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center mb-4 border-4 border-gray-300">
@@ -259,6 +264,30 @@ const ChangeProfilePage = () => {
 
                     
 
+                    {/* Change Password Button - Only show for non-OAuth users */}
+                    {auth?.user?.authProvider !== 'google' ? (
+                        <button
+                            type="button"
+                            onClick={() => setShowChangePassword(true)}
+                            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                        >
+                            <FiLock />
+                            Change Password
+                        </button>
+                    ) : (
+                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-center gap-2 text-blue-700">
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-sm font-medium">You're signed in with Google</span>
+                            </div>
+                            <p className="text-xs text-blue-600 mt-1">
+                                Password changes are managed through your Google account.
+                            </p>
+                        </div>
+                    )}
+
                     {/* Submit Button */}
                     <button
                         type="submit"
@@ -278,6 +307,12 @@ const ChangeProfilePage = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Change Password Modal */}
+            <ChangePasswordModal 
+                isOpen={showChangePassword}
+                onClose={() => setShowChangePassword(false)}
+            />
         </div>
     );
 }   
