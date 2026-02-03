@@ -15,27 +15,94 @@ datasource db {
 
 // BookClub model - stores book clubs where users discuss books
 model BookClub {
-  id           String   @id @default(uuid())
-  name         String   @default("Untitled Book Club")
-  imageUrl     String? // Optional bookclub cover image
-  category     String   @default("General") // Book club category for discovery filtering
-  isPublic     Boolean  @default(true)
-  members      String[] // List of User IDs from user-service (no FK due to separate DBs)
-  creatorId    String // User ID from user-service (no FK due to separate DBs)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  lastActiveAt DateTime @default(now())
+  id               String          @id @default(uuid())
+  name             String          @default("Untitled Book Club")
+  description      String?         // Club description
+  imageUrl         String?         // Optional bookclub cover image
+  category         String          @default("General") // Book club category for discovery filtering
+  visibility       ClubVisibility  @default(PUBLIC)
+  requiresApproval Boolean         @default(false) // For PRIVATE clubs
+  inviteCode       String?         @unique // Permanent invite code for INVITE_ONLY clubs
+  creatorId        String          // User ID from user-service (no FK due to separate DBs)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  lastActiveAt     DateTime        @default(now())
 
   // Relations
-  rooms   Room[]
-  events  BookClubEvent[]
-  invites BookClubInvite[]
+  rooms              Room[]
+  events             BookClubEvent[]
+  invites            BookClubInvite[]
+  members            BookClubMember[]
+  membershipRequests MembershipRequest[]
 
   @@index([creatorId])
   @@index([lastActiveAt])
-  @@index([isPublic])
+  @@index([visibility])
   @@index([category])
   @@map("bookclubs")
+}
+
+enum ClubVisibility {
+  PUBLIC       // Anyone can see and join instantly
+  PRIVATE      // Anyone can see, join requires approval
+  INVITE_ONLY  // Only visible to members, join via invite
+}
+
+// BookClubMember model - stores membership with roles
+model BookClubMember {
+  id         String           @id @default(uuid())
+  bookClubId String
+  bookClub   BookClub         @relation(fields: [bookClubId], references: [id], onDelete: Cascade)
+  userId     String           // User ID from user-service
+  role       BookClubRole     @default(MEMBER)
+  status     MembershipStatus @default(ACTIVE)
+  invitedBy  String?          // User ID who invited them
+  joinedAt   DateTime         @default(now())
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@unique([bookClubId, userId])
+  @@index([bookClubId, status])
+  @@index([userId])
+  @@map("bookclub_members")
+}
+
+enum BookClubRole {
+  OWNER      // Created the club, full control
+  ADMIN      // Can manage members, approve requests, moderate
+  MODERATOR  // Can moderate content, manage books
+  MEMBER     // Regular member
+}
+
+enum MembershipStatus {
+  ACTIVE  // Active member
+  BANNED  // Banned from club
+  LEFT    // Left the club
+}
+
+// MembershipRequest model - stores join requests for PRIVATE clubs
+model MembershipRequest {
+  id         String        @id @default(uuid())
+  bookClubId String
+  bookClub   BookClub      @relation(fields: [bookClubId], references: [id], onDelete: Cascade)
+  userId     String        // User ID from user-service
+  message    String?       // Optional message from user
+  status     RequestStatus @default(PENDING)
+  reviewedBy String?       // User ID who reviewed the request
+  reviewedAt DateTime?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@unique([bookClubId, userId])
+  @@index([bookClubId, status])
+  @@index([userId])
+  @@map("membership_requests")
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 // Room model - channels within a BookClub (like Discord channels)
