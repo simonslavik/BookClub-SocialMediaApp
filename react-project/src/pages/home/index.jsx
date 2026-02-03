@@ -40,79 +40,59 @@ const Home = () => {
 
         // Fetch my created bookclubs (only if authenticated)
         if (auth?.user) {
-            fetch('http://localhost:3000/v1/editor/bookclubs/my-bookclubs', { headers })
-                .then(response => {
-                    if (!response.ok) {
-                        console.error('My bookclubs request failed:', response.status, response.statusText);
-                        return response.text().then(text => {
-                            console.error('Error response:', text);
-                            throw new Error(`${response.status}: ${text}`);
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('My Created Bookclubs response:', data);
-                    setMyCreatedBookClubs(data.bookClubs || []);
-                })
-                .catch(error => console.error('Error fetching my created book clubs:', error));
+            // Will be populated from discover endpoint below
+            // fetch('http://localhost:3000/v1/editor/bookclubs/my-bookclubs', { headers })
+            //     .then(response => {
+            //         if (!response.ok) {
+            //             console.error('My bookclubs request failed:', response.status, response.statusText);
+            //             return response.text().then(text => {
+            //                 console.error('Error response:', text);
+            //                 throw new Error(`${response.status}: ${text}`);
+            //             });
+            //         }
+            //         return response.json();
+            //     })
+            //     .then(data => {
+            //         console.log('My Created Bookclubs response:', data);
+            //         setMyCreatedBookClubs(data.bookClubs || []);
+            //     })
+            //     .catch(error => console.error('Error fetching my created book clubs:', error));
             
             // Fetch friends and friend requests
             fetchFriends();
             fetchFriendRequests();
         }
         
-        // Always fetch all public bookclubs
-        fetch('http://localhost:3000/v1/editor/bookclubs', { headers })
+        // Always fetch all public bookclubs using discover API
+        fetch('http://localhost:3000/v1/bookclubs/discover', { headers })
             .then(response => response.json())
-            .then(data => {
-                console.log('All Bookclubs response:', data);
-                setBookClubs(data.bookClubs || []);
+            .then(responseData => {
+                console.log('All Bookclubs response:', responseData);
+                // Handle new API response format { success: true, data: [...] }
+                const clubs = responseData.success ? responseData.data : (responseData.bookClubs || []);
+                setBookClubs(clubs);
                 
                 // Filter for bookclubs where user is a member but not creator
                 if (auth?.user) {
-                    const memberClubs = (data.bookClubs || []).filter(club => {
-                        const isMember = club.members.some(member => 
-                            typeof member === 'string' ? member === auth.user.id : member.id === auth.user.id
-                        );
+                    // Filter created bookclubs
+                    const createdClubs = clubs.filter(club => club.creatorId === auth.user.id);
+                    setMyCreatedBookClubs(createdClubs);
+                    
+                    // Filter member bookclubs (using isMember from API)
+                    const memberClubs = clubs.filter(club => {
                         const isCreator = club.creatorId === auth.user.id;
+                        const isMember = club.isMember === true;
                         return isMember && !isCreator;
                     });
                     setMyMemberBookClubs(memberClubs);
                     
                     // Get suggested users from all bookclubs user is in
-                    const allUserBookClubs = [...(data.bookClubs || [])].filter(club => {
-                        return club.members.some(member => 
-                            typeof member === 'string' ? member === auth.user.id : member.id === auth.user.id
-                        );
-                    });
+                    const allUserBookClubs = clubs.filter(club => club.isMember === true);
                     
-                    // Collect unique users from these bookclubs
-                    const userMap = new Map();
-                    allUserBookClubs.forEach(club => {
-                        club.members.forEach(member => {
-                            if (member.id && member.id !== auth.user.id && !userMap.has(member.id)) {
-                                userMap.set(member.id, {
-                                    ...member,
-                                    sharedBookClubs: []
-                                });
-                            }
-                            if (member.id && member.id !== auth.user.id) {
-                                userMap.get(member.id).sharedBookClubs.push({
-                                    id: club.id,
-                                    name: club.name,
-                                    imageUrl: club.imageUrl
-                                });
-                            }
-                        });
-                    });
-                    
-                    // Convert to array and sort by number of shared bookclubs
-                    const suggested = Array.from(userMap.values())
-                        .sort((a, b) => b.sharedBookClubs.length - a.sharedBookClubs.length)
-                        .slice(0, 10); // Limit to 10 suggestions
-                    
-                    setSuggestedUsers(suggested);
+                    // Note: Suggested users feature would need a separate API endpoint
+                    // that returns member details for each club. For now, we'll skip this.
+                    // The discover API doesn't include full member arrays to optimize performance.
+                    setSuggestedUsers([]);
                 }
             })
             .catch(error => console.error('Error fetching all book clubs:', error));

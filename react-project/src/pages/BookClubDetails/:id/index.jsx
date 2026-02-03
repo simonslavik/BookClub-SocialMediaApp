@@ -29,15 +29,22 @@ const BookClubPage = () => {
                     ? { Authorization: `Bearer ${auth.token}` }
                     : {};
                 
-                const response = await fetch(`http://localhost:3000/v1/editor/bookclubs/${bookClubId}`, { headers });
-                const data = await response.json();
+                // Use preview endpoint for non-members, or full endpoint for members
+                const endpoint = auth?.token 
+                    ? `http://localhost:3000/v1/bookclubs/${bookClubId}`
+                    : `http://localhost:3000/v1/bookclubs/${bookClubId}/preview`;
+                    
+                const response = await fetch(endpoint, { headers });
+                const responseData = await response.json();
                 
                 if (response.ok) {
+                    // Handle new API response format { success: true, data: {...} }
+                    const data = responseData.success ? responseData.data : responseData;
                     setBookClub(data);
                     setConnectedUsers(data.connectedUsers || []);
                     setBookClubMembers(data.members || []);
                 } else {
-                    setError(data.error || 'Failed to load book club');
+                    setError(responseData.message || responseData.error || 'Failed to load book club');
                 }
             } catch (err) {
                 console.error('Error fetching book club:', err);

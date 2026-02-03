@@ -10,6 +10,13 @@ const JoinBookclubModal = ({ isOpen, onClose, bookclub, onJoinSuccess }) => {
 
   if (!isOpen || !bookclub) return null;
 
+  // If user is already a member, they shouldn't see this modal
+  // But in case it's shown, just close it
+  if (bookclub.isMember) {
+    onClose();
+    return null;
+  }
+
   const isPublic = bookclub.visibility === 'PUBLIC';
   const isPrivate = bookclub.visibility === 'PRIVATE';
   const isInviteOnly = bookclub.visibility === 'INVITE_ONLY';

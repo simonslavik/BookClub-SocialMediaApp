@@ -74,11 +74,15 @@ const HomePageHeader = () => {
           ? { Authorization: `Bearer ${auth.token}` }
           : {};
         
-        const response = await fetch('http://localhost:3000/v1/editor/bookclubs?mine=true', { headers });
+        // Use discover API to get user's bookclubs
+        const response = await fetch('http://localhost:3000/v1/bookclubs/discover', { headers });
         const data = await response.json();
         
         if (response.ok) {
-          setUserBookClubs(data.bookClubs || []);
+          // Filter for clubs where user is a member
+          const clubs = data.success ? data.data : (data.bookClubs || []);
+          const userClubs = clubs.filter(club => club.isMember === true);
+          setUserBookClubs(userClubs);
         }
       } catch (err) {
         console.error('Error fetching user bookclubs:', err);

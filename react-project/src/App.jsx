@@ -17,16 +17,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/bookclub/:id" element={
-        <ProtectedRoute>
-          <BookClub />
-        </ProtectedRoute>
-      } />
-      <Route path="/bookclubpage/:id" element={
-        <ProtectedRoute>
-          <BookClubPage />
-        </ProtectedRoute>
-      } />
+      <Route path="/bookclub/:id" element={<BookClub />} />
+      <Route path="/bookclubpage/:id" element={<BookClubPage />} />
       <Route path="/create-bookclub" element={
         <ProtectedRoute>
           <NewBookClubPage />

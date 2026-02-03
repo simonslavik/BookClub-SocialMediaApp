@@ -35,28 +35,32 @@ const DiscoverBookClubs = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [loading, setLoading] = useState(true);
+    const [showJoinModal, setShowJoinModal] = useState(false);
+    const [selectedBookclub, setSelectedBookclub] = useState(null);
 
     // Fetch all bookclubs
     useEffect(() => {
-        const headers = auth?.token 
-            ? { Authorization: `Bearer ${auth.token}` }
-            : {};
-
-        fetch('http://localhost:3000/v1/editor/bookclubs', { headers })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Fetched bookclubs:', data);
-                setBookClubs(data.bookClubs || []);
-                setFilteredBookClubs(data.bookClubs || []);
-                setLoading(false);
-            })
-            .catch(error => {
+        const fetchBookclubs = async () => {
+            try {
+                const response = await bookclubAPI.discoverBookclubs(
+                    selectedCategory === 'All' ? undefined : selectedCategory
+                );
+                
+                console.log('Fetched bookclubs:', response);
+                const clubs = response.data || [];
+                setBookClubs(clubs);
+                setFilteredBookClubs(clubs);
+            } catch (error) {
                 console.error('Error fetching book clubs:', error);
+            } finally {
                 setLoading(false);
-            });
-    }, [auth]);
+            }
+        };
 
-    // Filter bookclubs based on search and category
+        fetchBookclubs();
+    }, [selectedCategory]);
+
+    // Filter bookclubs based on search query only (category filtering happens in API call)
     useEffect(() => {
         let filtered = [...bookClubs];
 
@@ -67,15 +71,8 @@ const DiscoverBookClubs = () => {
             );
         }
 
-        // Filter by category
-        if (selectedCategory !== 'All') {
-            filtered = filtered.filter(club =>
-                club.category === selectedCategory
-            );
-        }
-
         setFilteredBookClubs(filtered);
-    }, [searchQuery, selectedCategory, bookClubs]);
+    }, [searchQuery, bookClubs]);
 
     const handleClearSearch = () => {
         setSearchQuery('');
@@ -88,9 +85,9 @@ const DiscoverBookClubs = () => {
     const handleBookclubClick = (bookClub, e) => {
         e.stopPropagation();
         
-        // If user is already a member, navigate to bookclub page
+        // If user is already a member, navigate to bookclub chat page
         if (bookClub.isMember) {
-            navigate(`/bookclubpage/${bookClub.id}`);
+            navigate(`/bookclub/${bookClub.id}`);
         } else {
             // Show join modal
             setSelectedBookclub(bookClub);
@@ -98,11 +95,22 @@ const DiscoverBookClubs = () => {
         }
     };
 
-    const handleJoinSuccess = (memberData) => {
-        // Refresh bookclubs list or navigate to club
-        fetchBookclubs();
+    const handleJoinSuccess = async (memberData) => {
+        // Refresh bookclubs list
+        try {
+            const response = await bookclubAPI.discoverBookclubs(
+                selectedCategory === 'All' ? undefined : selectedCategory
+            );
+            const clubs = response.data || [];
+            setBookClubs(clubs);
+            setFilteredBookClubs(clubs);
+        } catch (error) {
+            console.error('Error refreshing book clubs:', error);
+        }
+        
+        // Navigate to club
         if (selectedBookclub) {
-            navigate(`/bookclubpage/${selectedBookclub.id}`);
+            navigate(`/bookclub/${selectedBookclub.id}`);
         }
     };
 
