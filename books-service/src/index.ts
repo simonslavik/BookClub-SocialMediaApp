@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import logger from './utils/logger';
 import errorHandler from './middleware/errorHandler';
 import { metricsMiddleware, metricsEndpoint } from './middleware/metrics';
+import { connectRedis } from './config/redis';
 import bookSearchRoutes from './routes/bookSearchRoutes';
 import userBooksRoutes from './routes/userBooksRoutes';
 import bookClubBooksRoutes from './routes/bookClubBooksRoutes';
@@ -49,6 +50,11 @@ app.use('/v1/bookclub', bookSuggestionsRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
+
+// Initialize Redis connection
+connectRedis().catch((error) => {
+  logger.warn('Books service starting without Redis cache');
+});
 
 // Start server
 app.listen(PORT, () => {

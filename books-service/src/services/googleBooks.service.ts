@@ -1,8 +1,10 @@
 import axios from 'axios';
 import logger from '../utils/logger';
+import { getRedisClient } from '../config/redis';
 
 const GOOGLE_BOOKS_API = 'https://www.googleapis.com/books/v1/volumes';
 const API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
+const CACHE_TTL = 60 * 60 * 24; // 24 hours in seconds
 
 interface GoogleBook {
   id: string;
@@ -34,10 +36,23 @@ interface BookData {
 
 export class GoogleBooksService {
   /**
-   * Search books from Google Books API
+   * Search books from Google Books API with Redis caching
    */
   static async searchBooks(query: string, maxResults: number = 20): Promise<BookData[]> {
+    const redis = getRedisClient();
+    const cacheKey = `books:search:${query}:${maxResults}`;
+
     try {
+      // Try to get from cache first
+      if (redis && redis.isOpen) {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          logger.info('✅ Cache hit for book search:', { query });
+          return JSON.parse(cached);
+        }
+        logger.info('❌ Cache miss for book search:', { query });
+      }
+
       const params: any = {
         q: query,
         maxResults,
@@ -50,7 +65,7 @@ export class GoogleBooksService {
 
       const response = await axios.get(GOOGLE_BOOKS_API, { params });
       
-      return response.data.items?.map((item: GoogleBook) => ({
+      const books = response.data.items?.map((item: GoogleBook) => ({
         googleBooksId: item.id,
         title: item.volumeInfo.title,
         author: item.volumeInfo.authors?.join(', ') || 'Unknown Author',
@@ -61,6 +76,14 @@ export class GoogleBooksService {
           (id) => id.type === 'ISBN_13' || id.type === 'ISBN_10'
         )?.identifier || null
       })) || [];
+
+      // Cache the results
+      if (redis && redis.isOpen && books.length > 0) {
+        await redis.setEx(cacheKey, CACHE_TTL, JSON.stringify(books));
+        logger.info('💾 Cached book search results:', { query, count: books.length });
+      }
+
+      return books;
     } catch (error: any) {
       logger.error('Google Books API search error:', { error: error.message, query });
       throw new Error('Failed to search books');
@@ -68,17 +91,30 @@ export class GoogleBooksService {
   }
 
   /**
-   * Get book details by Google Books ID
+   * Get book details by Google Books ID with Redis caching
    */
   static async getBookById(googleBooksId: string): Promise<BookData> {
+    const redis = getRedisClient();
+    const cacheKey = `books:details:${googleBooksId}`;
+
     try {
+      // Try to get from cache first
+      if (redis && redis.isOpen) {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          logger.info('✅ Cache hit for book details:', { googleBooksId });
+          return JSON.parse(cached);
+        }
+        logger.info('❌ Cache miss for book details:', { googleBooksId });
+      }
+
       const params: any = {};
       if (API_KEY) params.key = API_KEY;
 
       const response = await axios.get(`${GOOGLE_BOOKS_API}/${googleBooksId}`, { params });
       const book = response.data;
 
-      return {
+      const bookData = {
         googleBooksId: book.id,
         title: book.volumeInfo.title,
         author: book.volumeInfo.authors?.join(', ') || 'Unknown Author',
@@ -89,6 +125,14 @@ export class GoogleBooksService {
           (id: any) => id.type === 'ISBN_13' || id.type === 'ISBN_10'
         )?.identifier || null
       };
+
+      // Cache the result
+      if (redis && redis.isOpen) {
+        await redis.setEx(cacheKey, CACHE_TTL, JSON.stringify(bookData));
+        logger.info('💾 Cached book details:', { googleBooksId });
+      }
+
+      return bookData;
     } catch (error: any) {
       logger.error('Google Books API get book error:', { error: error.message, googleBooksId });
       throw new Error('Failed to fetch book details');

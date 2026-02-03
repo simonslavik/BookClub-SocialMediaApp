@@ -47,7 +47,8 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      JWT_EXPIRES_IN: 15m
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-15m}
+      JWT_EXPIRES_IN: ${JWT_EXPIRATION:-15m}
       JWT_REFRESH_EXPIRES_IN: 7d
       NODE_ENV: development
     depends_on:
@@ -124,9 +125,12 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       NODE_ENV: development
       GOOGLE_BOOKS_API_KEY: ${GOOGLE_BOOKS_API_KEY}
+      REDIS_URL: redis://redis:6379
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
     networks:
       - microservices-network
