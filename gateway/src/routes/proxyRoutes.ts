@@ -47,19 +47,21 @@ const SERVICES: ServiceConfig[] = [
     pathTransform: (path: string) => path.replace(/^\/v1\/editor/, ''),
   },
   
+  // Bookclubs - Routes to Collab Editor Service
+  { 
+    envVar: 'COLLAB_EDITOR_URL', 
+    route: '/v1/bookclubs', 
+    name: 'Bookclubs Service', 
+    requireAuth: false, 
+    pathTransform: (path: string) => path.replace(/^\/v1/, ''),
+  },
+  
   // Books Service routes
   { 
     envVar: 'BOOKS_SERVICE_URL', 
     route: '/v1/books', 
     name: 'Books Service', 
     requireAuth: false, 
-    pathTransform: (path: string) => path,
-  },
-  { 
-    envVar: 'BOOKS_SERVICE_URL', 
-    route: '/v1/bookclubs', 
-    name: 'Bookclubs Service', 
-    requireAuth: true, 
     pathTransform: (path: string) => path,
   },
   { 

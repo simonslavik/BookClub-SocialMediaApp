@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiFilter, FiUsers, FiBook, FiX } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiUsers, FiBook, FiX, FiLock, FiUnlock, FiEyeOff } from 'react-icons/fi';
 import HomePageHeader from '../../components/layout/Header';
 import { AuthContext } from '../../context';
+import { bookclubAPI } from '../../api/bookclub.api';
+import JoinBookclubModal from '../../components/common/modals/JoinBookclubModal';
 
 const categories = [
     'All',
@@ -81,6 +83,53 @@ const DiscoverBookClubs = () => {
 
     const handleCategoryClick = (category) => {
         setSelectedCategory(category);
+    };
+
+    const handleBookclubClick = (bookClub, e) => {
+        e.stopPropagation();
+        
+        // If user is already a member, navigate to bookclub page
+        if (bookClub.isMember) {
+            navigate(`/bookclubpage/${bookClub.id}`);
+        } else {
+            // Show join modal
+            setSelectedBookclub(bookClub);
+            setShowJoinModal(true);
+        }
+    };
+
+    const handleJoinSuccess = (memberData) => {
+        // Refresh bookclubs list or navigate to club
+        fetchBookclubs();
+        if (selectedBookclub) {
+            navigate(`/bookclubpage/${selectedBookclub.id}`);
+        }
+    };
+
+    const getVisibilityIcon = (visibility) => {
+        switch (visibility) {
+            case 'PUBLIC':
+                return <FiUnlock className="w-4 h-4" />;
+            case 'PRIVATE':
+                return <FiLock className="w-4 h-4" />;
+            case 'INVITE_ONLY':
+                return <FiEyeOff className="w-4 h-4" />;
+            default:
+                return <FiUnlock className="w-4 h-4" />;
+        }
+    };
+
+    const getVisibilityColor = (visibility) => {
+        switch (visibility) {
+            case 'PUBLIC':
+                return 'bg-green-100 text-green-700';
+            case 'PRIVATE':
+                return 'bg-yellow-100 text-yellow-700';
+            case 'INVITE_ONLY':
+                return 'bg-purple-100 text-purple-700';
+            default:
+                return 'bg-gray-100 text-gray-700';
+        }
     };
 
     return (
@@ -187,12 +236,11 @@ const DiscoverBookClubs = () => {
                             </button>
                         </div>
                     ) : (
-                        /* Book Clubs Grid */
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {filteredBookClubs.map(bookClub => (
                                 <div
                                     key={bookClub.id}
-                                    onClick={() => navigate(`/bookclubpage/${bookClub.id}`)}
+                                    onClick={(e) => handleBookclubClick(bookClub, e)}
                                     className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden transform hover:scale-105 w-full h-[420px] flex flex-col"
                                 >
                                     {/* Book Club Image */}
@@ -203,9 +251,20 @@ const DiscoverBookClubs = () => {
                                             className="w-full h-full object-cover"
                                             onError={(e) => { e.target.src = '/images/default.webp'; }}
                                         />
-                                        {bookClub.category && (
-                                            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-purple-700 font-outfit">
-                                                {bookClub.category}
+                                        <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+                                            {bookClub.category && (
+                                                <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-purple-700 font-outfit">
+                                                    {bookClub.category}
+                                                </div>
+                                            )}
+                                            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getVisibilityColor(bookClub.visibility)}`}>
+                                                {getVisibilityIcon(bookClub.visibility)}
+                                                {bookClub.visibility}
+                                            </div>
+                                        </div>
+                                        {bookClub.isMember && (
+                                            <div className="absolute bottom-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                                                ✓ Member
                                             </div>
                                         )}
                                     </div>
@@ -216,14 +275,10 @@ const DiscoverBookClubs = () => {
                                             {bookClub.name}
                                         </h3>
 
-                                        {/* Current Book Preview */}
-                                        {bookClub.currentBook && (
-                                            <div className="mb-3 p-2 bg-purple-50 rounded-lg border border-purple-100">
-                                                <p className="text-xs text-purple-600 font-semibold mb-1 font-outfit">📖 Currently Reading</p>
-                                                <p className="text-xs text-gray-900 font-medium line-clamp-1 font-outfit">
-                                                    {bookClub.currentBook.book?.title}
-                                                </p>
-                                            </div>
+                                        {bookClub.description && (
+                                            <p className="text-sm text-gray-600 mb-3 line-clamp-2 font-outfit">
+                                                {bookClub.description}
+                                            </p>
                                         )}
 
                                         {/* Stats */}
@@ -231,48 +286,10 @@ const DiscoverBookClubs = () => {
                                             <div className="flex items-center gap-2 text-gray-600">
                                                 <FiUsers className="text-purple-600" />
                                                 <span className="text-sm font-outfit">
-                                                    {bookClub.members?.length || 0} member{bookClub.members?.length !== 1 ? 's' : ''}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-gray-600">
-                                                <FiBook className="text-blue-600" />
-                                                <span className="text-sm font-outfit">
-                                                    {(bookClub.completedBooksCount || 0)} book{bookClub.completedBooksCount !== 1 ? 's' : ''} completed
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-                                                <span className="text-sm text-gray-600 font-outfit">
-                                                    {bookClub.activeUsers || 0} online now
+                                                    {bookClub.memberCount || 0} member{bookClub.memberCount !== 1 ? 's' : ''}
                                                 </span>
                                             </div>
                                         </div>
-
-                                        {/* Members Preview */}
-                                        {bookClub.members && bookClub.members.length > 0 && (
-                                            <div className="mt-3 pt-3 border-t border-gray-100">
-                                                <div className="flex -space-x-2">
-                                                    {bookClub.members.slice(0, 5).map(member => (
-                                                        <img
-                                                            key={member.id}
-                                                            src={member.profileImage
-                                                                ? `http://localhost:3001${member.profileImage}`
-                                                                : '/images/default.webp'
-                                                            }
-                                                            alt={member.username}
-                                                            className="w-8 h-8 rounded-full border-2 border-white object-cover"
-                                                            title={member.username}
-                                                            onError={(e) => { e.target.src = '/images/default.webp'; }}
-                                                        />
-                                                    ))}
-                                                    {bookClub.members.length > 5 && (
-                                                        <div className="w-8 h-8 rounded-full border-2 border-white bg-purple-100 flex items-center justify-center text-xs font-semibold text-purple-700">
-                                                            +{bookClub.members.length - 5}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -280,6 +297,14 @@ const DiscoverBookClubs = () => {
                     )}
                 </div>
             </div>
+
+            {/* Join Modal */}
+            <JoinBookclubModal
+                isOpen={showJoinModal}
+                onClose={() => setShowJoinModal(false)}
+                bookclub={selectedBookclub}
+                onJoinSuccess={handleJoinSuccess}
+            />
         </div>
     );
 };

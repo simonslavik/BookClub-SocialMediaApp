@@ -79,10 +79,9 @@ const ProfilePage = () => {
           return;
         }
         
-        // Fetch user's created bookclubs - filter from all bookclubs
-        // Fetch all bookclubs and filter for ones created by or where user is a member
-        const allBookClubsResponse = await fetch('http://localhost:3000/v1/editor/bookclubs', { headers });
-        let allBookClubsData = { bookClubs: [] };
+        // Fetch user's created bookclubs - filter from discover endpoint
+        const allBookClubsResponse = await fetch('http://localhost:3000/v1/bookclubs/discover', { headers });
+        let allBookClubsData = { success: false, data: [] };
         
         if (!allBookClubsResponse.ok) {
           console.warn('Failed to fetch all bookclubs:', allBookClubsResponse.status);
@@ -91,24 +90,24 @@ const ProfilePage = () => {
           if (contentType && contentType.includes('application/json')) {
             allBookClubsData = await allBookClubsResponse.json();
             
+            // Handle new API response format { success: true, data: [...] }
+            const clubs = allBookClubsData.success ? allBookClubsData.data : (allBookClubsData.bookClubs || []);
+            
             // Filter for created bookclubs
-            const created = (allBookClubsData.bookClubs || []).filter(club => club.creatorId === id);
+            const created = clubs.filter(club => club.creatorId === id);
             setCreatedBookClubs(created);
+            
+            // Filter bookclubs where this user is a member (but not creator to avoid duplicates)
+            // The new API includes 'isMember' property when userId is provided
+            const memberClubs = clubs.filter(club => {
+              const isCreator = club.creatorId === id;
+              const isMember = club.isMember === true;
+              return isMember && !isCreator; // Only show if member but not creator
+            });
+            setMemberBookClubs(memberClubs);
           } else {
             console.warn('All bookclubs endpoint returned non-JSON');
           }
-        }
-        
-        if (allBookClubsData.bookClubs) {
-          // Filter bookclubs where this user is a member (but not creator to avoid duplicates)
-          const memberClubs = (allBookClubsData.bookClubs || []).filter(club => {
-            const isMember = club.members.some(member => 
-              typeof member === 'string' ? member === id : member.id === id
-            );
-            const isCreator = club.creatorId === id;
-            return isMember && !isCreator; // Only show if member but not creator
-          });
-          setMemberBookClubs(memberClubs);
         }
 
         // Fetch books with error handling

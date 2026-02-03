@@ -34,7 +34,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Middleware - order matters!
-app.use(cors());
+// CORS handled by gateway - no need for CORS here since all requests come through the gateway
 app.use(express.json());
 app.use(requestLogger); // HTTP request logging
 app.use(metricsMiddleware); // Prometheus metrics

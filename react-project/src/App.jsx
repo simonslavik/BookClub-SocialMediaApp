@@ -10,6 +10,7 @@ import DiscoverBookClubs from "./pages/Discover";
 import InviteJoinPage from "./pages/Invite/:code";
 import ResetPasswordPage from "./pages/ResetPassword";
 import VerifyEmailPage from "./pages/VerifyEmail";
+import BookclubSettings from "./pages/BookclubSettings";
 
 
 function App() {
@@ -39,6 +40,11 @@ function App() {
       }/>
       <Route path="/discover" element={<DiscoverBookClubs />}/>
       <Route path="/invite/:code" element={<InviteJoinPage />}/>
+      <Route path="/bookclub-settings/:id" element={
+        <ProtectedRoute>
+          <BookclubSettings />
+        </ProtectedRoute>
+      }/>
       <Route path="/reset-password" element={<ResetPasswordPage />}/>
       <Route path="/verify-email" element={<VerifyEmailPage />}/>
       

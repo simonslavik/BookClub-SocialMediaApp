@@ -95,6 +95,9 @@ export const handleJoin = (
 
       console.log('✅ Membership verified:', { userId, bookClubId, role: membership.role });
 
+      // Track if this is a new member (for WebSocket purposes, this is always false since they must already be a member)
+      const wasNewMember = false;
+
       // If no roomId provided, use first room (general)
       const targetRoomId = roomId || bookClub.rooms[0]?.id;
       

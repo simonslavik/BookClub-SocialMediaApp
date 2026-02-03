@@ -1,8 +1,8 @@
 import React, { useContext, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { FiImage, FiX, FiUnlock, FiLock, FiEyeOff } from 'react-icons/fi';
+import { bookclubAPI } from '../../api/bookclub.api';
 import AuthContext from '../../context';
-import { FiImage, FiX, FiHome } from 'react-icons/fi';
 
 const categories = [
     'General',
@@ -30,8 +30,10 @@ const NewBookClubPage = () => {
 
     const [form, setForm] = useState({
         name: '',
+        description: '',
         category: 'General',
-        isPublic: true
+        visibility: 'PUBLIC',
+        requiresApproval: false
     });
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
@@ -83,14 +85,17 @@ const NewBookClubPage = () => {
         setError('');
 
         try {
-            // Create bookclub
-            const response = await axios.post('http://localhost:3000/v1/editor/bookclubs', {
+            // Create bookclub with new API
+            const response = await bookclubAPI.createBookclub({
                 name: form.name.trim(),
+                description: form.description.trim(),
                 category: form.category,
-                isPublic: form.isPublic,
+                visibility: form.visibility,
+                requiresApproval: form.visibility === 'PRIVATE' ? form.requiresApproval : false,
             });
 
-            const bookClubId = response.data.bookClub.id;
+            // Response format: { success: true, data: { id, name, ... } }
+            const bookClubId = response.success ? response.data.id : response.data?.data?.id || response.data.id;
             console.log('Created Bookclub:', bookClubId);
 
             // Upload image if selected
@@ -98,18 +103,10 @@ const NewBookClubPage = () => {
                 const formData = new FormData();
                 formData.append('image', selectedImage);
 
-                await axios.post(
-                    `http://localhost:3000/v1/editor/bookclubs/${bookClubId}/image`,
-                    formData,
-                    {
-                        headers: {
-                            'Content-Type': 'multipart/form-data'
-                        }
-                    }
-                );
+                await bookclubAPI.uploadImage(bookClubId, formData);
             }
 
-            // Redirect to the new bookclub
+            // Redirect to the bookclub chat page
             navigate(`/bookclub/${bookClubId}`);
         } catch (err) {
             console.error('Error creating book club:', err);
@@ -151,6 +148,23 @@ const NewBookClubPage = () => {
                     </div>
 
                     {/* Category Selection */}
+                    {/* Description */}
+                    <div>
+                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                            Description (Optional)
+                        </label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            value={form.description}
+                            onChange={handleChange}
+                            placeholder="Describe your book club..."
+                            rows="3"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                        />
+                    </div>
+
+                    {/* Category Selection */}
                     <div>
                         <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
                             Category *
@@ -169,21 +183,89 @@ const NewBookClubPage = () => {
                         </select>
                     </div>
 
-                    {/* 
-                    {/* Public/Private Toggle */}
-                    <div className="flex items-center">
-                        <input
-                            id="isPublic"
-                            name="isPublic"
-                            type="checkbox"
-                            checked={form.isPublic}
-                            onChange={handleChange}
-                            className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                        />
-                        <label htmlFor="isPublic" className="ml-2 block text-sm text-gray-700">
-                            Make this book club public
+                    {/* Visibility Selection */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Visibility *
                         </label>
+                        <div className="space-y-2">
+                            <label className={`flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer transition-colors ${
+                                form.visibility === 'PUBLIC' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-200'
+                            }`}>
+                                <input
+                                    type="radio"
+                                    name="visibility"
+                                    value="PUBLIC"
+                                    checked={form.visibility === 'PUBLIC'}
+                                    onChange={handleChange}
+                                    className="mt-1"
+                                />
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <FiUnlock className="w-4 h-4 text-green-600" />
+                                        <span className="font-semibold text-gray-900">Public</span>
+                                    </div>
+                                    <p className="text-xs text-gray-600">Anyone can see and join instantly</p>
+                                </div>
+                            </label>
+
+                            <label className={`flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer transition-colors ${
+                                form.visibility === 'PRIVATE' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-200'
+                            }`}>
+                                <input
+                                    type="radio"
+                                    name="visibility"
+                                    value="PRIVATE"
+                                    checked={form.visibility === 'PRIVATE'}
+                                    onChange={handleChange}
+                                    className="mt-1"
+                                />
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <FiLock className="w-4 h-4 text-yellow-600" />
+                                        <span className="font-semibold text-gray-900">Private</span>
+                                    </div>
+                                    <p className="text-xs text-gray-600">Anyone can see, join requires approval</p>
+                                </div>
+                            </label>
+
+                            <label className={`flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer transition-colors ${
+                                form.visibility === 'INVITE_ONLY' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-200'
+                            }`}>
+                                <input
+                                    type="radio"
+                                    name="visibility"
+                                    value="INVITE_ONLY"
+                                    checked={form.visibility === 'INVITE_ONLY'}
+                                    onChange={handleChange}
+                                    className="mt-1"
+                                />
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <FiEyeOff className="w-4 h-4 text-purple-600" />
+                                        <span className="font-semibold text-gray-900">Invite Only</span>
+                                    </div>
+                                    <p className="text-xs text-gray-600">Only visible to members, join via invite</p>
+                                </div>
+                            </label>
+                        </div>
                     </div>
+
+                    {/* Requires Approval (for PRIVATE) */}
+                    {form.visibility === 'PRIVATE' && (
+                        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    name="requiresApproval"
+                                    checked={form.requiresApproval}
+                                    onChange={handleChange}
+                                    className="w-4 h-4"
+                                />
+                                <span className="text-sm font-semibold text-gray-900">Require admin approval for join requests</span>
+                            </label>
+                        </div>
+                    )}
 
                     {/* Image Upload */}
                     <div>

@@ -197,10 +197,12 @@ const BookClub = () => {
           ? { Authorization: `Bearer ${auth.token}` }
           : {};
         
-        const response = await fetch(`http://localhost:3000/v1/editor/bookclubs/${bookClubId}`, { headers });
-        const data = await response.json();
+        const response = await fetch(`http://localhost:3000/v1/bookclubs/${bookClubId}`, { headers });
+        const responseData = await response.json();
         
         if (response.ok) {
+          // Handle new response format { success: true, data: {...} }
+          const data = responseData.success ? responseData.data : responseData;
           setBookClub(data);
           setRooms(data.rooms || []);
           
@@ -209,7 +211,7 @@ const BookClub = () => {
             setCurrentRoom(data.rooms[0]);
           }
         } else {
-          setError(data.error || 'Failed to load book club');
+          setError(responseData.message || responseData.error || 'Failed to load book club');
         }
       } catch (err) {
         console.error('Error fetching book club:', err);
@@ -231,7 +233,7 @@ const BookClub = () => {
           ? { Authorization: `Bearer ${auth.token}` }
           : {};
         
-        fetch('http://localhost:3000/v1/editor/bookclubs?mine=true', { headers })
+        fetch('http://localhost:3000/v1/bookclubs?mine=true', { headers })
             .then(response => response.json())
             .then(data => {
                 console.log('My Bookclubs response:', data);
@@ -524,7 +526,7 @@ const BookClub = () => {
     if (!roomName || !roomName.trim()) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/v1/editor/bookclubs/${bookClubId}/rooms`, {
+      const response = await fetch(`http://localhost:3000/v1/bookclubs/${bookClubId}/rooms`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -573,7 +575,7 @@ const BookClub = () => {
 
     setUploadingImage(true);
     try {
-      const response = await fetch(`http://localhost:3000/v1/editor/bookclubs/${bookClubId}/image`, {
+      const response = await fetch(`http://localhost:3000/v1/bookclubs/${bookClubId}/image`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${auth.token}`
@@ -603,7 +605,7 @@ const BookClub = () => {
     if (!confirm('Are you sure you want to delete the bookclub image?')) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/v1/editor/bookclubs/${bookClubId}/image`, {
+      const response = await fetch(`http://localhost:3000/v1/bookclubs/${bookClubId}/image`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${auth.token}`

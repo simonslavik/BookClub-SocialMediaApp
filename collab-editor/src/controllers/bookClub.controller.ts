@@ -8,7 +8,7 @@ export class BookClubController {
    */
   static async discoverClubs(req: Request, res: Response) {
     try {
-      const userId = (req as any).user?.id; // Optional - from optionalAuth middleware
+      const userId = (req as any).user?.userId; // Optional - from optionalAuth middleware
       const { category } = req.query;
 
       const clubs = await BookClubService.discoverClubs(
@@ -29,7 +29,7 @@ export class BookClubController {
   static async getClubPreview(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = (req as any).user?.id;
+      const userId = (req as any).user?.userId;
 
       const preview = await BookClubService.getClubPreview(id, userId);
 
@@ -49,7 +49,7 @@ export class BookClubController {
   static async getClub(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
 
       const club = await BookClubService.getClub(id, userId);
 
@@ -71,7 +71,7 @@ export class BookClubController {
    */
   static async createClub(req: Request, res: Response) {
     try {
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
       const { name, description, imageUrl, category, visibility, requiresApproval } = req.body;
 
       const club = await BookClubService.createClub(userId, {
@@ -85,7 +85,7 @@ export class BookClubController {
 
       res.status(201).json({ success: true, data: club });
     } catch (error: any) {
-      logger.error('ERROR_CREATE_CLUB', { error: error.message, userId: (req as any).user.id });
+      logger.error('ERROR_CREATE_CLUB', { error: error.message, userId: (req as any).user.userId });
       res.status(500).json({ success: false, message: 'Failed to create club' });
     }
   }
@@ -96,7 +96,7 @@ export class BookClubController {
   static async joinClub(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
 
       const member = await BookClubService.joinClub(id, userId);
 
@@ -125,7 +125,7 @@ export class BookClubController {
   static async requestToJoin(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
       const { message } = req.body;
 
       const request = await BookClubService.requestToJoin(id, userId, message);
@@ -155,7 +155,7 @@ export class BookClubController {
   static async getPendingRequests(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
 
       const requests = await BookClubService.getPendingRequests(id, userId);
 
@@ -175,7 +175,7 @@ export class BookClubController {
   static async approveRequest(req: Request, res: Response) {
     try {
       const { id, requestId } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
 
       const result = await BookClubService.approveRequest(id, requestId, userId);
 
@@ -201,7 +201,7 @@ export class BookClubController {
   static async rejectRequest(req: Request, res: Response) {
     try {
       const { id, requestId } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
 
       const result = await BookClubService.rejectRequest(id, requestId, userId);
 
@@ -227,7 +227,7 @@ export class BookClubController {
   static async leaveClub(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
 
       const result = await BookClubService.leaveClub(id, userId);
 
@@ -250,7 +250,7 @@ export class BookClubController {
   static async createInvite(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
       const { maxUses, expiresInDays } = req.body;
 
       const invite = await BookClubService.createInvite(id, userId, maxUses, expiresInDays);
@@ -271,7 +271,7 @@ export class BookClubController {
   static async getInvites(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
 
       const invites = await BookClubService.getInvites(id, userId);
 
@@ -291,7 +291,7 @@ export class BookClubController {
   static async deleteInvite(req: Request, res: Response) {
     try {
       const { id, inviteId } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
 
       const result = await BookClubService.deleteInvite(id, inviteId, userId);
 
@@ -314,7 +314,7 @@ export class BookClubController {
   static async joinByInvite(req: Request, res: Response) {
     try {
       const { code } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
 
       const result = await BookClubService.joinByInvite(code, userId);
 
@@ -346,7 +346,7 @@ export class BookClubController {
   static async removeMember(req: Request, res: Response) {
     try {
       const { id, userId: targetUserId } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
 
       const result = await BookClubService.removeMember(id, targetUserId, userId);
 
@@ -372,7 +372,7 @@ export class BookClubController {
   static async updateMemberRole(req: Request, res: Response) {
     try {
       const { id, userId: targetUserId } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
       const { role } = req.body;
 
       const result = await BookClubService.updateMemberRole(id, targetUserId, role, userId);
@@ -399,7 +399,7 @@ export class BookClubController {
   static async updateClub(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
       const { name, description, imageUrl, category, visibility, requiresApproval } = req.body;
 
       const club = await BookClubService.updateClub(id, userId, {
@@ -427,7 +427,7 @@ export class BookClubController {
   static async deleteClub(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userId = (req as any).user.id;
+      const userId = (req as any).user.userId;
 
       const result = await BookClubService.deleteClub(id, userId);
 
