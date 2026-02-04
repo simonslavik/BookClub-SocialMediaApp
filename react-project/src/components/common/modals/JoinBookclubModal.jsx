@@ -43,7 +43,20 @@ const JoinBookclubModal = ({ isOpen, onClose, bookclub, onJoinSuccess }) => {
         }, 2000);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to join bookclub');
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to join bookclub';
+      
+      // If user is already a member, close modal and navigate
+      if (errorMessage.toLowerCase().includes('already') || 
+          errorMessage.toLowerCase().includes('member') ||
+          err.response?.status === 400) {
+        setError('You are already a member of this bookclub');
+        setTimeout(() => {
+          onJoinSuccess?.({ alreadyMember: true });
+          onClose();
+        }, 1500);
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }

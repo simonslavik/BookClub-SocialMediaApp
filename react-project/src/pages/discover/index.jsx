@@ -85,11 +85,17 @@ const DiscoverBookClubs = () => {
     const handleBookclubClick = (bookClub, e) => {
         e.stopPropagation();
         
+        // If user is not authenticated, navigate to preview page
+        if (!auth?.user) {
+            navigate(`/bookclubpage/${bookClub.id}`);
+            return;
+        }
+        
         // If user is already a member, navigate to bookclub chat page
         if (bookClub.isMember) {
             navigate(`/bookclub/${bookClub.id}`);
         } else {
-            // Show join modal
+            // Show join modal for non-members
             setSelectedBookclub(bookClub);
             setShowJoinModal(true);
         }

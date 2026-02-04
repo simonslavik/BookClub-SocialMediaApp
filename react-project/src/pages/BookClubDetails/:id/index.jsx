@@ -190,7 +190,13 @@ const BookClubPage = () => {
                             <button
                                 onClick={() => {
                                     if (auth?.user) {
-                                        navigate(`/bookclub/${bookClubId}`);
+                                        // If user is a member, go directly to bookclub
+                                        if (bookClub?.isMember) {
+                                            navigate(`/bookclub/${bookClubId}`);
+                                        } else {
+                                            // Navigate to preview/join page
+                                            navigate(`/bookclubpage/${bookClubId}`);
+                                        }
                                     } else {
                                         setOpenLogin(true);
                                     }
@@ -198,7 +204,11 @@ const BookClubPage = () => {
                                 className="px-8 py-4 bg-white text-purple-600 rounded-xl font-semibold hover:bg-purple-50 transition-all transform hover:scale-105 shadow-xl flex items-center gap-2"
                             >
                                 <FiMessageSquare size={20} />
-                                {auth?.user ? 'Enter BookClub' : 'Login to Join'}
+                                {!auth?.user 
+                                    ? 'Login to Join' 
+                                    : bookClub?.isMember 
+                                        ? 'Enter BookClub' 
+                                        : 'View & Join'}
                                 <FiArrowRight size={20} />
                             </button>
                         </div>

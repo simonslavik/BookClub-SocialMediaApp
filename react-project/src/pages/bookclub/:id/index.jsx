@@ -42,6 +42,7 @@ import MessageInput from '../../../components/features/bookclub/MessageInput';
 import BookclubHeader from '../../../components/features/bookclub/MainChatArea/BookclubHeader';
 import InviteModal from '../../../components/common/modals/InviteModal';
 import { useBookclubWebSocket } from '../../../hooks/useBookclubWebSocket';
+import { messageModerationAPI } from '../../../api/messageModeration.api';
 
 
 const BookClub = () => {
@@ -98,6 +99,9 @@ const BookClub = () => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [friends, setFriends] = useState([]);
   
+  // User's role in the current bookclub
+  const [userRole, setUserRole] = useState(null);
+  
   const dmWs = useRef(null);
   const fileInputRef = useRef(null);
   const fileUploadRef = useRef(null);
@@ -112,6 +116,14 @@ const BookClub = () => {
     bookClubMembers,
     setBookClubMembers
   } = useBookclubWebSocket(bookClub, currentRoom, auth, bookClubId);
+
+  // Extract user's role from bookClubMembers
+  useEffect(() => {
+    if (bookClubMembers && auth?.user?.id) {
+      const membership = bookClubMembers.find(m => m.userId === auth.user.id);
+      setUserRole(membership?.role || null);
+    }
+  }, [bookClubMembers, auth?.user?.id]);
 
   // Reset books history and calendar view when bookClubId changes
   useEffect(() => {
@@ -884,7 +896,14 @@ const BookClub = () => {
                 )}
               </div>
             ) : (
-              <BookClubChat messages={messages} currentRoom={currentRoom} auth={auth} />
+              <BookClubChat 
+                messages={messages} 
+                setMessages={setMessages}
+                currentRoom={currentRoom} 
+                auth={auth} 
+                userRole={userRole}
+                ws={ws}
+              />
             )}
 
             {/* Message Input - Only show when not viewing special views */}

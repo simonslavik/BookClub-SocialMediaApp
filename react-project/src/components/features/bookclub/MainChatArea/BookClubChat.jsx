@@ -1,10 +1,13 @@
 
-import React, { useRef, useEffect } from 'react';
-import { FiHash } from 'react-icons/fi';
+import React, { useRef, useEffect, useState } from 'react';
+import { FiHash, FiTrash2, FiMoreVertical } from 'react-icons/fi';
+import { BsPinAngle } from 'react-icons/bs';
 import MessageAttachment from '../../../common/MessageAttachment';
+import { messageModerationAPI } from '../../../../api/messageModeration.api';
 
 // Function to convert URLs in text to clickable links
 const linkifyText = (text) => {
+  if (!text || typeof text !== 'string') return text;
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = text.split(urlRegex);
   
@@ -27,8 +30,25 @@ const linkifyText = (text) => {
   });
 };
 
-const BookClubChat = ({ messages, currentRoom, auth }) => {
+const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws }) => {
     const messagesEndRef = useRef(null);
+    const [messageMenuId, setMessageMenuId] = useState(null);
+    const menuRef = useRef(null);
+
+    // Check if user is MODERATOR or higher
+    const canModerate = userRole && ['OWNER', 'ADMIN', 'MODERATOR'].includes(userRole);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (menuRef.current && !menuRef.current.contains(event.target)) {
+          setMessageMenuId(null);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -37,6 +57,50 @@ const BookClubChat = ({ messages, currentRoom, auth }) => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    const handleDeleteMessage = async (messageId) => {
+      setMessageMenuId(null);
+      if (!confirm('Are you sure you want to delete this message?')) return;
+      
+      try {
+        if (ws?.current && ws.current.readyState === WebSocket.OPEN) {
+          ws.current.send(JSON.stringify({
+            type: 'delete-message',
+            messageId
+          }));
+        }
+        await messageModerationAPI.deleteMessage(messageId);
+      } catch (error) {
+        console.error('Error deleting message:', error);
+        alert('Failed to delete message');
+      }
+    };
+
+    const handlePinMessage = async (messageId, isPinned) => {
+      setMessageMenuId(null);
+      try {
+        if (ws?.current && ws.current.readyState === WebSocket.OPEN) {
+          ws.current.send(JSON.stringify({
+            type: 'pin-message',
+            messageId,
+            isPinned: !isPinned
+          }));
+        }
+        if (isPinned) {
+          await messageModerationAPI.unpinMessage(messageId);
+        } else {
+          await messageModerationAPI.pinMessage(messageId);
+        }
+      } catch (error) {
+        console.error('Error pinning message:', error);
+        alert('Failed to pin message');
+      }
+    };
+
+    const toggleMessageMenu = (messageId, event) => {
+      event.stopPropagation();
+      setMessageMenuId(messageMenuId === messageId ? null : messageId);
+    };
 
     return (
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -58,14 +122,44 @@ const BookClubChat = ({ messages, currentRoom, auth }) => {
                         {/* Debug: Log message data */}
                         {console.log('Message:', msg.id, 'Text:', msg.text, 'Attachments:', msg.attachments)}
                         {msg.userId === auth?.user?.id ? (
-                          <div className="flex gap-3 justify-end">
-                            <div className="text-right max-w-md self-end">
-                              {msg.text && (
-                                <div className="bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl px-4 py-3 shadow-lg mb-2">
-                                  <p className="text-white break-words font-medium">{linkifyText(msg.text)}</p>
+                          <div className="flex gap-3 justify-end group">
+                            <div className="text-right max-w-md self-end relative">
+                              {msg.isPinned && (
+                                <div className="flex items-center justify-end gap-1 text-xs text-yellow-400 mb-1">
+                                  <BsPinAngle className="w-3 h-3" />
+                                  <span>Pinned</span>
                                 </div>
                               )}
-                              {msg.attachments && msg.attachments.length > 0 ? (
+                              <div className="relative">
+                                {msg.text && (
+                                  <div className={`bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl px-4 py-3 shadow-lg mb-2 ${msg.deletedAt ? 'opacity-60 italic' : ''}`}>
+                                    <p className="text-white break-words font-medium">{msg.text ? linkifyText(msg.text) : ''}</p>
+                                  </div>
+                                )}
+                                {!msg.deletedAt && (
+                                  <button
+                                    onClick={(e) => toggleMessageMenu(msg.id, e)}
+                                    className="absolute -left-8 top-2 p-1.5 rounded-lg bg-gray-700/80 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <FiMoreVertical className="w-4 h-4 text-gray-300" />
+                                  </button>
+                                )}
+                                {messageMenuId === msg.id && (
+                                  <div ref={menuRef} className="absolute left-0 top-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 min-w-[160px]">
+                                    {canModerate && (
+                                      <button onClick={() => handlePinMessage(msg.id, msg.isPinned)} className="w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-gray-700 flex items-center gap-2 rounded-t-lg">
+                                        <BsPinAngle className="w-4 h-4" />
+                                        {msg.isPinned ? 'Unpin message' : 'Pin message'}
+                                      </button>
+                                    )}
+                                    <button onClick={() => handleDeleteMessage(msg.id)} className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-gray-700 flex items-center gap-2 rounded-b-lg">
+                                      <FiTrash2 className="w-4 h-4" />
+                                      Delete message
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                              {msg.attachments && msg.attachments.length > 0 && !msg.deletedAt ? (
                                 <div className="flex flex-col gap-2">
                                   {msg.attachments.map((attachment) => (
                                     <MessageAttachment
@@ -90,30 +184,50 @@ const BookClubChat = ({ messages, currentRoom, auth }) => {
                             </div>
                           </div>
                         ) : (
-                          <div className="flex gap-3">
+                          <div className="flex gap-3 group">
                             <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
                               {msg.username?.[0]?.toUpperCase()}
                             </div>
-                            <div className="flex-1">
+                            <div className="flex-1 relative">
                               <div className="flex items-baseline gap-2 mb-1">
                                 <span className="font-bold text-white">{msg.username}</span>
                                 <span className="text-xs text-gray-500">
                                   {new Date(msg.timestamp).toLocaleTimeString()}
                                 </span>
+                                {msg.isPinned && (
+                                  <span className="flex items-center gap-1 text-xs text-yellow-400">
+                                    <BsPinAngle className="w-3 h-3" />
+                                    Pinned
+                                  </span>
+                                )}
                               </div>
-                              {msg.text && <p className="text-gray-200 break-words leading-relaxed mb-2">{linkifyText(msg.text)}</p>}
-                              {msg.attachments && msg.attachments.length > 0 ? (
-                                <div className="flex flex-col gap-2">
-                                  {msg.attachments.map((attachment) => (
-                                    <MessageAttachment
-                                      key={attachment.id}
-                                      attachment={attachment}
-                                      canDelete={false}
-                                      auth={auth}
-                                    />
-                                  ))}
-                                </div>
-                              ) : null}
+                              <div className="relative">
+                                {msg.text && <p className={`text-gray-200 break-words leading-relaxed mb-2 ${msg.deletedAt ? 'italic text-gray-500' : ''}`}>{msg.text ? linkifyText(msg.text) : ''}</p>}
+                                {msg.attachments && msg.attachments.length > 0 && !msg.deletedAt ? (
+                                  <div className="flex flex-col gap-2">
+                                    {msg.attachments.map((attachment) => (
+                                      <MessageAttachment key={attachment.id} attachment={attachment} canDelete={false} auth={auth} />
+                                    ))}
+                                  </div>
+                                ) : null}
+                                {canModerate && !msg.deletedAt && (
+                                  <button onClick={(e) => toggleMessageMenu(msg.id, e)} className="absolute -right-8 top-0 p-1.5 rounded-lg bg-gray-700/80 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <FiMoreVertical className="w-4 h-4 text-gray-300" />
+                                  </button>
+                                )}
+                                {messageMenuId === msg.id && canModerate && (
+                                  <div ref={menuRef} className="absolute right-0 top-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 min-w-[160px]">
+                                    <button onClick={() => handlePinMessage(msg.id, msg.isPinned)} className="w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-gray-700 flex items-center gap-2 rounded-t-lg">
+                                      <BsPinAngle className="w-4 h-4" />
+                                      {msg.isPinned ? 'Unpin message' : 'Pin message'}
+                                    </button>
+                                    <button onClick={() => handleDeleteMessage(msg.id)} className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-gray-700 flex items-center gap-2 rounded-b-lg">
+                                      <FiTrash2 className="w-4 h-4" />
+                                      Delete message
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         )}
