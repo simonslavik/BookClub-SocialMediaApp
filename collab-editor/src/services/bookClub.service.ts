@@ -168,6 +168,15 @@ export class BookClubService {
         visibility: true,
         creatorId: true,
         createdAt: true,
+        members: {
+          where: { status: MembershipStatus.ACTIVE },
+          select: {
+            userId: true,
+            role: true,
+            joinedAt: true
+          },
+          take: 100
+        },
         _count: {
           select: {
             members: { where: { status: MembershipStatus.ACTIVE } }
@@ -205,8 +214,50 @@ export class BookClubService {
 
     const isMember = membership?.status === MembershipStatus.ACTIVE;
 
+    // Fetch user details for members
+    const memberUserIds = club.members.map(m => m.userId);
+    let membersWithDetails = [];
+
+    if (memberUserIds.length > 0) {
+      try {
+        const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-service:3001';
+        const response = await fetch(`${userServiceUrl}/api/users/batch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userIds: memberUserIds })
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          const userMap = new Map(userData.users.map((u: any) => [u.id, u]));
+          
+          membersWithDetails = club.members.map(member => {
+            const user = userMap.get(member.userId);
+            return {
+              id: member.userId,
+              username: user?.username || 'Unknown User',
+              profileImage: user?.profilePicture || null,
+              role: member.role,
+              joinedAt: member.joinedAt
+            };
+          });
+        }
+      } catch (error) {
+        logger.error('Failed to fetch user details for members', { error });
+        // Fallback to basic member data without user details
+        membersWithDetails = club.members.map(member => ({
+          id: member.userId,
+          username: 'User',
+          profileImage: null,
+          role: member.role,
+          joinedAt: member.joinedAt
+        }));
+      }
+    }
+
     return {
       ...club,
+      members: membersWithDetails,
       memberCount: club._count.members,
       membership,
       isMember,
