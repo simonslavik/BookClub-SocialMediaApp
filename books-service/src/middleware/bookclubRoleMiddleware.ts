@@ -21,8 +21,12 @@ export const requireBookClubRole = (minRole: 'OWNER' | 'ADMIN' | 'MODERATOR' | '
       }
 
       // Call collab-editor service to verify membership and role
-      const collabEditorUrl = process.env.COLLAB_EDITOR_URL || 'http://collab-editor:3003';
-      const response = await fetch(`${collabEditorUrl}/api/v1/bookclubs/${bookClubId}/members/${userId}/verify-role`, {
+      const collabEditorUrl = process.env.COLLAB_EDITOR_URL || 'http://collab-editor:4000';
+      const verifyUrl = `${collabEditorUrl}/bookclubs/${bookClubId}/members/${userId}/verify-role`;
+      
+      logger.info(`Verifying role at: ${verifyUrl}`);
+      
+      const response = await fetch(verifyUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -30,6 +34,7 @@ export const requireBookClubRole = (minRole: 'OWNER' | 'ADMIN' | 'MODERATOR' | '
       });
 
       if (!response.ok) {
+        logger.error(`Role verification failed: ${response.status} ${response.statusText}`);
         if (response.status === 403) {
           return res.status(403).json({ error: 'You must be a member to manage books in this bookclub' });
         }

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { BookClubService } from '../services/bookClub.service.js';
 import logger from '../utils/logger.js';
+import prisma from '../config/database.js';
 
 export class BookClubController {
   /**
@@ -483,10 +484,38 @@ export class BookClubController {
   static async verifyMemberRole(req: Request, res: Response) {
     try {
       const { id, userId } = req.params;
+      
+      logger.info('VERIFY_ROLE_REQUEST', { clubId: id, userId });
 
+      // First check if user is the creator (they automatically have OWNER role)
+      const bookClub = await prisma.bookClub.findUnique({
+        where: { id },
+        select: { creatorId: true }
+      });
+      
+      logger.info('BOOKCLUB_LOOKUP', { found: !!bookClub, creatorId: bookClub?.creatorId });
+      
+      if (!bookClub) {
+        logger.warn('BOOKCLUB_NOT_FOUND', { clubId: id });
+        return res.status(404).json({ success: false, message: 'Book club not found' });
+      }
+
+      if (bookClub.creatorId === userId) {
+        logger.info('USER_IS_CREATOR', { userId, clubId: id });
+        return res.json({ 
+          success: true, 
+          role: 'OWNER', 
+          status: 'ACTIVE' 
+        });
+      }
+
+      // Otherwise check membership table
       const membership = await BookClubService.getMembership(id, userId);
+      
+      logger.info('MEMBERSHIP_LOOKUP', { found: !!membership, role: membership?.role });
 
       if (!membership) {
+        logger.warn('MEMBER_NOT_FOUND', { userId, clubId: id });
         return res.status(404).json({ success: false, message: 'Member not found' });
       }
 
@@ -496,7 +525,7 @@ export class BookClubController {
         status: membership.status 
       });
     } catch (error: any) {
-      logger.error('ERROR_VERIFY_ROLE', { error: error.message, clubId: id });
+      logger.error('ERROR_VERIFY_ROLE', { error: error.message, stack: error.stack, clubId: req.params.id });
       res.status(500).json({ success: false, message: 'Failed to verify role' });
     }
   }

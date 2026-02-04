@@ -247,6 +247,7 @@ const BookClub = () => {
     setShowBooksHistory(true);
     setShowCalendar(false);
     setShowSuggestions(false);
+    setShowSettings(false);
     fetchBookclubBooks();
   };
 
@@ -645,6 +646,7 @@ const BookClub = () => {
       setShowBooksHistory(false);
       setShowCalendar(false);
       setShowSuggestions(false);
+      setShowSettings(false);
       
       // Send switch-room message to server
       if (ws.current && ws.current.readyState === WebSocket.OPEN) {
@@ -906,6 +908,7 @@ const BookClub = () => {
                 setShowCalendar(true);
                 setShowBooksHistory(false);
                 setShowSuggestions(false);
+                setShowSettings(false);
                 setCurrentRoom(null);
               }}
               showCalendar={showCalendar}
@@ -913,6 +916,7 @@ const BookClub = () => {
                 setShowSuggestions(true);
                 setShowBooksHistory(false);
                 setShowCalendar(false);
+                setShowSettings(false);
                 setCurrentRoom(null);
               }}
               showSuggestions={showSuggestions}
