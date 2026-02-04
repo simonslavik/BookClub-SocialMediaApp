@@ -507,7 +507,9 @@ const BookClub = () => {
       if (response.ok) {
         console.log('✅ Setting messages:', data.data.messages);
         console.log('✅ Setting currentDMUser:', data.data.otherUser);
-        setDmMessages(data.data.messages || []);
+        // Reverse messages so oldest appear first (top), newest at bottom
+        const messagesInOrder = [...(data.data.messages || [])].reverse();
+        setDmMessages(messagesInOrder);
         setCurrentDMUser(data.data.otherUser);
       } else {
         console.error('Failed to fetch messages:', data.message);
@@ -777,30 +779,21 @@ const BookClub = () => {
     console.log('🚀 Starting DM with userId:', userId);
     setViewMode('dm');
     
+    // Check if conversation already exists
+    const existingConversation = conversations.find(conv => conv.friend?.id === userId);
+    
+    if (existingConversation) {
+      console.log('✅ Conversation already exists, selecting it');
+      await fetchDMMessages(userId);
+      setSelectedUserId(null);
+      return;
+    }
+    
+    // Fetch messages (this will create a new conversation if needed)
     await fetchDMMessages(userId);
     
-    // Ensure user is in conversations list (either from API response or bookClubMembers)
-    setTimeout(() => {
-      if (!conversations.some(conv => conv.friend?.id === userId)) {
-        console.log('⚠️ User not in conversations, adding from bookClubMembers');
-        const userInfo = bookClubMembers.find(member => member.id === userId);
-        console.log('Found user info:', userInfo);
-        if (userInfo) {
-          setConversations(prev => [{
-            friend: {
-              id: userInfo.id,
-              name: userInfo.username,
-              email: userInfo.email || '',
-              profileImage: userInfo.profileImage
-            },
-            lastMessage: null,
-            unreadCount: 0
-          }, ...prev]);
-        }
-      } else {
-        console.log('✅ User already in conversations');
-      }
-    }, 100);
+    // Refresh conversations to include the new one
+    await fetchConversations();
     
     setSelectedUserId(null);
   };

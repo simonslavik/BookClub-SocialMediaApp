@@ -59,9 +59,9 @@ export class DirectMessageService {
       messages,
       otherUser: otherUser ? {
         id: otherUser.id,
-        name: otherUser.username,
+        name: otherUser.name,
         email: otherUser.email,
-        profileImage: otherUser.profilePicture
+        profileImage: otherUser.profileImage
       } : null
     };
   }
@@ -79,9 +79,9 @@ export class DirectMessageService {
         return {
           friend: partner ? {
             id: partner.id,
-            name: partner.username,
+            name: partner.name,
             email: partner.email,
-            profileImage: partner.profilePicture
+            profileImage: partner.profileImage
           } : null,
           lastMessage: conv.lastMessage,
           unreadCount: conv.unreadCount

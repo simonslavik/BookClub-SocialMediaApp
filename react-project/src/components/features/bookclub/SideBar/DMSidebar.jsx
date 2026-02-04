@@ -99,26 +99,24 @@ const DMSidebar = ({ conversations, friends = [], currentConversation, onSelectC
                         ? `http://localhost:3001${conv.friend.profileImage}` 
                         : '/images/default.webp'
                       }
-                      alt={conv.friend.name}
-                      className="w-10 h-10 rounded-full object-cover"
+                      alt={conv.friend.name || 'User'}
+                      className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                       onError={(e) => { e.target.src = '/images/default.webp'; }}
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-white font-medium truncate">
-                          {conv.friend.name}
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-white font-semibold text-sm truncate">
+                          {conv.friend.name || 'Unknown User'}
                         </span>
                         {conv.unreadCount > 0 && (
-                          <span className="bg-purple-600 text-white text-xs rounded-full px-2 py-0.5">
+                          <span className="bg-purple-600 text-white text-xs rounded-full px-2 py-0.5 flex-shrink-0 ml-2">
                             {conv.unreadCount}
                           </span>
                         )}
                       </div>
-                      {conv.lastMessage && (
-                        <p className="text-gray-400 text-sm truncate">
-                          {conv.lastMessage.content}
-                        </p>
-                      )}
+                      <p className="text-gray-400 text-xs truncate">
+                        {conv.lastMessage?.content || 'No messages yet'}
+                      </p>
                     </div>
                   </div>
                 </button>
