@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext, useRef } from 'react';
+import { useEffect, useState, useContext, useRef, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../../../context';
 import MyBookClubsSidebar from '../../../components/features/bookclub/MyBookClubsSidebar';
@@ -106,6 +106,12 @@ const BookClub = () => {
   
   // User's role in the current bookclub
   const [userRole, setUserRole] = useState(null);
+  
+  // Friends list for connected users sidebar
+  const [friends, setFriends] = useState([]);
+  
+  // Force re-render counter for role updates
+  const [roleUpdateCounter, setRoleUpdateCounter] = useState(0);
   
   const fileInputRef = useRef(null);
   const fileUploadRef = useRef(null);
@@ -334,6 +340,28 @@ const BookClub = () => {
             .catch(error => console.error('Error fetching my book clubs:', error));
     }
   }, [auth]);
+
+  // Fetch friends list for connected users sidebar
+  useEffect(() => {
+    const fetchFriends = async () => {
+      if (!auth?.token) return;
+      
+      try {
+        const response = await fetch('http://localhost:3000/v1/friends/list', {
+          headers: { Authorization: `Bearer ${auth.token}` }
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+          setFriends(data.data || []);
+        }
+      } catch (err) {
+        console.error('Error fetching friends:', err);
+      }
+    };
+
+    fetchFriends();
+  }, [auth?.token]);
 
 
 
@@ -620,6 +648,41 @@ const BookClub = () => {
   const handleCalendarRefreshCallback = (refreshFn) => {
     setCalendarRefresh(() => refreshFn);
   };
+
+
+  // Memoize mapped members with roles to trigger re-render when roles update
+  const mappedBookClubMembers = useMemo(() => {
+    console.log('🔄 Recalculating mappedBookClubMembers', {
+      bookClubMembersCount: bookClubMembers.length,
+      bookClubDotMembersCount: bookClub?.members?.length,
+      roleUpdateCounter,
+      bookClubMembers: bookClubMembers,
+      bookClubDotMembers: bookClub?.members
+    });
+    
+    return bookClubMembers.map(member => {
+      // bookClubMembers from WebSocket has: id, username, email, profileImage
+      // bookClub.members from API has: id, userId, role, bookClubId
+      // Match by: bookClub.members.userId === bookClubMembers.id
+      const memberWithRole = bookClub?.members?.find(m => m.userId === member.id);
+      const mappedMember = {
+        ...member,
+        id: member.id,
+        role: memberWithRole?.role || (member.id === bookClub?.creatorId ? 'OWNER' : 'MEMBER')
+      };
+      
+      console.log('👤 Mapping member:', {
+        memberName: member.username,
+        memberId: member.id,
+        lookingForUserId: member.id,
+        foundMemberWithRole: memberWithRole,
+        finalRole: mappedMember.role,
+        bookClubCreatorId: bookClub?.creatorId
+      });
+      
+      return mappedMember;
+    });
+  }, [bookClubMembers, bookClub?.members, bookClub?.creatorId, roleUpdateCounter]);
 
 
   
@@ -947,21 +1010,15 @@ const BookClub = () => {
                 <MemberManagement
                   bookclub={{
                     ...bookClub,
-                    members: bookClubMembers.map(member => {
-                      // Find matching member from bookClub.members to get role
-                      const memberWithRole = bookClub?.members?.find(m => m.userId === member.id);
-                      return {
-                        ...member,
-                        role: memberWithRole?.role || (member.id === bookClub?.creatorId ? 'OWNER' : 'MEMBER')
-                      };
-                    })
+                    members: mappedBookClubMembers
                   }}
                   currentUserId={auth?.user?.id}
                   currentUserRole={userRole}
                   onMemberUpdate={async () => {
                     const response = await bookclubAPI.getBookclubPreview(bookClubId);
                     setBookClub(response.data);
-                    setBookClubMembers(response.data.members || []);
+                    // Increment counter to force re-render
+                    setRoleUpdateCounter(prev => prev + 1);
                   }}
                 />
               </div>
@@ -1029,20 +1086,9 @@ const BookClub = () => {
           )}
           {/* Connected Users Sidebar */}
           <ConnectedUsersSidebar
-              bookClubMembers={bookClubMembers.map(member => {
-                // bookClubMembers from WebSocket might have: id, userId, username, email, profileImage
-                // bookClub.members has: userId, role
-                const memberWithRole = bookClub?.members?.find(m => m.userId === (member.userId || member.id));
-                const mappedMember = {
-                  ...member,
-                  // Ensure we have an id property (some members might use userId)
-                  id: member.id || member.userId,
-                  role: memberWithRole?.role || (member.id === bookClub?.creatorId || member.userId === bookClub?.creatorId ? 'OWNER' : 'MEMBER')
-                };
-                console.log('Mapping member:', { original: member, memberWithRole, mapped: mappedMember, bookClubCreatorId: bookClub?.creatorId });
-                return mappedMember;
-              })}
+              bookClubMembers={mappedBookClubMembers}
               connectedUsers={connectedUsers}
+              friends={friends}
               auth={auth}
               onSendFriendRequest={handleSendFriendRequest}
             />

@@ -14,6 +14,7 @@ const ROLE_ORDER = ['OWNER', 'ADMIN', 'MODERATOR', 'MEMBER'];
 const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUpdate }) => {
   const [processingUserId, setProcessingUserId] = useState(null);
   const [showRoleDropdown, setShowRoleDropdown] = useState(null);
+  const [optimisticRoles, setOptimisticRoles] = useState({});
 
   const isOwner = currentUserRole === 'OWNER';
   const isAdmin = ['OWNER', 'ADMIN'].includes(currentUserRole);
@@ -35,11 +36,20 @@ const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUp
     }
 
     setProcessingUserId(userId);
+    // Optimistically update the role immediately
+    setOptimisticRoles(prev => ({ ...prev, [userId]: newRole }));
+    
     try {
       await bookclubAPI.updateMemberRole(bookclub.id, userId, newRole);
-      onMemberUpdate?.();
+      await onMemberUpdate?.();
       setShowRoleDropdown(null);
     } catch (error) {
+      // Revert optimistic update on error
+      setOptimisticRoles(prev => {
+        const updated = { ...prev };
+        delete updated[userId];
+        return updated;
+      });
       alert(error.response?.data?.message || 'Failed to update role');
     } finally {
       setProcessingUserId(null);
@@ -101,7 +111,8 @@ const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUp
 
       <div className="space-y-2">
         {sortedMembers.map((member) => {
-          const memberRole = member.role || 'MEMBER';
+          // Use optimistic role if available, otherwise fall back to member.role or 'MEMBER'
+          const memberRole = optimisticRoles[member.id] || member.role || 'MEMBER';
           const isCurrentUser = member.id === currentUserId;
           const canChangeRole = isOwner && !isCurrentUser && memberRole !== 'OWNER';
           const canRemove = isAdmin && !isCurrentUser && memberRole !== 'OWNER';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUsers, FiStar, FiShield, FiAward } from 'react-icons/fi';
+import { FiUsers, FiStar, FiShield, FiAward, FiHeart } from 'react-icons/fi';
 
 // Role badge component
 const RoleBadge = ({ role }) => {
@@ -40,6 +40,8 @@ const ConnectedUsersSidebar = ({
   // Debug logging
   console.log('ConnectedUsersSidebar - bookClubMembers:', bookClubMembers);
   console.log('ConnectedUsersSidebar - sample member:', bookClubMembers[0]);
+  console.log('ConnectedUsersSidebar - friends:', friends);
+  console.log('ConnectedUsersSidebar - friends length:', friends.length);
 
   return (
     <div className="w-44 bg-gray-800 border-l border-gray-700 p-2">
@@ -53,7 +55,13 @@ const ConnectedUsersSidebar = ({
         {bookClubMembers.map(user => {
           const isOnline = connectedUsers.some(connectedUser => connectedUser.userId === user.id);
           const isCurrentUser = user.id === auth?.user?.id;
-          const isFriend = friends.some(friend => friend.id === user.id);
+          const isFriend = friends.some(f => f.friend?.id === user.id);
+          
+          // Debug logging for each user
+          console.log(`User ${user.username} - ID: ${user.id}, isFriend: ${isFriend}`, {
+            user,
+            friendsIds: friends.map(f => f.friend?.id)
+          });
           
           return (
             <div key={user.id} className="relative">
@@ -97,7 +105,7 @@ const ConnectedUsersSidebar = ({
                   <RoleBadge role={user.role} />
                 </div>
                 {isFriend && (
-                  <FiUsers className="text-white" size={16} title="Friend" />
+                  <FiHeart className="text-pink-500 fill-pink-500" size={16} title="Friend" />
                 )}
               </div>
               
