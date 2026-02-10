@@ -165,3 +165,40 @@ export const deleteDirectMessage = async (req: Request, res: Response) => {
         throw error;
     }
 };
+
+/**
+ * Mark conversation as read
+ */
+export const markConversationAsRead = async (req: Request, res: Response) => {
+    try {
+        const currentUserId = req.user?.userId;
+        const { otherUserId } = req.params;
+
+        if (!currentUserId) {
+            throw new UnauthorizedError('User not authenticated');
+        }
+
+        if (!otherUserId) {
+            throw new BadRequestError('Other user ID is required');
+        }
+
+        await DirectMessageService.markConversationAsRead(currentUserId, otherUserId);
+
+        logger.info({
+            type: 'DM_CONVERSATION_READ',
+            userId: currentUserId,
+            otherUserId
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Conversation marked as read'
+        });
+    } catch (error: any) {
+        logError(error, 'Mark conversation as read error', { 
+            userId: req.user?.userId,
+            otherUserId: req.params.otherUserId
+        });
+        throw error;
+    }
+};

@@ -35,7 +35,11 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Middleware - order matters!
-// CORS handled by gateway - no need for CORS here since all requests come through the gateway
+// CORS configuration for direct file access from frontend
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true
+}));
 app.use(express.json());
 app.use(requestLogger); // HTTP request logging
 app.use(metricsMiddleware); // Prometheus metrics

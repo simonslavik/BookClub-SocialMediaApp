@@ -400,18 +400,8 @@ const ProfilePage = () => {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => {
-                        // Use any bookclub the current user is in
-                        if (currentUserBookClubs.length > 0) {
-                          const firstClub = currentUserBookClubs[0];
-                          // Store DM intent in sessionStorage
-                          sessionStorage.setItem('openDM', JSON.stringify({
-                            userId: id,
-                            username: profile.name
-                          }));
-                          navigate(`/bookclub/${firstClub.id}`);
-                        } else {
-                          alert('You need to join a bookclub first to send messages');
-                        }
+                        // Navigate directly to DM page with the user's ID
+                        navigate(`/dm/${id}`);
                       }}
                       className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                     >

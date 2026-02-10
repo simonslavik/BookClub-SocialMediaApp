@@ -171,7 +171,7 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws }
                                   <p className="text-white break-words font-medium">{msg.text ? linkifyText(msg.text) : ''}</p>
                                 </div>
                               )}
-                              {!msg.deletedAt && (
+                              {!msg.deletedAt && (canModerate || msg.userId === auth?.user?.id) && (
                                 <button
                                   onClick={(e) => toggleMessageMenu(msg.id, e)}
                                   className="absolute -left-8 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-gray-700/80 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -187,10 +187,12 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws }
                                       {msg.isPinned ? 'Unpin message' : 'Pin message'}
                                     </button>
                                   )}
-                                  <button onClick={() => handleDeleteMessage(msg.id)} className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-gray-700 flex items-center gap-2 rounded-b-lg">
-                                    <FiTrash2 className="w-4 h-4" />
-                                    Delete message
-                                  </button>
+                                  {(canModerate || msg.userId === auth?.user?.id) && (
+                                    <button onClick={() => handleDeleteMessage(msg.id)} className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-gray-700 flex items-center gap-2 rounded-b-lg">
+                                      <FiTrash2 className="w-4 h-4" />
+                                      Delete message
+                                    </button>
+                                  )}
                                 </div>
                               )}
                               {msg.attachments && msg.attachments.length > 0 && !msg.deletedAt ? (
@@ -243,21 +245,25 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws }
                                   {new Date(msg.timestamp).toLocaleString()}
                                 </span>
                               )}
-                              {canModerate && !msg.deletedAt && (
+                              {(canModerate || msg.userId === auth?.user?.id) && !msg.deletedAt && (
                                 <button onClick={(e) => toggleMessageMenu(msg.id, e)} className="absolute -right-8 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-gray-700/80 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <FiMoreVertical className="w-4 h-4 text-gray-300" />
                                 </button>
                               )}
-                              {messageMenuId === msg.id && canModerate && (
+                              {messageMenuId === msg.id && (canModerate || msg.userId === auth?.user?.id) && (
                                 <div ref={menuRef} className="absolute right-0 top-1/2 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 min-w-[160px]">
-                                  <button onClick={() => handlePinMessage(msg.id, msg.isPinned)} className="w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-gray-700 flex items-center gap-2 rounded-t-lg">
-                                    <BsPinAngle className="w-4 h-4" />
-                                    {msg.isPinned ? 'Unpin message' : 'Pin message'}
-                                  </button>
+                                  {canModerate && (
+                                    <button onClick={() => handlePinMessage(msg.id, msg.isPinned)} className="w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-gray-700 flex items-center gap-2 rounded-t-lg">
+                                      <BsPinAngle className="w-4 h-4" />
+                                      {msg.isPinned ? 'Unpin message' : 'Pin message'}
+                                    </button>
+                                  )}
+                                  {(canModerate || msg.userId === auth?.user?.id) && (
                                     <button onClick={() => handleDeleteMessage(msg.id)} className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-gray-700 flex items-center gap-2 rounded-b-lg">
                                       <FiTrash2 className="w-4 h-4" />
                                       Delete message
                                     </button>
+                                  )}
                                   </div>
                                 )}
                             </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { FiHome, FiMail, FiSend } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Helper function to get user initials
 const getUserInitials = (name) => {
@@ -17,8 +17,12 @@ const getUserInitials = (name) => {
   }
 };
 
-const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, viewMode, onSelectBookClub, onOpenDM, auth }) => {
+const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, onSelectBookClub, onOpenDM, auth }) => {
     const navigate = useNavigate();
+    const location = useLocation();
+    
+    // Check if we're on the DM page
+    const isOnDMPage = location.pathname.startsWith('/dm');
 
     return (
         <div className="w-20 bg-gray-900 border-r border-gray-700 flex flex-col items-center py-4 gap-3 overflow-y-auto">
@@ -34,7 +38,7 @@ const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, viewMode, onSelectBo
             <button 
               onClick={onOpenDM}
               className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors flex-shrink-0 ${
-                viewMode === 'dm'
+                isOnDMPage
                   ? 'bg-purple-600 ring-2 ring-purple-400'
                   : 'bg-gray-700 hover:bg-purple-600'
               }`}
@@ -53,7 +57,7 @@ const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, viewMode, onSelectBo
               key={club.id}
               onClick={() => onSelectBookClub(club.id)}
               className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all flex-shrink-0 ${
-                viewMode === 'bookclub' && club.id === currentBookClubId
+                !isOnDMPage && club.id === currentBookClubId
                   ? 'bg-purple-600 ring-2 ring-purple-400'
                   : 'bg-gray-700 hover:bg-purple-600 hover:rounded-2xl'
               }`}

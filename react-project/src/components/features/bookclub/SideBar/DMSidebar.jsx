@@ -115,7 +115,10 @@ const DMSidebar = ({ conversations, friends = [], currentConversation, onSelectC
                         )}
                       </div>
                       <p className="text-gray-400 text-xs truncate">
-                        {conv.lastMessage?.content || 'No messages yet'}
+                        {conv.lastMessage?.content || 
+                         (conv.lastMessage?.attachments && conv.lastMessage.attachments.length > 0 
+                           ? '📎 File sent' 
+                           : 'No messages yet')}
                       </p>
                     </div>
                   </div>

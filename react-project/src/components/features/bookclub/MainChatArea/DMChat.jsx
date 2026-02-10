@@ -46,6 +46,13 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs })
     scrollToBottom();
   }, [messages]);
 
+  // Scroll to bottom when conversation changes
+  useEffect(() => {
+    if (otherUser) {
+      scrollToBottom();
+    }
+  }, [otherUser]);
+
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -218,7 +225,7 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs })
                   </div>
                 )}
                 {/* Three-dot menu button */}
-                {!msg.deletedAt && (
+                {!msg.deletedAt && msg.senderId === auth?.user?.id && (
                   <button
                     onClick={(e) => toggleMessageMenu(msg.id, e)}
                     className={`absolute top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-gray-700/80 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity ${
@@ -229,7 +236,7 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs })
                   </button>
                 )}
                 {/* Delete menu */}
-                {messageMenuId === msg.id && !msg.deletedAt && (
+                {messageMenuId === msg.id && !msg.deletedAt && msg.senderId === auth?.user?.id && (
                   <div 
                     ref={menuRef} 
                     className={`absolute ${

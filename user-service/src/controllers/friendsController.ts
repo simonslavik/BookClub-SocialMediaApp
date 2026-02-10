@@ -49,7 +49,7 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
             });
         }
         
-        if (error.message === 'ALREADY_FRIENDS' || error.message === 'REQUEST_ALREADY_SENT') {
+        if (error.message === 'FRIENDSHIP_EXISTS' || error.message === 'ALREADY_FRIENDS' || error.message === 'REQUEST_ALREADY_SENT') {
             logger.warn({
                 type: 'FRIEND_REQUEST_DUPLICATE',
                 action: 'SEND_FRIEND_REQUEST',
@@ -59,6 +59,8 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
             return res.status(400).json({ 
                 message: error.message === 'REQUEST_ALREADY_SENT' 
                     ? 'Friend request already sent' 
+                    : error.message === 'FRIENDSHIP_EXISTS'
+                    ? 'Friend request already sent or you are already friends'
                     : 'Already friends'
             });
         }

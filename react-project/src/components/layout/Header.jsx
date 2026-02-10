@@ -147,22 +147,22 @@ const HomePageHeader = () => {
                             ) : (
                                 <div className="divide-y divide-gray-100">
                                     {friendRequests.map((request) => (
-                                        <div key={request.id} className="px-4 py-3 hover:bg-gray-50 transition">
+                                        <div key={request.friendshipId} className="px-4 py-3 hover:bg-gray-50 transition">
                                             <div className="flex items-start space-x-3">
                                                 <img 
-                                                    src={request.user.profileImage 
-                                                        ? `http://localhost:3001${request.user.profileImage}` 
+                                                    src={request.from?.profileImage 
+                                                        ? `http://localhost:3001${request.from.profileImage}` 
                                                         : "/images/default.webp"} 
-                                                    alt={request.user.name}
+                                                    alt={request.from?.name || 'User'}
                                                     className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
                                                     onError={(e) => { e.target.src = '/images/default.webp'; }}
                                                 />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm text-gray-900">
-                                                        <span className="font-semibold">{request.user.name}</span>
+                                                        <span className="font-semibold">{request.from?.name || 'Unknown User'}</span>
                                                         <span className="text-gray-600"> sent you a friend request</span>
                                                     </p>
-                                                    <p className="text-xs text-gray-500 mt-0.5">{request.user.email}</p>
+                                                    
                                                     <div className="mt-3 flex space-x-2">
                                                         <button 
                                                             onClick={async () => {
@@ -176,10 +176,10 @@ const HomePageHeader = () => {
                                                                     const response = await fetch('http://localhost:3000/v1/friends/accept', {
                                                                         method: 'POST',
                                                                         headers,
-                                                                        body: JSON.stringify({ requestId: request.id }),
+                                                                        body: JSON.stringify({ requestId: request.friendshipId }),
                                                                     });
                                                                     if (response.ok) {
-                                                                        setFriendRequests(prev => prev.filter(r => r.id !== request.id));
+                                                                        setFriendRequests(prev => prev.filter(r => r.friendshipId !== request.friendshipId));
                                                                     } else {
                                                                         const data = await response.json();
                                                                         console.error('Failed to accept:', data);
@@ -204,10 +204,10 @@ const HomePageHeader = () => {
                                                                     const response = await fetch('http://localhost:3000/v1/friends/reject', {
                                                                         method: 'POST',
                                                                         headers,
-                                                                        body: JSON.stringify({ requestId: request.id }),
+                                                                        body: JSON.stringify({ requestId: request.friendshipId }),
                                                                     });
                                                                     if (response.ok) {
-                                                                        setFriendRequests(prev => prev.filter(r => r.id !== request.id));
+                                                                        setFriendRequests(prev => prev.filter(r => r.friendshipId !== request.friendshipId));
                                                                     } else {
                                                                         const data = await response.json();
                                                                         console.error('Failed to reject:', data);

@@ -209,15 +209,43 @@ const DMChatPage = () => {
         const messagesInOrder = [...(data.data.messages || [])].reverse();
         setDmMessages(messagesInOrder);
         setCurrentDMUser(data.data.otherUser);
+        
+        // Mark conversation as read
+        await markConversationAsRead(userId);
       } else {
         const userFromConv = conversations.find(c => c.friend?.id === userId)?.friend;
         if (userFromConv) {
           setCurrentDMUser(userFromConv);
           setDmMessages([]);
+          
+          // Mark conversation as read even if no messages yet
+          await markConversationAsRead(userId);
         }
       }
     } catch (err) {
       console.error('Error fetching DM messages:', err);
+    }
+  };
+
+  const markConversationAsRead = async (userId) => {
+    if (!auth?.token) return;
+    
+    try {
+      await fetch(`http://localhost:3000/v1/messages/${userId}/read`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+      
+      // Update local conversation state to set unreadCount to 0
+      setConversations(prev => 
+        prev.map(conv => 
+          conv.friend?.id === userId 
+            ? { ...conv, unreadCount: 0 } 
+            : conv
+        )
+      );
+    } catch (err) {
+      console.error('Error marking conversation as read:', err);
     }
   };
 
