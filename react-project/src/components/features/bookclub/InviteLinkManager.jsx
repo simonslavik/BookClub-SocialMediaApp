@@ -11,7 +11,7 @@ const InviteLinkManager = ({ bookclubId, userRole }) => {
   const [creating, setCreating] = useState(false);
   const [copiedCode, setCopiedCode] = useState(null);
 
-  const isAdmin = ['OWNER', 'ADMIN'].includes(userRole);
+  const isAdmin = userRole && ['OWNER', 'ADMIN'].includes(userRole);
 
   useEffect(() => {
     if (isAdmin) {

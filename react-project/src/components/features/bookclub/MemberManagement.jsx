@@ -17,7 +17,7 @@ const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUp
   const [optimisticRoles, setOptimisticRoles] = useState({});
 
   const isOwner = currentUserRole === 'OWNER';
-  const isAdmin = ['OWNER', 'ADMIN'].includes(currentUserRole);
+  const isAdmin = currentUserRole && ['OWNER', 'ADMIN'].includes(currentUserRole);
 
   // Debug logging
   console.log('MemberManagement Debug:', {

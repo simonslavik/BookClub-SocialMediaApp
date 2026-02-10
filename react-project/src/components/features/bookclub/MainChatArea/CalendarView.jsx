@@ -21,14 +21,14 @@ const CalendarView = ({ bookClubId, auth, onAddEvent, onEditEvent, onDeleteEvent
     fetchBookClubBooks();
   }, [bookClubId, refreshTrigger]);
 
-  // Expose refresh function to parent via callback
+  // Expose refresh function to parent via callback (only once on mount)
   useEffect(() => {
     if (onEventSaved) {
       // Pass refresh function to parent
       const refresh = () => setRefreshTrigger(prev => prev + 1);
       onEventSaved(refresh);
     }
-  }, [onEventSaved]);
+  }, []);
 
   const fetchEvents = async () => {
     try {
@@ -343,7 +343,7 @@ const CalendarView = ({ bookClubId, auth, onAddEvent, onEditEvent, onDeleteEvent
               )}
             </div>
 
-            {auth?.user && auth.user.id === selectedEvent.createdBy && (
+            {auth?.user?.id && selectedEvent?.createdBy && auth.user.id === selectedEvent.createdBy && (
               <div className="flex gap-2">
                 <button
                   onClick={() => {

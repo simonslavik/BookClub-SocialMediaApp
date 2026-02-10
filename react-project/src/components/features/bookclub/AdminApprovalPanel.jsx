@@ -7,7 +7,7 @@ const AdminApprovalPanel = ({ bookclubId, userRole }) => {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
 
-  const isAdmin = ['OWNER', 'ADMIN'].includes(userRole);
+  const isAdmin = userRole && ['OWNER', 'ADMIN'].includes(userRole);
 
   useEffect(() => {
     if (isAdmin) {

@@ -1,5 +1,6 @@
 import { EventRepository } from '../repositories/event.repository.js';
 import { BookClubRepository } from '../repositories/bookClub.repository.js';
+import prisma from '../config/database.js';
 
 interface CreateEventDto {
   title: string;
@@ -37,14 +38,24 @@ export class EventService {
       throw new Error('Title and event date are required');
     }
     
-    // Check if user is a member of the bookclub
+    // Check if book club exists
     const bookClub = await BookClubRepository.findById(bookClubId);
     
     if (!bookClub) {
       throw new Error('Book club not found');
     }
     
-    if (!bookClub.members.includes(userId)) {
+    // Check if user is a member using BookClubMember table
+    const membership = await prisma.bookClubMember.findUnique({
+      where: {
+        bookClubId_userId: {
+          bookClubId,
+          userId
+        }
+      }
+    });
+    
+    if (!membership) {
       throw new Error('You must be a member to create events');
     }
 

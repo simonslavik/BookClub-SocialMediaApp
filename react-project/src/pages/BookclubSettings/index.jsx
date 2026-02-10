@@ -75,7 +75,7 @@ const BookclubSettings = () => {
     }
   };
 
-  const isAdmin = ['OWNER', 'ADMIN'].includes(membership?.role);
+  const isAdmin = membership?.role && ['OWNER', 'ADMIN'].includes(membership.role);
 
   if (loading) {
     return (

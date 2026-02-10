@@ -335,6 +335,8 @@ const BookClub = () => {
                 const myClubs = clubs.filter(club => 
                   club.creatorId === auth.user.id || club.isMember === true
                 );
+                // Sort bookclubs alphabetically by name for consistent order
+                myClubs.sort((a, b) => a.name.localeCompare(b.name));
                 setMyBookClubs(myClubs);
             })
             .catch(error => console.error('Error fetching my book clubs:', error));
