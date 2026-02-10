@@ -11,6 +11,7 @@ import InviteJoinPage from "./pages/Invite/:code";
 import ResetPasswordPage from "./pages/ResetPassword";
 import VerifyEmailPage from "./pages/VerifyEmail";
 import BookclubSettings from "./pages/BookclubSettings";
+import DMChatPage from "./pages/DMChat";
 
 
 function App() {
@@ -39,6 +40,11 @@ function App() {
       <Route path="/bookclub-settings/:id" element={
         <ProtectedRoute>
           <BookclubSettings />
+        </ProtectedRoute>
+      }/>
+      <Route path="/dm" element={
+        <ProtectedRoute>
+          <DMChatPage />
         </ProtectedRoute>
       }/>
       <Route path="/reset-password" element={<ResetPasswordPage />}/>

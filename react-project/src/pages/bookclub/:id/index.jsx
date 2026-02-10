@@ -333,11 +333,17 @@ const BookClub = () => {
           ? { Authorization: `Bearer ${auth.token}` }
           : {};
         
-        fetch('http://localhost:3000/v1/bookclubs?mine=true', { headers })
+        fetch('http://localhost:3000/v1/bookclubs/discover', { headers })
             .then(response => response.json())
             .then(data => {
                 console.log('My Bookclubs response:', data);
-                setMyBookClubs(data.bookClubs || []);
+                // Handle new API response format { success: true, data: [...] }
+                const clubs = data.success ? data.data : (data.bookClubs || []);
+                // Filter for clubs where user is a member (including INVITE_ONLY clubs)
+                const myClubs = clubs.filter(club => 
+                  club.creatorId === auth.user.id || club.isMember === true
+                );
+                setMyBookClubs(myClubs);
             })
             .catch(error => console.error('Error fetching my book clubs:', error));
     }
@@ -918,7 +924,7 @@ const BookClub = () => {
               setViewMode('bookclub');
               navigate(`/bookclub/${id}`);
             }}
-            onOpenDM={() => setViewMode('dm')}
+            onOpenDM={() => navigate('/dm')}
             auth={auth}
           />
           
@@ -946,7 +952,7 @@ const BookClub = () => {
               handleImageUpload={handleImageUpload}
               handleDeleteImage={handleDeleteImage}
               onNameUpdate={(newName) => setBookClub(prev => ({ ...prev, name: newName }))}
-              onOpenDM={() => setViewMode('dm')}
+              onOpenDM={() => navigate('/dm')}
               setAddCurrentBookState={setAddCurrentBookState}
               addCurrentBookState={addCurrentBookState}
               onCurrentBookClick={(bookData) => {
@@ -1047,11 +1053,11 @@ const BookClub = () => {
                     {/* Bookclub Image */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-300 mb-2">Bookclub Image</label>
-                      <div className="relative group">
+                      <div className="relative group w-52 h-52">
                         <img 
                           src={bookClub?.imageUrl ? `http://localhost:4000${bookClub.imageUrl}` : '/images/default.webp'}
                           alt={bookClub?.name}
-                          className="w-full h-48 object-cover rounded-lg"
+                          className="w-full h-full object-cover rounded-lg"
                           onError={(e) => { e.target.src = '/images/default.webp'; }}
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 rounded-lg">
@@ -1059,19 +1065,19 @@ const BookClub = () => {
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploadingImage}
-                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold flex items-center gap-2"
+                            className="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center gap-1.5"
                           >
-                            <FiImage />
-                            {uploadingImage ? 'Uploading...' : 'Change Image'}
+                            <FiImage size={14} />
+                            {uploadingImage ? 'Uploading...' : 'Change'}
                           </button>
                           {bookClub?.imageUrl && (
                             <button
                               type="button"
                               onClick={handleDeleteImage}
-                              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold flex items-center gap-2"
+                              className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium flex items-center gap-1.5"
                             >
-                              <FiTrash2 />
-                              Delete Image
+                              <FiTrash2 size={14} />
+                              Delete
                             </button>
                           )}
                         </div>
@@ -1307,7 +1313,19 @@ const BookClub = () => {
           {/* Connected Users - only show in bookclub mode */}
           {viewMode === 'bookclub' && (
             <ConnectedUsersSidebar
-              bookClubMembers={bookClubMembers}
+              bookClubMembers={bookClubMembers.map(member => {
+                // bookClubMembers from WebSocket might have: id, userId, username, email, profileImage
+                // bookClub.members has: userId, role
+                const memberWithRole = bookClub?.members?.find(m => m.userId === (member.userId || member.id));
+                const mappedMember = {
+                  ...member,
+                  // Ensure we have an id property (some members might use userId)
+                  id: member.id || member.userId,
+                  role: memberWithRole?.role || (member.id === bookClub?.creatorId || member.userId === bookClub?.creatorId ? 'OWNER' : 'MEMBER')
+                };
+                console.log('Mapping member:', { original: member, memberWithRole, mapped: mappedMember, bookClubCreatorId: bookClub?.creatorId });
+                return mappedMember;
+              })}
               connectedUsers={connectedUsers}
               friends={friends}
               auth={auth}

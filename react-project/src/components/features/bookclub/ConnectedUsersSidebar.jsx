@@ -1,6 +1,30 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUsers } from 'react-icons/fi';
+import { FiUsers, FiStar, FiShield, FiAward } from 'react-icons/fi';
+
+// Role badge component
+const RoleBadge = ({ role }) => {
+  const roleConfig = {
+    OWNER: { icon: FiStar, color: 'text-yellow-400', bg: 'bg-yellow-400/10', label: 'Owner' },
+    ADMIN: { icon: FiShield, color: 'text-purple-400', bg: 'bg-purple-400/10', label: 'Admin' },
+    MODERATOR: { icon: FiAward, color: 'text-blue-400', bg: 'bg-blue-400/10', label: 'Mod' },
+    MEMBER: { icon: null, color: '', bg: '', label: '' }
+  };
+
+  const config = roleConfig[role] || roleConfig.MEMBER;
+  if (!config.icon) return null;
+
+  const Icon = config.icon;
+
+  return (
+    <div 
+      className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${config.bg}`}
+      title={config.label}
+    >
+      <Icon className={config.color} size={12} />
+    </div>
+  );
+};
 
 const ConnectedUsersSidebar = ({ 
   bookClubMembers, 
@@ -13,6 +37,10 @@ const ConnectedUsersSidebar = ({
   const navigate = useNavigate();
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+
+  // Debug logging
+  console.log('ConnectedUsersSidebar - bookClubMembers:', bookClubMembers);
+  console.log('ConnectedUsersSidebar - sample member:', bookClubMembers[0]);
 
   return (
     <div className="w-44 bg-gray-800 border-l border-gray-700 p-2">
@@ -65,9 +93,12 @@ const ConnectedUsersSidebar = ({
                     isOnline ? 'bg-green-500' : 'bg-gray-500'
                   }`}></div>
                 </div>
-                <span className="truncate">{user.username}</span>
+                <div className="flex-1 flex items-center gap-1.5 min-w-0">
+                  <span className="truncate">{user.username}</span>
+                  <RoleBadge role={user.role} />
+                </div>
                 {isFriend && (
-                  <FiUsers className="text-white ml-auto" size={18} title="Friend" />
+                  <FiUsers className="text-white" size={16} title="Friend" />
                 )}
               </div>
               

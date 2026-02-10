@@ -9,7 +9,7 @@ const BookClubImage = ({ bookClub, auth, uploadingImage, fileInputRef, handleIma
                     <img 
                       src={bookClub?.imageUrl ? `http://localhost:4000${bookClub.imageUrl}` : '/images/default.webp'}
                       alt={bookClub?.name}
-                      className="w-full h-32 object-cover rounded"
+                      className="w-full h-52 object-cover rounded"
                       onError={(e) => { e.target.src = '/images/IMG_2650.jpg'; }}
                     />
                     {auth?.user && auth.user.id === bookClub?.creatorId && (

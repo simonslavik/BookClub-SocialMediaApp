@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FiSend } from 'react-icons/fi';
+import { FiSend, FiMoreVertical, FiTrash2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import FileUpload from '../../../common/FileUpload';
 import MessageAttachment from '../../../common/MessageAttachment';
@@ -32,8 +32,10 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth }) => {
   const [newMessage, setNewMessage] = useState('');
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [messageMenuId, setMessageMenuId] = useState(null);
   const messagesEndRef = useRef(null);
   const fileUploadRef = useRef(null);
+  const menuRef = useRef(null);
   const navigate = useNavigate();
 
   const scrollToBottom = () => {
@@ -44,9 +46,56 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth }) => {
     scrollToBottom();
   }, [messages]);
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMessageMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleDeleteMessage = async (messageId) => {
+    setMessageMenuId(null);
+    if (!confirm('Are you sure you want to delete this message?')) return;
+    
+    try {
+      // Call DM delete API endpoint
+      const response = await fetch(`http://localhost:3000/v1/messages/${messageId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${auth.token}`
+        }
+      });
+
+      if (response.ok) {
+        // Message deleted successfully - could update local state or refetch
+        alert('Message deleted');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete message');
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      alert('Failed to delete message');
+    }
+  };
+
+  const toggleMessageMenu = (messageId, event) => {
+    event.stopPropagation();
+    setMessageMenuId(messageMenuId === messageId ? null : messageId);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() && selectedFiles.length === 0) return;
+    
+    const hasMessage = newMessage.trim().length > 0;
+    const hasFiles = selectedFiles.length > 0;
+    
+    if (!hasMessage && !hasFiles) return;
     
     setUploadingFiles(true);
     
@@ -57,7 +106,23 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth }) => {
         uploadedAttachments = await fileUploadRef.current?.uploadFiles();
       }
       
-      onSendMessage(newMessage.trim(), uploadedAttachments);
+      // Send text message first if we have both text and files
+      if (hasMessage && uploadedAttachments.length > 0) {
+        onSendMessage(newMessage.trim(), []);
+      }
+      
+      // Send each file as a separate message
+      if (uploadedAttachments.length > 0) {
+        for (const attachment of uploadedAttachments) {
+          // Only include message text with single file if no text was sent already
+          const messageText = uploadedAttachments.length === 1 && hasMessage ? newMessage.trim() : '';
+          onSendMessage(messageText, [attachment]);
+        }
+      } else if (hasMessage) {
+        // If only text, no files
+        onSendMessage(newMessage.trim(), []);
+      }
+      
       setNewMessage('');
       setSelectedFiles([]);
     } catch (error) {
@@ -112,9 +177,9 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth }) => {
           messages.map((msg, idx) => (
             <div 
               key={msg.id || idx} 
-              className={`flex ${msg.senderId === auth?.user?.id ? 'justify-end' : 'justify-start'}`}
+              className={`flex gap-3 group ${msg.senderId === auth?.user?.id ? 'justify-end' : 'justify-start'}`}
             >
-              <div className="flex flex-col gap-2 max-w-xs lg:max-w-md">
+              <div className="flex flex-col gap-2 max-w-xs lg:max-w-md relative">
                 {msg.content && (
                   <div className={`px-4 py-2 rounded-2xl break-words ${
                       msg.senderId === auth?.user?.id
@@ -136,6 +201,32 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth }) => {
                         isSender={msg.senderId === auth?.user?.id}
                       />
                     ))}
+                  </div>
+                )}
+                {/* Three-dot menu button */}
+                <button
+                  onClick={(e) => toggleMessageMenu(msg.id, e)}
+                  className={`absolute top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-gray-700/80 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity ${
+                    msg.senderId === auth?.user?.id ? '-left-8' : '-right-8'
+                  }`}
+                >
+                  <FiMoreVertical className="w-4 h-4 text-gray-300" />
+                </button>
+                {/* Delete menu */}
+                {messageMenuId === msg.id && (
+                  <div 
+                    ref={menuRef} 
+                    className={`absolute ${
+                      msg.senderId === auth?.user?.id ? 'right-[80%]' : 'right-0'
+                    } top-[80%] mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 min-w-[160px]`}
+                  >
+                    <button 
+                      onClick={() => handleDeleteMessage(msg.id)} 
+                      className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-gray-700 flex items-center gap-2 rounded-lg"
+                    >
+                      <FiTrash2 className="w-4 h-4" />
+                      Delete message
+                    </button>
                   </div>
                 )}
               </div>

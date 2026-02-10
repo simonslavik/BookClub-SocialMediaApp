@@ -50,6 +50,7 @@ const formatTimestamp = (timestamp) => {
 const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws }) => {
     const messagesEndRef = useRef(null);
     const [messageMenuId, setMessageMenuId] = useState(null);
+    const [showFullDateId, setShowFullDateId] = useState(null);
     const menuRef = useRef(null);
 
     // Check if user is MODERATOR or higher
@@ -211,10 +212,10 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws }
                           </div>
                         ) : (
                           <div className="flex gap-3 group">
-                            <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold flex-shrink-0 self-end">
                               {msg.username?.[0]?.toUpperCase()}
                             </div>
-                            <div className="flex-1 relative">
+                            <div className="max-w-md relative">
                               <div className="flex items-baseline gap-2 mb-1">
                                 <span className="font-bold text-white">{msg.username}</span>
                                 {msg.isPinned && (
@@ -224,17 +225,24 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws }
                                   </span>
                                 )}
                               </div>
-                              {msg.text && <p className={`text-gray-200 break-words leading-relaxed mb-2 ${msg.deletedAt ? 'italic text-gray-500' : ''}`}>{msg.text ? linkifyText(msg.text) : ''}</p>}
-                              {msg.attachments && msg.attachments.length > 0 && !msg.deletedAt ? (
-                                <div className="flex flex-col gap-2 mb-1">
-                                  {msg.attachments.map((attachment) => (
-                                    <MessageAttachment key={attachment.id} attachment={attachment} canDelete={false} auth={auth} />
-                                  ))}
-                                </div>
-                              ) : null}
-                              <span className="text-xs text-gray-500 block mb-1">
-                                {formatTimestamp(msg.timestamp)}
-                              </span>
+                              <div 
+                                onClick={() => setShowFullDateId(showFullDateId === msg.id ? null : msg.id)}
+                                className="bg-gray-800 rounded-2xl px-4 py-3 shadow-md cursor-pointer hover:bg-gray-750 transition-colors"
+                              >
+                                {msg.text && <p className={`text-gray-200 break-words leading-relaxed ${msg.deletedAt ? 'italic text-gray-500' : ''}`}>{msg.text ? linkifyText(msg.text) : ''}</p>}
+                                {msg.attachments && msg.attachments.length > 0 && !msg.deletedAt ? (
+                                  <div className="flex flex-col gap-2 mt-2">
+                                    {msg.attachments.map((attachment) => (
+                                      <MessageAttachment key={attachment.id} attachment={attachment} canDelete={false} auth={auth} />
+                                    ))}
+                                  </div>
+                                ) : null}
+                              </div>
+                              {showFullDateId === msg.id && (
+                                <span className="text-xs text-gray-500 block mt-1">
+                                  {new Date(msg.timestamp).toLocaleString()}
+                                </span>
+                              )}
                               {canModerate && !msg.deletedAt && (
                                 <button onClick={(e) => toggleMessageMenu(msg.id, e)} className="absolute -right-8 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-gray-700/80 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <FiMoreVertical className="w-4 h-4 text-gray-300" />
