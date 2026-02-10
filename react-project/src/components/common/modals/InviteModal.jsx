@@ -3,7 +3,7 @@ import { FiX, FiCopy, FiTrash2, FiCheck, FiLink, FiUsers, FiSearch } from 'react
 import AuthContext from '../../../context';
 import { bookclubAPI } from '../../../api/bookclub.api';
 
-const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], onClose }) => {
+const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], currentUserRole, onClose }) => {
   const { auth } = useContext(AuthContext);
   const [invite, setInvite] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,52 +25,21 @@ const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], onClose }
   const fetchInvite = async () => {
     try {
       setLoading(true);
-      console.log('Fetching invites for bookclub:', bookClubId);
+      console.log('Fetching shareable invite for bookclub:', bookClubId);
       
-      const response = await bookclubAPI.getInvites(bookClubId);
-      console.log('Invites response:', response);
-      
-      if (response.data && response.data.length > 0) {
-        // Use the first active invite, or just the first one
-        const activeInvite = response.data.find(inv => {
-          const notExpired = !inv.expiresAt || new Date(inv.expiresAt) > new Date();
-          const notMaxedOut = !inv.maxUses || inv.currentUses < inv.maxUses;
-          return notExpired && notMaxedOut;
-        }) || response.data[0];
-        
-        setInvite(activeInvite);
-        console.log('Using invite:', activeInvite);
-      } else {
-        // No invites exist, create one
-        console.log('No invites found, creating one...');
-        await createInvite();
-      }
-    } catch (error) {
-      console.error('Error fetching invites:', error);
-      // If we get a 403 or similar, try to create one anyway
-      if (error.response?.status === 404 || error.response?.status === 403) {
-        await createInvite();
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createInvite = async () => {
-    try {
-      console.log('Creating invite for bookclub:', bookClubId);
-      
-      // Create a permanent invite (no maxUses, no expiry)
-      const response = await bookclubAPI.createInvite(bookClubId, {});
-      console.log('Create invite response:', response);
+      const response = await bookclubAPI.getShareableInvite(bookClubId);
+      console.log('Shareable invite response:', response);
       
       if (response.data) {
         setInvite(response.data);
-        console.log('Invite created successfully:', response.data);
+        console.log('Using invite:', response.data);
+      } else {
+        console.log('No active invite found');
       }
     } catch (error) {
-      console.error('Error creating invite:', error);
-      alert('Failed to create invite link. You may not have permission.');
+      console.error('Error fetching invite:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -237,10 +206,10 @@ const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], onClose }
                   </p>
                 </div>
               ) : (
-                <div className="mb-6 p-5 bg-red-50 rounded-lg border-2 border-red-200">
-                  <p className="text-red-700 font-semibold">Unable to load invite link</p>
-                  <p className="text-sm text-red-600 mt-1">
-                    Please close this modal and try again. If the problem persists, you may not have permission to create invites.
+                <div className="mb-6 p-5 bg-yellow-50 rounded-lg border-2 border-yellow-200">
+                  <p className="text-yellow-800 font-semibold">No Invite Link Available</p>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    This bookclub doesn't have an invite link. Contact the bookclub owner if you think this is an error.
                   </p>
                 </div>
               )}

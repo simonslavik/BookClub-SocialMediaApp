@@ -333,6 +333,30 @@ export class BookClubController {
   }
 
   /**
+   * Get shareable invite (Any member)
+   */
+  static async getShareableInvite(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const userId = (req as any).user.userId;
+
+      const invite = await BookClubService.getShareableInvite(id, userId);
+
+      if (!invite) {
+        return res.status(404).json({ success: false, message: 'No active invite found' });
+      }
+
+      res.json({ success: true, data: invite });
+    } catch (error: any) {
+      if (error.message === 'INSUFFICIENT_PERMISSIONS') {
+        return res.status(403).json({ success: false, message: 'You must be a member to get invite links' });
+      }
+      logger.error('ERROR_GET_SHAREABLE_INVITE', { error: error.message, clubId: id });
+      res.status(500).json({ success: false, message: 'Failed to get invite' });
+    }
+  }
+
+  /**
    * Delete invite (Admin/Owner only)
    */
   static async deleteInvite(req: Request, res: Response) {

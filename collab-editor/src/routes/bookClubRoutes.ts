@@ -57,8 +57,11 @@ router.post('/:id/requests/:requestId/approve', authMiddleware, BookClubControll
 // Reject request
 router.post('/:id/requests/:requestId/reject', authMiddleware, BookClubController.rejectRequest);
 
-// ===== INVITE MANAGEMENT (Admin/Owner only) =====
-// Get all invites
+// ===== INVITE MANAGEMENT =====
+// Get shareable invite (Any member)
+router.get('/:id/invite', authMiddleware, BookClubController.getShareableInvite);
+
+// Get all invites (Admin/Owner only)
 router.get('/:id/invites', authMiddleware, BookClubController.getInvites);
 
 // Create invite

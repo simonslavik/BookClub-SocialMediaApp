@@ -724,6 +724,29 @@ export class BookClubService {
   }
 
   /**
+   * Get default/shareable invite for any member
+   */
+  static async getShareableInvite(clubId: string, userId: string) {
+    // Check if user is a member
+    const isMember = await this.checkPermission(clubId, userId, BookClubRole.MEMBER);
+    if (!isMember) throw new Error('INSUFFICIENT_PERMISSIONS');
+
+    // Get the first active invite (usually the default permanent one)
+    const invite = await prisma.bookClubInvite.findFirst({
+      where: { 
+        bookClubId: clubId,
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: new Date() } }
+        ]
+      },
+      orderBy: { createdAt: 'asc' } // Get oldest first (the default one)
+    });
+
+    return invite;
+  }
+
+  /**
    * Delete invite (Admin/Owner only)
    */
   static async deleteInvite(clubId: string, inviteId: string, userId: string) {

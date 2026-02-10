@@ -1167,6 +1167,7 @@ const BookClub = () => {
             bookClubId={bookClubId}
             bookClubName={bookClub?.name}
             bookClubMembers={mappedBookClubMembers}
+            currentUserRole={userRole}
             onClose={() => setShowInviteModal(false)}
           />
         )}

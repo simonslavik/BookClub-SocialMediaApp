@@ -150,6 +150,12 @@ export const bookclubAPI = {
     return response.data;
   },
 
+  // Get shareable invite (Any member)
+  getShareableInvite: async (bookclubId) => {
+    const response = await apiClient.get(`/v1/bookclubs/${bookclubId}/invite`);
+    return response.data;
+  },
+
   // Get all invites (Admin/Owner only)
   getInvites: async (bookclubId) => {
     const response = await apiClient.get(`/v1/bookclubs/${bookclubId}/invites`);
