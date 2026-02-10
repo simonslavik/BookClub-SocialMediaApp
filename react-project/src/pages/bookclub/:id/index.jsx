@@ -47,7 +47,7 @@ import MemberManagement from '../../../components/features/bookclub/MemberManage
 import { useBookclubWebSocket } from '../../../hooks/useBookclubWebSocket';
 import { messageModerationAPI } from '../../../api/messageModeration.api';
 import { bookclubAPI } from '../../../api/bookclub.api';
-import { FiX, FiSettings as FiSettingsIcon, FiLock, FiUnlock, FiEyeOff } from 'react-icons/fi';
+import { FiX, FiSettings as FiSettingsIcon, FiLock, FiUnlock, FiEyeOff, FiImage, FiTrash2 } from 'react-icons/fi';
 
 
 const BookClub = () => {
@@ -80,6 +80,7 @@ const BookClub = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [previousView, setPreviousView] = useState(null); // Store previous view before opening settings
   
   // Settings form states
   const [settingsForm, setSettingsForm] = useState({
@@ -615,15 +616,38 @@ const BookClub = () => {
         console.log('No files to upload or ref missing');
       }
 
-      // Send message via WebSocket
-      console.log('Sending WebSocket message with attachments:', attachments);
-      const messageData = {
-        type: 'chat-message',
-        message: newMessage.trim() || null,
-        attachments: attachments
-      };
-      console.log('Full message data:', messageData);
-      ws.current.send(JSON.stringify(messageData));
+      // If there's a text message and files, send text message first
+      if (newMessage.trim() && attachments.length > 0) {
+        const textMessageData = {
+          type: 'chat-message',
+          message: newMessage.trim(),
+          attachments: []
+        };
+        console.log('Sending text message:', textMessageData);
+        ws.current.send(JSON.stringify(textMessageData));
+      }
+
+      // Send each file as a separate message
+      if (attachments.length > 0) {
+        for (const attachment of attachments) {
+          const fileMessageData = {
+            type: 'chat-message',
+            message: newMessage.trim() && attachments.length === 1 ? newMessage.trim() : null,
+            attachments: [attachment]
+          };
+          console.log('Sending file message:', fileMessageData);
+          ws.current.send(JSON.stringify(fileMessageData));
+        }
+      } else if (newMessage.trim()) {
+        // If only text, no files
+        const messageData = {
+          type: 'chat-message',
+          message: newMessage.trim(),
+          attachments: []
+        };
+        console.log('Sending text-only message:', messageData);
+        ws.current.send(JSON.stringify(messageData));
+      }
 
       setNewMessage('');
       setSelectedFiles([]); // Clear selected files after sending
@@ -976,6 +1000,12 @@ const BookClub = () => {
                 setShowInviteModal(true);
               }}
               onSettingsClick={() => {
+                // Store current view state before opening settings
+                setPreviousView({
+                  showBooksHistory,
+                  showCalendar,
+                  showSuggestions
+                });
                 setShowBooksHistory(false);
                 setShowCalendar(false);
                 setShowSuggestions(false);
@@ -994,7 +1024,16 @@ const BookClub = () => {
                     <h2 className="text-2xl font-bold text-white">Bookclub Settings</h2>
                   </div>
                   <button
-                    onClick={() => setShowSettings(false)}
+                    onClick={() => {
+                      setShowSettings(false);
+                      // Restore previous view if any
+                      if (previousView) {
+                        setShowBooksHistory(previousView.showBooksHistory);
+                        setShowCalendar(previousView.showCalendar);
+                        setShowSuggestions(previousView.showSuggestions);
+                        setPreviousView(null);
+                      }
+                    }}
                     className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
                   >
                     <FiX className="w-6 h-6 text-gray-400 hover:text-white" />
@@ -1005,6 +1044,47 @@ const BookClub = () => {
                 <div className="bg-gray-800 rounded-xl p-6 mb-6">
                   <h3 className="text-xl font-bold text-white mb-6">General Settings</h3>
                   <form onSubmit={handleSaveSettings} className="space-y-6">
+                    {/* Bookclub Image */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">Bookclub Image</label>
+                      <div className="relative group">
+                        <img 
+                          src={bookClub?.imageUrl ? `http://localhost:4000${bookClub.imageUrl}` : '/images/default.webp'}
+                          alt={bookClub?.name}
+                          className="w-full h-48 object-cover rounded-lg"
+                          onError={(e) => { e.target.src = '/images/default.webp'; }}
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 rounded-lg">
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploadingImage}
+                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold flex items-center gap-2"
+                          >
+                            <FiImage />
+                            {uploadingImage ? 'Uploading...' : 'Change Image'}
+                          </button>
+                          {bookClub?.imageUrl && (
+                            <button
+                              type="button"
+                              onClick={handleDeleteImage}
+                              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold flex items-center gap-2"
+                            >
+                              <FiTrash2 />
+                              Delete Image
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </div>
+
                     {/* Name */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-300 mb-2">Bookclub Name</label>

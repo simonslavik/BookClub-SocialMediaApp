@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/authMiddleware.js';
 import { BookClubService } from '../services/bookClub.service.js';
+import { BookClubRole } from '@prisma/client';
 
 // Helper type for active bookclubs
 interface ActiveClient {
@@ -134,7 +135,7 @@ export const getMyBookClubs = async (req: AuthRequest, res: Response) => {
 // Upload bookclub image (legacy endpoint)
 export const uploadBookClubImage = async (req: AuthRequest, res: Response) => {
   try {
-    const { bookClubId } = req.params;
+    const bookClubId = req.params.id;
     const userId = req.user!.userId;
     
     if (!req.file) {
@@ -142,10 +143,13 @@ export const uploadBookClubImage = async (req: AuthRequest, res: Response) => {
     }
     
     // Check permission and update image
-    await BookClubService.verifyMembership(bookClubId, userId, 'ADMIN');
+    const hasPermission = await BookClubService.checkPermission(bookClubId, userId, BookClubRole.ADMIN);
+    if (!hasPermission) {
+      return res.status(403).json({ error: 'Only admins can change the bookclub image' });
+    }
     
     const imageUrl = `/uploads/bookclub-images/${req.file.filename}`;
-    await BookClubService.updateClubSettings(bookClubId, userId, { imageUrl });
+    await BookClubService.updateClub(bookClubId, userId, { imageUrl });
     
     res.json({ message: 'Image uploaded successfully', imageUrl });
   } catch (error: any) {
@@ -161,11 +165,14 @@ export const uploadBookClubImage = async (req: AuthRequest, res: Response) => {
 // Delete bookclub image (legacy endpoint)
 export const deleteBookClubImage = async (req: AuthRequest, res: Response) => {
   try {
-    const { bookClubId } = req.params;
+    const bookClubId = req.params.id;
     const userId = req.user!.userId;
     
-    await BookClubService.verifyMembership(bookClubId, userId, 'ADMIN');
-    await BookClubService.updateClubSettings(bookClubId, userId, { imageUrl: null });
+    const hasPermission = await BookClubService.checkPermission(bookClubId, userId, BookClubRole.ADMIN);
+    if (!hasPermission) {
+      return res.status(403).json({ error: 'Only admins can delete the bookclub image' });
+    }
+    await BookClubService.updateClub(bookClubId, userId, { imageUrl: null });
     
     res.json({ message: 'Image deleted successfully' });
   } catch (error: any) {
