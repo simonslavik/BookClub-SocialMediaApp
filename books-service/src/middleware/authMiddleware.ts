@@ -72,6 +72,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       userId: decoded.userId,
       email: decoded.email,
       role: decoded.role || 'user',
+      name: decoded.name,
     };
 
     // Continue to next middleware/controller
