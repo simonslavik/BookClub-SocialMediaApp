@@ -111,9 +111,9 @@ describe('Gateway Routing Tests', () => {
 describe('Service Configuration Tests', () => {
   describe('Service URL Resolution', () => {
     const serviceUrls = {
-      USER_SERVICE: process.env.USER_SERVICE_URL || 'http://localhost:3001/api',
-      BOOKS_SERVICE: process.env.BOOKS_SERVICE_URL || 'http://localhost:3002/api',
-      COLLAB_SERVICE: process.env.COLLAB_SERVICE_URL || 'http://localhost:3003/api'
+      USER_SERVICE: process.env.USER_SERVICE_URL || 'http://localhost:3001',
+      BOOKS_SERVICE: process.env.BOOKS_SERVICE_URL || 'http://localhost:3002',
+      COLLAB_SERVICE: process.env.COLLAB_EDITOR_URL || 'http://localhost:4000'
     };
 
     it('should have all service URLs defined', () => {
@@ -135,9 +135,9 @@ describe('Service Configuration Tests', () => {
       };
 
       expect(buildTargetUrl('USER_SERVICE', '/users/profile'))
-        .toBe('http://localhost:3001/api/users/profile');
+        .toBe('http://localhost:3001/users/profile');
       expect(buildTargetUrl('BOOKS_SERVICE', '/books/search'))
-        .toBe('http://localhost:3002/api/books/search');
+        .toBe('http://localhost:3002/books/search');
     });
   });
 });

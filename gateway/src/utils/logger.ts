@@ -1,6 +1,14 @@
 import winston from 'winston';
+import fs from 'fs';
+import path from 'path';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
+
+// Ensure logs directory exists for file transports
+const logsDir = path.resolve('logs');
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
 
 /**
  * Custom format for console output
@@ -38,15 +46,19 @@ const logger = winston.createLogger({
     
     // Error log file
     new winston.transports.File({
-      filename: 'logs/error.log',
+      filename: path.join(logsDir, 'error.log'),
       level: 'error',
       format: fileFormat,
+      maxsize: 5_242_880, // 5MB
+      maxFiles: 5,
     }),
     
     // Combined log file
     new winston.transports.File({
-      filename: 'logs/combined.log',
+      filename: path.join(logsDir, 'combined.log'),
       format: fileFormat,
+      maxsize: 5_242_880, // 5MB
+      maxFiles: 5,
     }),
   ],
 });

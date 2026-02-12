@@ -8,7 +8,7 @@ import { RedisClientType } from 'redis';
 import { TIMEOUTS } from '../config/constants.js';
 
 /**
- * Setup all middleware for the application
+ * Setup pre-route middleware (runs before routes)
  * @param app - Express application instance
  * @param redisClient - Redis client instance for rate limiting
  */
@@ -19,13 +19,17 @@ export const setupMiddleware = (app: Express, redisClient: RedisClientType): voi
   // Request timeout
   app.use(requestTimeout(TIMEOUTS.DEFAULT));
 
-  // Rate limiting
+  // Rate limiting (skip health checks)
   app.use(createRateLimiter(redisClient));
 
   // Request logging
   app.use(requestLogger);
+};
 
-  // Error handler (must be last)
+/**
+ * Setup post-route middleware (error handling — MUST be registered after routes)
+ */
+export const setupErrorHandling = (app: Express): void => {
   app.use(errorHandler);
 };
 

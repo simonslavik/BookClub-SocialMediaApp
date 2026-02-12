@@ -1,3 +1,3 @@
-export default async () => {
-  console.log('Test suite completed');
-};
+export default async function teardown() {
+  // Test suite completed
+}

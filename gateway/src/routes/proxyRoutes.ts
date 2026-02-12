@@ -116,7 +116,7 @@ const SERVICES: ServiceConfig[] = [
 
 /**
  * Create proxy configuration for a service
- * @param serviceName - Name of the service for logging
+ * @param serviceName - Name of the service (used for server-side logging only)
  * @param pathTransform - Optional function to transform the request path
  */
 const createProxyConfig = (
@@ -144,7 +144,6 @@ const createProxyConfig = (
     proxyReqOpts.headers['X-Gateway-Source'] = 'api-gateway';
     proxyReqOpts.headers['X-Request-ID'] = requestId;
     proxyReqOpts.headers['X-Forwarded-For'] = srcReq.ip;
-    proxyReqOpts.headers['X-Service-Name'] = serviceName;
 
     // Forward user information if authenticated
     if (srcReq.user) {
@@ -157,7 +156,7 @@ const createProxyConfig = (
       proxyReqOpts.headers['Authorization'] = srcReq.headers.authorization;
     }
 
-    logger.info(`[${requestId}] Proxying ${srcReq.method} ${srcReq.url} → ${serviceName}`);
+    logger.debug(`[${requestId}] Proxying ${srcReq.method} ${srcReq.url} → ${serviceName}`);
     return proxyReqOpts;
   },
 
@@ -166,21 +165,36 @@ const createProxyConfig = (
    */
   userResDecorator: (proxyRes: any, proxyResData: Buffer, userReq: Request) => {
     const requestId = (userReq as any).id || 'unknown';
-    logger.info(`[${requestId}] ${serviceName} → ${proxyRes.statusCode}`);
+    const statusCode = proxyRes.statusCode;
+
+    // Only log non-2xx responses at info level
+    if (statusCode >= 400) {
+      logger.warn(`[${requestId}] ${serviceName} → ${statusCode} ${userReq.method} ${userReq.url}`);
+    } else {
+      logger.debug(`[${requestId}] ${serviceName} → ${statusCode}`);
+    }
+
     return proxyResData;
   },
 
   /**
-   * Handle proxy errors
+   * Handle proxy errors — never leak service names to clients
    */
-  proxyErrorHandler: (err: Error, res: Response) => {
-    logger.error(`Proxy error [${serviceName}]: ${err.message}`);
+  proxyErrorHandler: (err: Error & { code?: string }, res: Response) => {
+    logger.error(`Proxy error [${serviceName}]: ${err.message}`, { code: err.code });
     
-    const isProduction = process.env.NODE_ENV === 'production';
-    res.status(HTTP_STATUS.SERVICE_UNAVAILABLE).json({
+    // Map known network errors to appropriate status codes
+    if (err.code === 'ETIMEDOUT') {
+      res.status(HTTP_STATUS.GATEWAY_TIMEOUT).json({
+        success: false,
+        message: 'Service request timed out',
+      });
+      return;
+    }
+
+    res.status(HTTP_STATUS.BAD_GATEWAY).json({
       success: false,
-      message: `${serviceName} is currently unavailable`,
-      error: isProduction ? 'Service unavailable' : err.message,
+      message: 'Service temporarily unavailable',
     });
   },
 

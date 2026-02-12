@@ -6,7 +6,7 @@ import { HTTP_STATUS } from '../config/constants.js';
 /**
  * JWT payload interface
  */
-interface JwtPayload {
+export interface JwtPayload {
   userId: string;
   email: string;
   iat: number;
@@ -33,7 +33,6 @@ const authHandler = (req: Request, res: Response, next: NextFunction): void => {
   const token = authHeader?.split(' ')[1];
 
   if (!token) {
-    logger.warn(`No authorization token for ${req.method} ${req.path}`);
     res.status(HTTP_STATUS.UNAUTHORIZED).json({
       message: 'Authorization required',
       success: false,
@@ -59,11 +58,11 @@ const authHandler = (req: Request, res: Response, next: NextFunction): void => {
     req.headers['x-user-id'] = decoded.userId;
     req.headers['x-user-email'] = decoded.email;
 
-    logger.info(`Authenticated user ${decoded.userId} for ${req.method} ${req.path}`);
+    logger.debug(`Auth: user ${decoded.userId} → ${req.method} ${req.path}`);
     next();
   } catch (err) {
     if (err instanceof jwt.TokenExpiredError) {
-      logger.warn(`Expired token for ${req.method} ${req.path}`);
+      logger.debug(`Expired token for ${req.method} ${req.path}`);
       res.status(HTTP_STATUS.UNAUTHORIZED).json({
         message: 'Token expired',
         success: false,
@@ -72,8 +71,8 @@ const authHandler = (req: Request, res: Response, next: NextFunction): void => {
     }
 
     if (err instanceof jwt.JsonWebTokenError) {
-      logger.warn(`Invalid token for ${req.method} ${req.path}`);
-      res.status(HTTP_STATUS.FORBIDDEN).json({
+      logger.debug(`Invalid token for ${req.method} ${req.path}`);
+      res.status(HTTP_STATUS.UNAUTHORIZED).json({
         message: 'Invalid token',
         success: false,
       });
@@ -86,6 +85,35 @@ const authHandler = (req: Request, res: Response, next: NextFunction): void => {
       success: false,
     });
   }
+};
+
+/**
+ * Optional authentication middleware
+ * Attaches user info if valid token is present, continues regardless
+ */
+export const optionalAuth = (req: Request, res: Response, next: NextFunction): void => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader?.split(' ')[1];
+
+  if (!token) {
+    return next();
+  }
+
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
+    req.user = decoded;
+    req.headers['x-user-id'] = decoded.userId;
+    req.headers['x-user-email'] = decoded.email;
+  } catch {
+    // Invalid/expired token on optional auth — continue without user
+  }
+
+  next();
 };
 
 export default authHandler;

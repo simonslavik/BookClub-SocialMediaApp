@@ -1,132 +1,72 @@
+import express, { Express, Response, NextFunction } from 'express';
 import request from 'supertest';
-import express, { Express, Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import errorHandler from '../../src/middleware/errorHandler';
+import requestId from '../../src/middleware/requestId';
+import requestLogger from '../../src/middleware/requestLogger';
+import authHandler, { optionalAuth } from '../../src/middleware/authHandler';
+import { HTTP_STATUS } from '../../src/config/constants';
 
-// Mock authentication middleware
-const authMiddleware = (req: any, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
+const JWT_SECRET = 'test-secret-key-for-testing';
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'test-secret') as any;
-    req.user = { userId: decoded.userId };
-    next();
-  } catch (error) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
-};
-
-// Create test gateway app
+/**
+ * Build a minimal gateway-like app with the real middleware stack
+ * (no Redis, no proxy — just testing middleware integration)
+ */
 const createGatewayApp = (): Express => {
   const app = express();
-  app.use(express.json());
+  app.use(express.json({ limit: '2mb' }));
 
-  // Health check
-  app.get('/health', (req, res) => {
-    res.json({ status: 'ok', service: 'gateway' });
+  // Real middleware
+  app.use(requestId);
+  app.use(requestLogger);
+
+  // Health check (public, no auth)
+  app.get('/health', (_req, res) => {
+    res.json({ status: 'healthy', service: 'api-gateway' });
   });
 
-  // Public auth routes (no auth required)
-  app.post('/api/auth/login', (req, res) => {
-    const { email, password } = req.body;
-    
+  // Public auth route
+  app.post('/v1/auth/login', (_req, res) => {
+    const { email, password } = _req.body;
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password required' });
+      return res.status(400).json({ success: false, message: 'Email and password required' });
     }
-
-    // Mock successful login
-    const token = jwt.sign(
-      { userId: 'user-123', email },
-      process.env.JWT_SECRET || 'test-secret',
-      { expiresIn: '24h' }
-    );
-
+    const token = jwt.sign({ userId: 'user-1', email }, JWT_SECRET, { expiresIn: '1h' });
     res.json({ success: true, token });
   });
 
-  app.post('/api/auth/register', (req, res) => {
-    const { email, password, username } = req.body;
-    
-    if (!email || !password || !username) {
-      return res.status(400).json({ error: 'All fields required' });
-    }
-
-    res.status(201).json({ success: true, message: 'User registered' });
+  // Optionally authenticated route
+  app.get('/v1/books', optionalAuth, (req: any, res) => {
+    res.json({
+      books: [{ id: '1', title: 'Test Book' }],
+      userId: req.user?.userId || null,
+    });
   });
 
-  // Protected user routes
-  app.get('/api/users/profile', authMiddleware, (req: any, res) => {
+  // Protected route
+  app.get('/v1/users/profile', authHandler, (req: any, res) => {
     res.json({
       userId: req.user.userId,
-      email: 'test@example.com',
-      username: 'testuser'
+      email: req.user.email,
     });
   });
 
-  app.put('/api/users/profile', authMiddleware, (req: any, res) => {
-    res.json({ success: true, message: 'Profile updated' });
+  // Protected route that throws
+  app.get('/v1/users/error', authHandler, (_req, _res) => {
+    throw new Error('Unexpected internal error');
   });
 
-  // Protected books routes
-  app.get('/api/books/search', authMiddleware, (req, res) => {
-    const { q } = req.query;
-    res.json({
-      books: [
-        { id: '1', title: 'Test Book', author: 'Test Author' }
-      ],
-      query: q
+  // 404 catch-all
+  app.use((_req: any, res: Response) => {
+    res.status(HTTP_STATUS.NOT_FOUND).json({
+      success: false,
+      message: 'Route not found',
     });
   });
 
-  app.get('/api/books/user', authMiddleware, (req: any, res) => {
-    res.json({
-      books: [],
-      userId: req.user.userId
-    });
-  });
-
-  // Protected bookclub routes
-  app.get('/api/bookclubs', authMiddleware, (req, res) => {
-    res.json({
-      bookClubs: [
-        { id: '1', name: 'Test BookClub', members: [] }
-      ]
-    });
-  });
-
-  app.post('/api/bookclubs', authMiddleware, (req: any, res) => {
-    const { name, description } = req.body;
-    
-    if (!name) {
-      return res.status(400).json({ error: 'Name required' });
-    }
-
-    res.status(201).json({
-      success: true,
-      bookClub: {
-        id: 'new-bookclub-id',
-        name,
-        description,
-        creatorId: req.user.userId
-      }
-    });
-  });
-
-  // 404 handler
-  app.use((req, res) => {
-    res.status(404).json({ error: 'Route not found' });
-  });
-
-  // Error handler
-  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    console.error(err);
-    res.status(err.statusCode || 500).json({
-      error: err.message || 'Internal Server Error'
-    });
-  });
+  // Error handler (after routes!)
+  app.use(errorHandler);
 
   return app;
 };
@@ -136,207 +76,182 @@ describe('Gateway Integration Tests', () => {
   let authToken: string;
 
   beforeAll(() => {
+    process.env.JWT_SECRET = JWT_SECRET;
     app = createGatewayApp();
     authToken = jwt.sign(
-      { userId: 'test-user-123', email: 'test@example.com' },
-      process.env.JWT_SECRET || 'test-secret',
+      { userId: 'test-user', email: 'test@example.com' },
+      JWT_SECRET,
       { expiresIn: '1h' }
     );
   });
 
-  describe('Health Check', () => {
-    it('should return health status', async () => {
-      const response = await request(app)
-        .get('/health')
+  // ─── Health Check ──────────────────────────────────────────
+
+  describe('GET /health', () => {
+    it('should return health status without auth', async () => {
+      const res = await request(app).get('/health').expect(200);
+      expect(res.body.status).toBe('healthy');
+      expect(res.body.service).toBe('api-gateway');
+    });
+
+    it('should include x-request-id in response', async () => {
+      const res = await request(app).get('/health').expect(200);
+      expect(res.headers['x-request-id']).toBeDefined();
+    });
+  });
+
+  // ─── Auth Routes ──────────────────────────────────────────
+
+  describe('POST /v1/auth/login', () => {
+    it('should return a token on successful login', async () => {
+      const res = await request(app)
+        .post('/v1/auth/login')
+        .send({ email: 'alice@test.com', password: 'pass123' })
         .expect(200);
 
-      expect(response.body.status).toBe('ok');
-      expect(response.body.service).toBe('gateway');
+      expect(res.body.success).toBe(true);
+      expect(res.body.token).toBeDefined();
+
+      // Token should be verifiable
+      const decoded = jwt.verify(res.body.token, JWT_SECRET) as any;
+      expect(decoded.userId).toBe('user-1');
+    });
+
+    it('should return 400 when email is missing', async () => {
+      const res = await request(app)
+        .post('/v1/auth/login')
+        .send({ password: 'pass123' })
+        .expect(400);
+
+      expect(res.body.success).toBe(false);
     });
   });
 
-  describe('Authentication Routes', () => {
-    describe('POST /api/auth/login', () => {
-      it('should login successfully', async () => {
-        const response = await request(app)
-          .post('/api/auth/login')
-          .send({
-            email: 'test@example.com',
-            password: 'password123'
-          })
-          .expect(200);
+  // ─── Optional Auth ──────────────────────────────────────────
 
-        expect(response.body.success).toBe(true);
-        expect(response.body.token).toBeDefined();
-      });
-
-      it('should require email and password', async () => {
-        const response = await request(app)
-          .post('/api/auth/login')
-          .send({ email: 'test@example.com' })
-          .expect(400);
-
-        expect(response.body.error).toBe('Email and password required');
-      });
+  describe('GET /v1/books (optionalAuth)', () => {
+    it('should work without auth and return null userId', async () => {
+      const res = await request(app).get('/v1/books').expect(200);
+      expect(res.body.books).toHaveLength(1);
+      expect(res.body.userId).toBeNull();
     });
 
-    describe('POST /api/auth/register', () => {
-      it('should register successfully', async () => {
-        const response = await request(app)
-          .post('/api/auth/register')
-          .send({
-            email: 'new@example.com',
-            password: 'password123',
-            username: 'newuser'
-          })
-          .expect(201);
+    it('should attach user when valid auth is provided', async () => {
+      const res = await request(app)
+        .get('/v1/books')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-        expect(response.body.success).toBe(true);
-      });
+      expect(res.body.userId).toBe('test-user');
+    });
 
-      it('should require all fields', async () => {
-        const response = await request(app)
-          .post('/api/auth/register')
-          .send({
-            email: 'new@example.com',
-            password: 'password123'
-          })
-          .expect(400);
+    it('should still work with invalid token (optional)', async () => {
+      const res = await request(app)
+        .get('/v1/books')
+        .set('Authorization', 'Bearer bad-token')
+        .expect(200);
 
-        expect(response.body.error).toBe('All fields required');
-      });
+      expect(res.body.userId).toBeNull();
     });
   });
 
-  describe('User Routes', () => {
-    describe('GET /api/users/profile', () => {
-      it('should get profile with auth', async () => {
-        const response = await request(app)
-          .get('/api/users/profile')
-          .set('Authorization', `Bearer ${authToken}`)
-          .expect(200);
+  // ─── Protected Routes ──────────────────────────────────────
 
-        expect(response.body.userId).toBeDefined();
-        expect(response.body.email).toBeDefined();
-      });
+  describe('GET /v1/users/profile (protected)', () => {
+    it('should return user profile with valid token', async () => {
+      const res = await request(app)
+        .get('/v1/users/profile')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      it('should require authentication', async () => {
-        const response = await request(app)
-          .get('/api/users/profile')
-          .expect(401);
-
-        expect(response.body.error).toBe('No token provided');
-      });
-
-      it('should reject invalid token', async () => {
-        const response = await request(app)
-          .get('/api/users/profile')
-          .set('Authorization', 'Bearer invalid-token')
-          .expect(401);
-
-        expect(response.body.error).toBe('Invalid token');
-      });
+      expect(res.body.userId).toBe('test-user');
+      expect(res.body.email).toBe('test@example.com');
     });
 
-    describe('PUT /api/users/profile', () => {
-      it('should update profile with auth', async () => {
-        const response = await request(app)
-          .put('/api/users/profile')
-          .set('Authorization', `Bearer ${authToken}`)
-          .send({ username: 'newname' })
-          .expect(200);
+    it('should return 401 without token', async () => {
+      const res = await request(app)
+        .get('/v1/users/profile')
+        .expect(401);
 
-        expect(response.body.success).toBe(true);
-      });
-    });
-  });
-
-  describe('Books Routes', () => {
-    describe('GET /api/books/search', () => {
-      it('should search books with auth', async () => {
-        const response = await request(app)
-          .get('/api/books/search')
-          .query({ q: 'test' })
-          .set('Authorization', `Bearer ${authToken}`)
-          .expect(200);
-
-        expect(response.body.books).toBeDefined();
-        expect(response.body.query).toBe('test');
-      });
-
-      it('should require authentication', async () => {
-        await request(app)
-          .get('/api/books/search')
-          .expect(401);
-      });
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toBe('Authorization required');
     });
 
-    describe('GET /api/books/user', () => {
-      it('should get user books', async () => {
-        const response = await request(app)
-          .get('/api/books/user')
-          .set('Authorization', `Bearer ${authToken}`)
-          .expect(200);
+    it('should return 401 with expired token', async () => {
+      const expired = jwt.sign(
+        { userId: '1', email: 'x@x.com' },
+        JWT_SECRET,
+        { expiresIn: '-1h' }
+      );
 
-        expect(response.body.books).toBeDefined();
-        expect(response.body.userId).toBeDefined();
-      });
+      const res = await request(app)
+        .get('/v1/users/profile')
+        .set('Authorization', `Bearer ${expired}`)
+        .expect(401);
+
+      expect(res.body.message).toBe('Token expired');
+    });
+
+    it('should return 401 (not 403) with invalid token', async () => {
+      const res = await request(app)
+        .get('/v1/users/profile')
+        .set('Authorization', 'Bearer invalid.jwt.token')
+        .expect(401);
+
+      expect(res.body.message).toBe('Invalid token');
     });
   });
 
-  describe('BookClub Routes', () => {
-    describe('GET /api/bookclubs', () => {
-      it('should get bookclubs with auth', async () => {
-        const response = await request(app)
-          .get('/api/bookclubs')
-          .set('Authorization', `Bearer ${authToken}`)
-          .expect(200);
+  // ─── Error Handling ──────────────────────────────────────────
 
-        expect(response.body.bookClubs).toBeDefined();
-        expect(Array.isArray(response.body.bookClubs)).toBe(true);
-      });
+  describe('Error handling', () => {
+    it('should return generic message for internal errors (no leak)', async () => {
+      const res = await request(app)
+        .get('/v1/users/error')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(500);
 
-      it('should require authentication', async () => {
-        await request(app)
-          .get('/api/bookclubs')
-          .expect(401);
-      });
-    });
-
-    describe('POST /api/bookclubs', () => {
-      it('should create bookclub', async () => {
-        const response = await request(app)
-          .post('/api/bookclubs')
-          .set('Authorization', `Bearer ${authToken}`)
-          .send({
-            name: 'New BookClub',
-            description: 'Test description'
-          })
-          .expect(201);
-
-        expect(response.body.success).toBe(true);
-        expect(response.body.bookClub.name).toBe('New BookClub');
-      });
-
-      it('should require name', async () => {
-        const response = await request(app)
-          .post('/api/bookclubs')
-          .set('Authorization', `Bearer ${authToken}`)
-          .send({ description: 'No name' })
-          .expect(400);
-
-        expect(response.body.error).toBe('Name required');
-      });
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toBe('Internal server error');
+      // Must NOT leak the actual error message
+      expect(res.body.message).not.toContain('Unexpected internal error');
+      expect(res.body.stack).toBeUndefined();
     });
   });
 
-  describe('Error Handling', () => {
+  // ─── 404 ──────────────────────────────────────────
+
+  describe('404 handler', () => {
     it('should return 404 for unknown routes', async () => {
-      const response = await request(app)
-        .get('/api/unknown/route')
-        .expect(404);
+      const res = await request(app).get('/unknown/path').expect(404);
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toBe('Route not found');
+    });
 
-      expect(response.body.error).toBe('Route not found');
+    it('should return 404 for wrong HTTP methods on existing routes', async () => {
+      const res = await request(app).delete('/v1/auth/login').expect(404);
+      expect(res.body.success).toBe(false);
+    });
+  });
+
+  // ─── Request ID Propagation ──────────────────────────────────
+
+  describe('Request ID propagation', () => {
+    it('should generate and return x-request-id header', async () => {
+      const res = await request(app).get('/health').expect(200);
+      expect(res.headers['x-request-id']).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      );
+    });
+
+    it('should echo back a client-provided request ID', async () => {
+      const clientId = 'custom-trace-id-abc';
+      const res = await request(app)
+        .get('/health')
+        .set('x-request-id', clientId)
+        .expect(200);
+
+      expect(res.headers['x-request-id']).toBe(clientId);
     });
   });
 });
