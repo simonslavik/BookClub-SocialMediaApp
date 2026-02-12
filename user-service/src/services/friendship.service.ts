@@ -229,4 +229,18 @@ export class FriendshipService {
   static async areFriends(userId: string, friendId: string): Promise<boolean> {
     return await FriendshipRepository.areFriends(userId, friendId);
   }
+
+  /**
+   * Get friendship status between two users
+   */
+  static async getFriendshipStatus(currentUserId: string, targetUserId: string): Promise<string | null> {
+    return await FriendshipRepository.getFriendshipStatus(currentUserId, targetUserId);
+  }
+
+  /**
+   * Count accepted friends for a user
+   */
+  static async countFriends(userId: string): Promise<number> {
+    return await FriendshipRepository.countFriends(userId);
+  }
 }

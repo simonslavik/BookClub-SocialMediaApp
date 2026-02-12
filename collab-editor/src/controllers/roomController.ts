@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/authMiddleware.js';
 import { RoomService } from '../services/room.service.js';
+import logger from '../utils/logger.js';
 
 // Create a new room
 export const createRoom = async (req: AuthRequest, res: Response) => {
@@ -13,7 +14,7 @@ export const createRoom = async (req: AuthRequest, res: Response) => {
     
     res.json({ room, message: 'Room created successfully' });
   } catch (error: any) {
-    console.error('Error creating room:', error);
+    logger.error('ERROR_CREATE_ROOM', { error: error.message });
     let statusCode = 500;
     if (error.message === 'Room name is required') statusCode = 400;
     if (error.message === 'Book club not found') statusCode = 404;
@@ -31,7 +32,7 @@ export const getRooms = async (req: Request, res: Response) => {
     
     res.json({ rooms });
   } catch (error: any) {
-    console.error('Error fetching rooms:', error);
+    logger.error('ERROR_FETCH_ROOMS', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch rooms' });
   }
 };
@@ -45,7 +46,7 @@ export const getRoomMessages = async (req: Request, res: Response) => {
     
     res.json({ messages });
   } catch (error: any) {
-    console.error('Error fetching messages:', error);
+    logger.error('ERROR_FETCH_MESSAGES', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch messages' });
   }
 };
@@ -60,7 +61,7 @@ export const deleteRoom = async (req: AuthRequest, res: Response) => {
     
     res.json({ message: 'Room deleted successfully' });
   } catch (error: any) {
-    console.error('Error deleting room:', error);
+    logger.error('ERROR_DELETE_ROOM', { error: error.message });
     let statusCode = 500;
     if (error.message === 'Book club not found' || error.message === 'Room not found') statusCode = 404;
     if (error.message === 'Only the book club creator can delete rooms') statusCode = 403;

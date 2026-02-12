@@ -14,6 +14,6 @@ router.post('/messages/:messageId/pin', authMiddleware, MessageModerationControl
 router.delete('/messages/:messageId/pin', authMiddleware, MessageModerationController.unpinMessage);
 
 // Get pinned messages for a room
-router.get('/rooms/:roomId/pinned-messages', MessageModerationController.getPinnedMessages);
+router.get('/rooms/:roomId/pinned-messages', authMiddleware, MessageModerationController.getPinnedMessages);
 
 export default router;

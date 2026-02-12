@@ -66,8 +66,8 @@ app.use(cors({
 // Body Parsing Middleware
 // ============================================================================
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // ============================================================================
 // Static Files

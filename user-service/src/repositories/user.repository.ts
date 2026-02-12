@@ -87,6 +87,7 @@ export class UserRepository {
     return await prisma.user.update({
       where: { id: userId },
       data: { password: hashedPassword },
+      select: USER_PUBLIC_FIELDS,
     });
   }
 
@@ -165,6 +166,22 @@ export class UserRepository {
       },
       select: USER_BASIC_FIELDS,
       take: limit,
+    });
+  }
+
+  /**
+   * Get all users (admin)
+   */
+  static async findAll() {
+    return await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        profileImage: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 

@@ -34,7 +34,13 @@ export const verifyWebSocketToken = (token: string | null): VerifyResult => {
     }
 
     try {
-        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
+        const JWT_SECRET = process.env.JWT_SECRET;
+        if (!JWT_SECRET) {
+            return {
+                valid: false,
+                error: 'Server configuration error - JWT_SECRET not set'
+            };
+        }
         
         // jwt.verify automatically checks expiration
         const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;

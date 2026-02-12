@@ -1,22 +1,9 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/authMiddleware.js';
-import { BookClubService } from '../services/bookClub.service.js';
+import { BookClubService } from '../services/bookclub.service.js';
 import { BookClubRole } from '@prisma/client';
-
-// Helper type for active bookclubs
-interface ActiveClient {
-  id: string;
-  userId: string;
-  username: string;
-}
-
-interface ActiveBookClub {
-  clients: Map<string, any>;
-}
-
-export const setActiveBookClubs = (clubs: Map<string, ActiveBookClub>) => {
-  BookClubService.setActiveBookClubs(clubs);
-};
+import prisma from '../config/database.js';
+import logger from '../utils/logger.js';
 
 // Create new bookclub (legacy endpoint)
 export const createBookClub = async (req: AuthRequest, res: Response) => {
@@ -34,7 +21,7 @@ export const createBookClub = async (req: AuthRequest, res: Response) => {
     
     res.json({ bookClubId: bookClub.id, message: 'Book club created successfully', bookClub });
   } catch (error: any) {
-    console.error('Error creating book club:', error);
+    logger.error('ERROR_CREATE_BOOKCLUB', { error: error.message });
     const statusCode = error.message === 'Book club name is required' ? 400 : 500;
     res.status(statusCode).json({ error: error.message || 'Failed to create book club' });
   }
@@ -62,7 +49,7 @@ export const getBookClub = async (req: Request, res: Response) => {
     
     res.json(bookClub);
   } catch (error: any) {
-    console.error('Error fetching book club:', error);
+    logger.error('ERROR_FETCH_BOOKCLUB', { error: error.message });
     const statusCode = error.message === 'Book club not found' ? 404 : 500;
     res.status(statusCode).json({ error: error.message || 'Failed to fetch book club' });
   }
@@ -81,11 +68,11 @@ export const updateBookClub = async (req: AuthRequest, res: Response) => {
     if (category !== undefined) settings.category = category;
     if (isPublic !== undefined) settings.visibility = isPublic ? 'PUBLIC' : 'PRIVATE';
     
-    const updatedBookClub = await BookClubService.updateClubSettings(bookClubId, userId, settings);
+    const updatedBookClub = await BookClubService.updateClub(bookClubId, userId, settings);
     
     res.json({ message: 'Book club updated successfully', bookClub: updatedBookClub });
   } catch (error: any) {
-    console.error('Error updating book club:', error);
+    logger.error('ERROR_UPDATE_BOOKCLUB', { error: error.message });
     let statusCode = 500;
     if (error.message === 'Book club not found') statusCode = 404;
     if (error.message.includes('permission')) statusCode = 403;
@@ -102,9 +89,13 @@ export const getAllBookClubs = async (req: Request, res: Response) => {
     const userId = authReq.user?.userId;
     
     if (mine === 'true' && userId) {
-      // Get user's bookclubs
-      const members = await BookClubService.getUserBookClubs(userId);
-      const bookClubs = members.map(m => m.bookClub);
+      // Get user's bookclubs via membership table
+      const memberships = await prisma.bookClubMember.findMany({
+        where: { userId, status: 'ACTIVE' },
+        include: { bookClub: true },
+        orderBy: { joinedAt: 'desc' },
+      });
+      const bookClubs = memberships.map(m => m.bookClub);
       return res.json({ bookClubs });
     }
     
@@ -112,7 +103,7 @@ export const getAllBookClubs = async (req: Request, res: Response) => {
     const clubs = await BookClubService.discoverClubs(userId);
     res.json({ bookClubs: clubs });
   } catch (error: any) {
-    console.error('Error fetching book clubs:', error);
+    logger.error('ERROR_FETCH_BOOKCLUBS', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch book clubs' });
   }
 };
@@ -122,12 +113,16 @@ export const getMyBookClubs = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.userId;
     
-    const members = await BookClubService.getUserBookClubs(userId);
-    const bookClubs = members.map(m => m.bookClub);
+    const memberships = await prisma.bookClubMember.findMany({
+      where: { userId, status: 'ACTIVE' },
+      include: { bookClub: true },
+      orderBy: { joinedAt: 'desc' },
+    });
+    const bookClubs = memberships.map(m => m.bookClub);
     
     res.json({ bookClubs });
   } catch (error: any) {
-    console.error('Error fetching user bookclubs:', error);
+    logger.error('ERROR_FETCH_MY_BOOKCLUBS', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch user bookclubs' });
   }
 };
@@ -153,7 +148,7 @@ export const uploadBookClubImage = async (req: AuthRequest, res: Response) => {
     
     res.json({ message: 'Image uploaded successfully', imageUrl });
   } catch (error: any) {
-    console.error('Error uploading image:', error);
+    logger.error('ERROR_UPLOAD_IMAGE', { error: error.message });
     let statusCode = 500;
     if (error.message === 'Book club not found') statusCode = 404;
     if (error.message.includes('permission')) statusCode = 403;
@@ -176,7 +171,7 @@ export const deleteBookClubImage = async (req: AuthRequest, res: Response) => {
     
     res.json({ message: 'Image deleted successfully' });
   } catch (error: any) {
-    console.error('Error deleting image:', error);
+    logger.error('ERROR_DELETE_IMAGE', { error: error.message });
     let statusCode = 500;
     if (error.message === 'Book club not found') statusCode = 404;
     if (error.message.includes('permission')) statusCode = 403;

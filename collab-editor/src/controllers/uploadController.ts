@@ -1,14 +1,13 @@
 import { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../config/database.js';
 import { AuthRequest } from '../middleware/authMiddleware.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import logger from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const prisma = new PrismaClient();
 
 // Upload chat file
 export const uploadChatFile = async (req: AuthRequest, res: Response) => {
@@ -31,7 +30,7 @@ export const uploadChatFile = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    console.log(`📎 File uploaded: ${req.file.originalname} by user ${req.user!.userId}`);
+    logger.info('FILE_UPLOADED', { originalName: req.file.originalname, userId: req.user!.userId });
     res.json({ 
       success: true, 
       data: {
@@ -43,10 +42,14 @@ export const uploadChatFile = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error uploading chat file:', error);
+    logger.error('ERROR_UPLOAD_FILE', { error: error instanceof Error ? error.message : 'Unknown error' });
     // Clean up uploaded file on error
     if (req.file) {
-      fs.unlinkSync(req.file.path);
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch {
+        // Ignore cleanup errors
+      }
     }
     res.status(500).json({ error: 'Failed to upload file' });
   }
@@ -82,10 +85,10 @@ export const deleteChatFile = async (req: AuthRequest, res: Response) => {
       where: { id: fileId }
     });
     
-    console.log(`🗑️  Chat file deleted: ${file.originalName}`);
+    logger.info('FILE_DELETED', { originalName: file.originalName });
     res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting chat file:', error);
+    logger.error('ERROR_DELETE_FILE', { error: error instanceof Error ? error.message : 'Unknown error' });
     res.status(500).json({ error: 'Failed to delete file' });
   }
 };

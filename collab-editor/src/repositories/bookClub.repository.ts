@@ -1,24 +1,26 @@
-import { PrismaClient, BookClub, Prisma } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { BookClub, Prisma } from '@prisma/client';
+import prisma from '../config/database.js';
 
 export class BookClubRepository {
   /**
-   * Create a new book club with invite and default room
+   * Create a new book club with invite, default room, and owner membership
    */
   static async create(data: {
     name: string;
     category: string;
-    isPublic: boolean;
+    visibility: 'PUBLIC' | 'PRIVATE' | 'INVITE_ONLY';
     creatorId: string;
     inviteCode: string;
+    description?: string;
+    requiresApproval?: boolean;
   }) {
     return prisma.bookClub.create({
       data: {
         name: data.name,
         category: data.category,
-        isPublic: data.isPublic,
-        members: [data.creatorId],
+        visibility: data.visibility,
+        description: data.description,
+        requiresApproval: data.requiresApproval ?? false,
         creatorId: data.creatorId,
         rooms: {
           create: {
@@ -32,9 +34,16 @@ export class BookClubRepository {
             expiresAt: null,
             maxUses: null
           }
+        },
+        members: {
+          create: {
+            userId: data.creatorId,
+            role: 'OWNER',
+            status: 'ACTIVE',
+          }
         }
       },
-      include: { rooms: true, invites: true }
+      include: { rooms: true, invites: true, members: true }
     });
   }
 
@@ -46,7 +55,7 @@ export class BookClubRepository {
       where: { id },
       include: includeRooms ? {
         rooms: {
-          orderBy: { createdAt: 'asc' }
+          orderBy: { createdAt: 'asc' as const }
         }
       } : undefined
     });
@@ -55,7 +64,14 @@ export class BookClubRepository {
   /**
    * Update book club
    */
-  static async update(id: string, data: { name?: string; isPublic?: boolean; imageUrl?: string | null }) {
+  static async update(id: string, data: Partial<{
+    name: string;
+    description: string;
+    category: string;
+    visibility: 'PUBLIC' | 'PRIVATE' | 'INVITE_ONLY';
+    requiresApproval: boolean;
+    imageUrl: string | null;
+  }>) {
     return prisma.bookClub.update({
       where: { id },
       data
@@ -87,14 +103,22 @@ export class BookClubRepository {
    * Find public book clubs
    */
   static async findPublic(take = 50) {
-    return this.findMany({ isPublic: true }, take);
+    return this.findMany({ visibility: 'PUBLIC' }, take);
   }
 
   /**
-   * Find user's book clubs (where user is a member)
+   * Find user's book clubs (where user is an active member)
    */
   static async findByMember(userId: string, take = 50) {
-    return this.findMany({ members: { has: userId } }, take);
+    return prisma.bookClub.findMany({
+      where: {
+        members: {
+          some: { userId, status: 'ACTIVE' }
+        }
+      },
+      orderBy: { updatedAt: 'desc' },
+      take
+    });
   }
 
   /**

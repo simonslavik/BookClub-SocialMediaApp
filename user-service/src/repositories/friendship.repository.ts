@@ -148,4 +148,47 @@ export class FriendshipRepository {
 
     return !!friendship;
   }
+
+  /**
+   * Get friendship status between two users
+   */
+  static async getFriendshipStatus(currentUserId: string, targetUserId: string): Promise<string | null> {
+    // Check if friends
+    const accepted = await prisma.friendship.findFirst({
+      where: {
+        OR: [
+          { userId: currentUserId, friendId: targetUserId, status: FriendshipStatus.ACCEPTED },
+          { userId: targetUserId, friendId: currentUserId, status: FriendshipStatus.ACCEPTED },
+        ],
+      },
+    });
+    if (accepted) return 'friends';
+
+    // Check for pending requests
+    const pending = await prisma.friendship.findFirst({
+      where: {
+        OR: [
+          { userId: currentUserId, friendId: targetUserId },
+          { userId: targetUserId, friendId: currentUserId },
+        ],
+      },
+    });
+    if (!pending) return null;
+    return pending.userId === currentUserId ? 'request_sent' : 'request_received';
+  }
+
+  /**
+   * Count accepted friends for a user
+   */
+  static async countFriends(userId: string): Promise<number> {
+    return await prisma.friendship.count({
+      where: {
+        OR: [
+          { userId },
+          { friendId: userId },
+        ],
+        status: FriendshipStatus.ACCEPTED,
+      },
+    });
+  }
 }

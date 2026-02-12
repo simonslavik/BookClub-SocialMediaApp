@@ -2,6 +2,7 @@ import { RoomRepository } from '../repositories/room.repository.js';
 import { BookClubRepository } from '../repositories/bookClub.repository.js';
 import prisma from '../config/database.js';
 import { MembershipStatus } from '@prisma/client';
+import logger from '../utils/logger.js';
 
 interface CreateRoomDto {
   name: string;
@@ -42,7 +43,7 @@ export class RoomService {
       bookClubId
     });
     
-    console.log(`📁 Room created in book club ${bookClubId}: ${room.name}`);
+    logger.info('ROOM_CREATED', { bookClubId, name: room.name });
     
     return room;
   }
@@ -94,6 +95,6 @@ export class RoomService {
 
     await RoomRepository.delete(roomId);
     
-    console.log(`🗑️  Room deleted from book club ${bookClubId}: ${room.name}`);
+    logger.info('ROOM_DELETED', { bookClubId, name: room.name });
   }
 }

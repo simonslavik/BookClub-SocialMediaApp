@@ -1,23 +1,28 @@
 import { InviteRepository } from '../repositories/invite.repository.js';
-import { BookClubRepository } from '../repositories/bookClub.repository.js';
 import { generateInviteCode } from '../utils/inviteCodeGenerator.js';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../config/database.js';
+import logger from '../utils/logger.js';
 
 export class InviteService {
   /**
    * Get or create invite for a book club
    */
   static async getInvite(bookClubId: string, userId: string) {
-    // Check if bookclub exists and user is creator or member
-    const bookClub = await BookClubRepository.findById(bookClubId);
+    // Check if bookclub exists
+    const bookClub = await prisma.bookClub.findUnique({
+      where: { id: bookClubId },
+    });
 
     if (!bookClub) {
       throw new Error('Book club not found');
     }
 
-    if (bookClub.creatorId !== userId && !bookClub.members.includes(userId)) {
+    // Check if user is creator or active member
+    const isMember = bookClub.creatorId === userId || await prisma.bookClubMember.findUnique({
+      where: { bookClubId_userId: { bookClubId, userId }, status: 'ACTIVE' },
+    });
+
+    if (!isMember) {
       throw new Error('Only book club members can view invite');
     }
 
@@ -44,7 +49,7 @@ export class InviteService {
         maxUses: null
       });
 
-      console.log(`📨 Invite created: ${code} for bookclub ${bookClub.name}`);
+      logger.info('INVITE_CREATED', { code, bookClubName: bookClub.name });
     }
 
     return invite;
@@ -104,7 +109,7 @@ export class InviteService {
     // Increment invite uses
     await InviteRepository.incrementUses(invite.id);
 
-    console.log(`👥 User ${userId} joined book club ${invite.bookClub.name} via invite ${code}`);
+    logger.info('USER_JOINED_VIA_INVITE', { userId, bookClubName: invite.bookClub.name, code });
 
     return invite.bookClub;
   }
@@ -116,13 +121,20 @@ export class InviteService {
     expiresAt?: string | null;
     maxUses?: number | null;
   }) {
-    const bookClub = await BookClubRepository.findById(bookClubId);
+    const bookClub = await prisma.bookClub.findUnique({
+      where: { id: bookClubId },
+    });
 
     if (!bookClub) {
       throw new Error('Book club not found');
     }
 
-    if (bookClub.creatorId !== userId && !bookClub.members.includes(userId)) {
+    // Check if user is creator or active member
+    const isMember = bookClub.creatorId === userId || await prisma.bookClubMember.findUnique({
+      where: { bookClubId_userId: { bookClubId, userId }, status: 'ACTIVE' },
+    });
+
+    if (!isMember) {
       throw new Error('Only book club members can create invites');
     }
 
@@ -143,7 +155,7 @@ export class InviteService {
       maxUses: data.maxUses || null
     });
 
-    console.log(`📨 New invite created: ${code} for bookclub ${bookClub.name}`);
+    logger.info('INVITE_CREATED', { code, bookClubName: bookClub.name });
 
     return invite;
   }
@@ -152,7 +164,9 @@ export class InviteService {
    * Get all invites for a book club
    */
   static async getAllInvites(bookClubId: string, userId: string) {
-    const bookClub = await BookClubRepository.findById(bookClubId);
+    const bookClub = await prisma.bookClub.findUnique({
+      where: { id: bookClubId },
+    });
 
     if (!bookClub) {
       throw new Error('Book club not found');
@@ -184,6 +198,6 @@ export class InviteService {
 
     await InviteRepository.delete(inviteId);
 
-    console.log(`🗑️  Invite deleted: ${invite.code}`);
+    logger.info('INVITE_DELETED', { code: invite.code });
   }
 }

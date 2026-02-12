@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/authMiddleware.js';
 import { EventService } from '../services/event.service.js';
+import logger from '../utils/logger.js';
 
 // Get all events for a bookclub
 export const getEvents = async (req: Request, res: Response) => {
@@ -11,7 +12,7 @@ export const getEvents = async (req: Request, res: Response) => {
     
     res.json({ events });
   } catch (error: any) {
-    console.error('Error fetching events:', error);
+    logger.error('ERROR_FETCH_EVENTS', { error: error.message });
     const statusCode = error.message === 'Book club not found' ? 404 : 500;
     res.status(statusCode).json({ error: error.message || 'Failed to fetch events' });
   }
@@ -28,7 +29,7 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
     
     res.json({ event, message: 'Event created successfully' });
   } catch (error: any) {
-    console.error('Error creating event:', error);
+    logger.error('ERROR_CREATE_EVENT', { error: error.message });
     let statusCode = 500;
     if (error.message === 'Title and event date are required') statusCode = 400;
     if (error.message === 'Book club not found') statusCode = 404;
@@ -48,7 +49,7 @@ export const updateEvent = async (req: AuthRequest, res: Response) => {
     
     res.json({ event: updatedEvent, message: 'Event updated successfully' });
   } catch (error: any) {
-    console.error('Error updating event:', error);
+    logger.error('ERROR_UPDATE_EVENT', { error: error.message });
     let statusCode = 500;
     if (error.message === 'Event not found') statusCode = 404;
     if (error.message === 'Only the event creator can update it') statusCode = 403;
@@ -66,7 +67,7 @@ export const deleteEvent = async (req: AuthRequest, res: Response) => {
     
     res.json({ message: 'Event deleted successfully' });
   } catch (error: any) {
-    console.error('Error deleting event:', error);
+    logger.error('ERROR_DELETE_EVENT', { error: error.message });
     let statusCode = 500;
     if (error.message === 'Event not found') statusCode = 404;
     if (error.message === 'Only the event creator can delete it') statusCode = 403;

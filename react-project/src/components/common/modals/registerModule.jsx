@@ -143,12 +143,7 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
                 </button>
 
                 {/* Header */}
-                <div className="mb-8 text-center">
-                    <div className="inline-block p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full mb-4">
-                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                        </svg>
-                    </div>
+                <div className="mb-2 text-center">
                     <h2 className='text-3xl font-bold text-gray-800 mb-2'>Create Account</h2>
                     <p className='text-gray-600'>Join our bookclub community</p>
                 </div>
@@ -172,7 +167,7 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-2">
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                             Username

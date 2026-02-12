@@ -1,15 +1,15 @@
 import { WebSocket } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import { PrismaClient, MembershipStatus, BookClubRole } from '@prisma/client';
+import { MembershipStatus, BookClubRole } from '@prisma/client';
 import { verifyWebSocketToken } from '../utils/websocketAuth.js';
+import prisma from '../config/database.js';
+import logger from '../utils/logger.js';
 import { 
   Client, 
   activeBookClubs, 
   activeDMClients, 
   broadcastToBookClub 
 } from './types.js';
-
-const prisma = new PrismaClient();
 
 export const handleJoin = (
   ws: WebSocket,

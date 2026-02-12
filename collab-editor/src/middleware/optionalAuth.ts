@@ -19,7 +19,7 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
       logger.debug('Token decoded in optionalAuth', { decoded, hasId: !!decoded.id, hasUserId: !!decoded.userId });
       
       // Support both 'id' and 'userId' fields in token

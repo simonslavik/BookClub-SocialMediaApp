@@ -1,6 +1,7 @@
 import { EventRepository } from '../repositories/event.repository.js';
 import { BookClubRepository } from '../repositories/bookClub.repository.js';
 import prisma from '../config/database.js';
+import logger from '../utils/logger.js';
 
 interface CreateEventDto {
   title: string;
@@ -68,7 +69,7 @@ export class EventService {
       createdBy: userId
     });
     
-    console.log(`📅 Event created in book club ${bookClubId}: ${event.title}`);
+    logger.info('EVENT_CREATED', { bookClubId, title: event.title });
     
     return event;
   }
@@ -95,7 +96,7 @@ export class EventService {
 
     const updatedEvent = await EventRepository.update(eventId, updateData);
     
-    console.log(`✏️ Event updated: ${updatedEvent.title}`);
+    logger.info('EVENT_UPDATED', { title: updatedEvent.title });
     
     return updatedEvent;
   }
@@ -116,6 +117,6 @@ export class EventService {
 
     await EventRepository.delete(eventId);
     
-    console.log(`🗑️  Event deleted: ${event.title}`);
+    logger.info('EVENT_DELETED', { title: event.title });
   }
 }

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { optionalAuth } from '../middleware/optionalAuth.js';
+import { validate } from '../middleware/validate.js';
+import { createClubSchema, updateClubSchema } from '../utils/validation.js';
 import { bookClubImageUpload } from '../config/multer.js';
 import {
   createBookClub,
@@ -27,13 +29,13 @@ router.post('/join-by-invite/:code', authMiddleware, BookClubController.joinByIn
 
 // ===== PROTECTED ROUTES (auth required) =====
 // Create new bookclub
-router.post('/', authMiddleware, BookClubController.createClub);
+router.post('/', authMiddleware, validate(createClubSchema), BookClubController.createClub);
 
 // Get full club details (members only)
 router.get('/:id', authMiddleware, BookClubController.getClub);
 
 // Update club settings (Admin/Owner only)
-router.put('/:id', authMiddleware, BookClubController.updateClub);
+router.put('/:id', authMiddleware, validate(updateClubSchema), BookClubController.updateClub);
 
 // Delete club (Owner only)
 router.delete('/:id', authMiddleware, BookClubController.deleteClub);
@@ -63,7 +65,7 @@ router.get('/:id/invite', authMiddleware, BookClubController.getShareableInvite)
 
 // ===== MEMBER MANAGEMENT (Admin/Owner only) =====
 // Verify member role (for inter-service communication)
-router.get('/:id/members/:userId/verify-role', BookClubController.verifyMemberRole);
+router.get('/:id/members/:userId/verify-role', authMiddleware, BookClubController.verifyMemberRole);
 
 // Remove member
 router.delete('/:id/members/:userId', authMiddleware, BookClubController.removeMember);

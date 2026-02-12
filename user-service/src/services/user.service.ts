@@ -74,6 +74,13 @@ export class UserService {
   }
 
   /**
+   * List all users (admin)
+   */
+  static async listAllUsers() {
+    return await UserRepository.findAll();
+  }
+
+  /**
    * Get multiple users by IDs
    */
   static async getUsersByIds(userIds: string[]) {

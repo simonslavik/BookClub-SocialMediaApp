@@ -3,10 +3,23 @@ node_modules
 npm-debug.log
 yarn-error.log
 
+# Docker self-references
+Dockerfile
+.dockerignore
+
 # Environment files
 .env
-.env.local
-.env.*.local
+.env.*
+
+# Dev-only config
+nodemon.json
+tsconfig.build.json
+
+# Documentation
+*.md
+
+# Logs
+logs
 
 # IDE
 .vscode
@@ -28,6 +41,13 @@ dist
 build
 *.log
 
+# Tests
+tests
+__tests__
+*.test.ts
+*.spec.ts
+jest.config.*
+
 # Test coverage
 coverage
 .nyc_output
@@ -39,5 +59,4 @@ prisma/migrations/*.sql
 uploads/*
 !uploads/.gitkeep
 
-# Documentation
-README.md
+# Prisma migration SQL (generated at deploy time)

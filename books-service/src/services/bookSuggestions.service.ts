@@ -25,7 +25,7 @@ export class BookSuggestionsService {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as { success: boolean; users: Array<{ id: string; username: string }> };
         if (data.success && data.users) {
           for (const user of data.users) {
             userMap[user.id] = user.username || 'Unknown User';

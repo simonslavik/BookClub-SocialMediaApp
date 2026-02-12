@@ -1,14 +1,42 @@
+# Dependencies
 node_modules
 npm-debug.log
-.env.local
-.env.development
-.env.test
-.git
-.gitignore
-README.md
+
+# Docker self-references
 Dockerfile
 .dockerignore
+
+# Environment files
+.env
+.env.*
+
+# Dev-only config
+
+# Documentation
+*.md
+
+# Logs
+logs
+*.log
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+
+# Git
+.git
+.gitignore
+
+# Tests
+tests
+__tests__
+*.test.ts
+*.spec.ts
+jest.config.*
+
+# Test coverage
 coverage
 .nyc_output
-*.log
-.DS_Store

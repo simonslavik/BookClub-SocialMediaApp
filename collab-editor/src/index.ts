@@ -5,7 +5,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import prisma from './config/database.js';
-import { authMiddleware, optionalAuthMiddleware } from './middleware/authMiddleware.js';
+import { authMiddleware } from './middleware/authMiddleware.js';
 
 // Routes
 import bookClubRoutes from './routes/bookClubRoutes.js';
@@ -17,10 +17,8 @@ import messageModerationRoutes from './routes/messageModerationRoutes.js';
 
 // WebSocket setup
 import { setupWebSocket } from './websocket/index.js';
-import { activeBookClubs } from './websocket/types.js';
-// import { setActiveBookClubs } from './controllers/bookClubController.js'; // Removed: Not needed with new service
 
-// New utilities
+// Utilities
 import { logger } from './utils/logger.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { metricsMiddleware, getMetrics } from './utils/metrics.js';
@@ -40,7 +38,7 @@ app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(requestLogger); // HTTP request logging
 app.use(metricsMiddleware); // Prometheus metrics
 app.use(express.static(path.join(__dirname, '../public')));
@@ -52,9 +50,6 @@ const server = createServer(app);
 // WebSocket server
 const wss = new WebSocketServer({ server });
 setupWebSocket(wss);
-
-// Share active bookclubs with controller
-// setActiveBookClubs(activeBookClubs); // Removed: Not needed with new service
 
 // Health and monitoring endpoints
 app.get('/health', healthCheck);
@@ -93,13 +88,14 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
   // Handle unknown errors
   logger.error('Unexpected Error', { 
-    error: err,
+    error: err.message,
+    stack: err.stack,
     path: req.path,
     method: req.method,
   });
   
   res.status(err.status || 500).json({ 
-    error: err.message || 'Internal server error',
+    error: 'Internal server error',
     statusCode: err.status || 500,
   });
 });

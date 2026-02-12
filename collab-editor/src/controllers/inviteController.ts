@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/authMiddleware.js';
 import { InviteService } from '../services/invite.service.js';
+import prisma from '../config/database.js';
+import logger from '../utils/logger.js';
 
 // Get invite for a bookclub
 export const getInvite = async (req: AuthRequest, res: Response) => {
@@ -12,7 +14,7 @@ export const getInvite = async (req: AuthRequest, res: Response) => {
 
     res.json({ success: true, invite });
   } catch (error: any) {
-    console.error('Error fetching invite:', error);
+    logger.error('ERROR_FETCH_INVITE', { error: error.message });
     let statusCode = 500;
     if (error.message === 'Book club not found') statusCode = 404;
     if (error.message === 'Only book club members can view invite') statusCode = 403;
@@ -38,7 +40,7 @@ export const joinViaInvite = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error: any) {
-    console.error('Error joining via invite:', error);
+    logger.error('ERROR_JOIN_VIA_INVITE', { error: error.message });
     let statusCode = 500;
     if (error.message === 'Invalid invite code' || error.message === 'Book club not found') statusCode = 404;
     if (error.message.includes('expired') || error.message.includes('maximum uses') || error.message.includes('already a member')) statusCode = 400;
@@ -50,10 +52,6 @@ export const joinViaInvite = async (req: AuthRequest, res: Response) => {
 export const getInviteInfo = async (req: Request, res: Response) => {
   try {
     const { code } = req.params;
-
-    // This needs direct DB access for public endpoint
-    const { PrismaClient } = await import('@prisma/client');
-    const prisma = new PrismaClient();
     
     const invite = await prisma.bookClubInvite.findUnique({
       where: { code }
@@ -75,7 +73,7 @@ export const getInviteInfo = async (req: Request, res: Response) => {
 
     const bookClub = await prisma.bookClub.findUnique({
       where: { id: invite.bookClubId },
-      include: { members: true }
+      include: { members: { where: { status: 'ACTIVE' } } }
     });
 
     if (!bookClub) {
@@ -98,7 +96,7 @@ export const getInviteInfo = async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    console.error('Error fetching invite info:', error);
+    logger.error('ERROR_FETCH_INVITE_INFO', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch invite info' });
   }
 };

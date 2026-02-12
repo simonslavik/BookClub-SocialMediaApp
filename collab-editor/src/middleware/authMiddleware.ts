@@ -56,7 +56,12 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         const token = parts[1];
 
         // Verify token
-        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
+        const JWT_SECRET = process.env.JWT_SECRET;
+        if (!JWT_SECRET) {
+            return res.status(500).json({ 
+                message: 'Server configuration error' 
+            });
+        }
         
         const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
 
@@ -106,7 +111,8 @@ export const optionalAuthMiddleware = async (req: Request, res: Response, next: 
         }
 
         const token = parts[1];
-        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
+        const JWT_SECRET = process.env.JWT_SECRET;
+        if (!JWT_SECRET) return next();
         
         const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
 
