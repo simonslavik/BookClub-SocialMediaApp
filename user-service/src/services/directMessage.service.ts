@@ -38,6 +38,7 @@ export class DirectMessageService {
 
   /**
    * Get conversation between two users
+   * Optimized: extracts partner info from already-fetched messages (include: sender/receiver)
    */
   static async getConversation(
     userId: string,
@@ -53,30 +54,58 @@ export class DirectMessageService {
       offset
     );
 
-    // Get other user info
-    const otherUser = await UserRepository.findById(partnerId);
+    // Extract partner info from already-fetched messages (they include sender/receiver)
+    // Only fall back to a separate query if no messages exist
+    let otherUser: { id: string; name: string; email: string; profileImage: string | null } | null = null;
 
-    return {
-      messages,
-      otherUser: otherUser ? {
-        id: otherUser.id,
-        name: otherUser.name,
-        email: otherUser.email,
-        profileImage: otherUser.profileImage
-      } : null
-    };
+    if (messages.length > 0) {
+      const firstMessage = messages[0] as any;
+      const partner = firstMessage.senderId === partnerId
+        ? firstMessage.sender
+        : firstMessage.receiver;
+      if (partner) {
+        otherUser = {
+          id: partner.id,
+          name: partner.name,
+          email: partner.email,
+          profileImage: partner.profileImage
+        };
+      }
+    }
+
+    // Fallback for empty conversations
+    if (!otherUser) {
+      const partner = await UserRepository.findById(partnerId);
+      if (partner) {
+        otherUser = {
+          id: partner.id,
+          name: partner.name,
+          email: partner.email,
+          profileImage: partner.profileImage
+        };
+      }
+    }
+
+    return { messages, otherUser };
   }
 
   /**
    * Get all conversations for a user
+   * Optimized: batch-fetches all partner details in a single query
    */
   static async getUserConversations(userId: string) {
     const conversations = await DirectMessageRepository.getUserConversations(userId);
-    
-    // Fetch user details for each conversation partner
-    const conversationsWithUserDetails = await Promise.all(
-      conversations.map(async (conv) => {
-        const partner = await UserRepository.findById(conv.partnerId);
+
+    if (conversations.length === 0) return [];
+
+    // Batch fetch all partner details in one query instead of N individual queries
+    const partnerIds = conversations.map(c => c.partnerId);
+    const partners = await UserRepository.findManyByIds(partnerIds);
+    const partnerMap = new Map(partners.map((p: any) => [p.id, p]));
+
+    return conversations
+      .map(conv => {
+        const partner = partnerMap.get(conv.partnerId);
         return {
           friend: partner ? {
             id: partner.id,
@@ -88,10 +117,7 @@ export class DirectMessageService {
           unreadCount: conv.unreadCount
         };
       })
-    );
-    
-    // Filter out conversations where partner user was not found
-    return conversationsWithUserDetails.filter(conv => conv.friend !== null);
+      .filter(conv => conv.friend !== null);
   }
 
   /**

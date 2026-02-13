@@ -206,28 +206,26 @@ export class BookClubService {
     if (!club) throw new Error('CLUB_NOT_FOUND');
 
     // Hide INVITE_ONLY clubs from non-members
-    if (club.visibility === ClubVisibility.INVITE_ONLY && userId) {
-      const membership = await this.getMembership(clubId, userId);
-      if (!membership || membership.status !== MembershipStatus.ACTIVE) {
-        throw new Error('CLUB_NOT_FOUND');
-      }
-    } else if (club.visibility === ClubVisibility.INVITE_ONLY) {
-      throw new Error('CLUB_NOT_FOUND');
-    }
-
     let membership = null;
-    let pendingRequest = null;
 
     if (userId) {
       membership = await this.getMembership(clubId, userId);
-      
-      if (!membership || membership.status !== MembershipStatus.ACTIVE) {
-        pendingRequest = await prisma.membershipRequest.findUnique({
-          where: {
-            bookClubId_userId: { bookClubId: clubId, userId }
-          }
-        });
+    }
+
+    if (club.visibility === ClubVisibility.INVITE_ONLY) {
+      if (!userId || !membership || membership.status !== MembershipStatus.ACTIVE) {
+        throw new Error('CLUB_NOT_FOUND');
       }
+    }
+
+    let pendingRequest = null;
+
+    if (userId && (!membership || membership.status !== MembershipStatus.ACTIVE)) {
+      pendingRequest = await prisma.membershipRequest.findUnique({
+        where: {
+          bookClubId_userId: { bookClubId: clubId, userId }
+        }
+      });
     }
 
     // Creator is always a member, even if not in membership table

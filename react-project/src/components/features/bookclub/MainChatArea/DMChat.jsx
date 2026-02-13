@@ -97,11 +97,12 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs })
     if (!confirm('Are you sure you want to delete this message?')) return;
     
     try {
-      // Send WebSocket notification
+      // Send WebSocket notification to the conversation partner only
       if (dmWs?.current && dmWs.current.readyState === WebSocket.OPEN) {
         dmWs.current.send(JSON.stringify({
           type: 'delete-dm-message',
-          messageId
+          messageId,
+          receiverId: otherUser?.id
         }));
       }
       

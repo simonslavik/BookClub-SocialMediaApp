@@ -6,11 +6,18 @@ import logger from '../utils/logger.js';
 export class InviteService {
   /**
    * Get or create invite for a book club
+   * Optimized: combined book club + membership check into single query
    */
   static async getInvite(bookClubId: string, userId: string) {
-    // Check if bookclub exists
+    // Check bookclub exists and membership in one query
     const bookClub = await prisma.bookClub.findUnique({
       where: { id: bookClubId },
+      include: {
+        members: {
+          where: { userId, status: 'ACTIVE' },
+          take: 1
+        }
+      }
     });
 
     if (!bookClub) {
@@ -18,9 +25,7 @@ export class InviteService {
     }
 
     // Check if user is creator or active member
-    const isMember = bookClub.creatorId === userId || await prisma.bookClubMember.findUnique({
-      where: { bookClubId_userId: { bookClubId, userId }, status: 'ACTIVE' },
-    });
+    const isMember = bookClub.creatorId === userId || bookClub.members.length > 0;
 
     if (!isMember) {
       throw new Error('Only book club members can view invite');
@@ -116,6 +121,7 @@ export class InviteService {
 
   /**
    * Create a new invite
+   * Optimized: combined book club + membership check into single query
    */
   static async create(bookClubId: string, userId: string, data: {
     expiresAt?: string | null;
@@ -123,6 +129,12 @@ export class InviteService {
   }) {
     const bookClub = await prisma.bookClub.findUnique({
       where: { id: bookClubId },
+      include: {
+        members: {
+          where: { userId, status: 'ACTIVE' },
+          take: 1
+        }
+      }
     });
 
     if (!bookClub) {
@@ -130,9 +142,7 @@ export class InviteService {
     }
 
     // Check if user is creator or active member
-    const isMember = bookClub.creatorId === userId || await prisma.bookClubMember.findUnique({
-      where: { bookClubId_userId: { bookClubId, userId }, status: 'ACTIVE' },
-    });
+    const isMember = bookClub.creatorId === userId || bookClub.members.length > 0;
 
     if (!isMember) {
       throw new Error('Only book club members can create invites');

@@ -151,21 +151,10 @@ export class FriendshipRepository {
 
   /**
    * Get friendship status between two users
+   * Optimized: single query instead of two sequential queries
    */
   static async getFriendshipStatus(currentUserId: string, targetUserId: string): Promise<string | null> {
-    // Check if friends
-    const accepted = await prisma.friendship.findFirst({
-      where: {
-        OR: [
-          { userId: currentUserId, friendId: targetUserId, status: FriendshipStatus.ACCEPTED },
-          { userId: targetUserId, friendId: currentUserId, status: FriendshipStatus.ACCEPTED },
-        ],
-      },
-    });
-    if (accepted) return 'friends';
-
-    // Check for pending requests
-    const pending = await prisma.friendship.findFirst({
+    const friendship = await prisma.friendship.findFirst({
       where: {
         OR: [
           { userId: currentUserId, friendId: targetUserId },
@@ -173,8 +162,12 @@ export class FriendshipRepository {
         ],
       },
     });
-    if (!pending) return null;
-    return pending.userId === currentUserId ? 'request_sent' : 'request_received';
+
+    if (!friendship) return null;
+    if (friendship.status === FriendshipStatus.ACCEPTED) return 'friends';
+    if (friendship.status === FriendshipStatus.BLOCKED) return 'blocked';
+    // PENDING
+    return friendship.userId === currentUserId ? 'request_sent' : 'request_received';
   }
 
   /**

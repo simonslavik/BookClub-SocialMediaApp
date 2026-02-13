@@ -59,20 +59,22 @@ export class DirectMessageRepository {
 
   /**
    * Get all conversations for a user
+   * Optimized: uses parallel queries + batch operations instead of per-partner loops
    */
   static async getUserConversations(userId: string) {
-    // Get unique conversation partners
-    const sentMessages = await prisma.directMessage.findMany({
-      where: { senderId: userId },
-      distinct: ['receiverId'],
-      select: { receiverId: true },
-    });
-
-    const receivedMessages = await prisma.directMessage.findMany({
-      where: { receiverId: userId },
-      distinct: ['senderId'],
-      select: { senderId: true },
-    });
+    // Get unique conversation partners in parallel (was sequential)
+    const [sentMessages, receivedMessages] = await Promise.all([
+      prisma.directMessage.findMany({
+        where: { senderId: userId },
+        distinct: ['receiverId'],
+        select: { receiverId: true },
+      }),
+      prisma.directMessage.findMany({
+        where: { receiverId: userId },
+        distinct: ['senderId'],
+        select: { senderId: true },
+      }),
+    ]);
 
     // Combine and get unique user IDs
     const conversationPartnerIds = Array.from(
@@ -82,36 +84,57 @@ export class DirectMessageRepository {
       ])
     );
 
-    // Get last message for each conversation
-    const conversations = await Promise.all(
-      conversationPartnerIds.map(async (partnerId) => {
-        const lastMessage = await prisma.directMessage.findFirst({
-          where: {
-            OR: [
-              { senderId: userId, receiverId: partnerId },
-              { senderId: partnerId, receiverId: userId },
-            ],
-          },
-          orderBy: { createdAt: 'desc' },
-          include: {
-            sender: { select: USER_BASIC_FIELDS },
-            receiver: { select: USER_BASIC_FIELDS },
-          },
-        });
+    if (conversationPartnerIds.length === 0) return [];
 
-        const unreadCount = await this.getUnreadCount(userId, partnerId);
+    // Batch: get last message for ALL partners in one query per partner pair direction,
+    // then deduplicate. We fetch the most recent message per conversation in bulk.
+    const allRecentMessages = await prisma.directMessage.findMany({
+      where: {
+        OR: [
+          { senderId: userId, receiverId: { in: conversationPartnerIds } },
+          { senderId: { in: conversationPartnerIds }, receiverId: userId },
+        ],
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        sender: { select: USER_BASIC_FIELDS },
+        receiver: { select: USER_BASIC_FIELDS },
+      },
+    });
 
-        return {
-          partnerId,
-          lastMessage,
-          unreadCount,
-        };
-      })
-    );
+    // Group by partner and pick the most recent message per conversation
+    const lastMessageByPartner = new Map<string, typeof allRecentMessages[0]>();
+    for (const msg of allRecentMessages) {
+      const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
+      if (!lastMessageByPartner.has(partnerId)) {
+        lastMessageByPartner.set(partnerId, msg); // Already sorted desc, first is most recent
+      }
+    }
 
-    return conversations.filter(c => c.lastMessage).sort((a, b) => 
-      b.lastMessage!.createdAt.getTime() - a.lastMessage!.createdAt.getTime()
-    );
+    // Batch: get unread counts grouped by sender in one query
+    const unreadCounts = await prisma.directMessage.groupBy({
+      by: ['senderId'],
+      where: {
+        receiverId: userId,
+        senderId: { in: conversationPartnerIds },
+        isRead: false,
+      },
+      _count: { id: true },
+    });
+
+    const unreadMap = new Map(unreadCounts.map(u => [u.senderId, u._count.id]));
+
+    // Build conversations from batched results
+    const conversations = conversationPartnerIds
+      .map(partnerId => ({
+        partnerId,
+        lastMessage: lastMessageByPartner.get(partnerId) || null,
+        unreadCount: unreadMap.get(partnerId) || 0,
+      }))
+      .filter(c => c.lastMessage)
+      .sort((a, b) => b.lastMessage!.createdAt.getTime() - a.lastMessage!.createdAt.getTime());
+
+    return conversations;
   }
 
   /**

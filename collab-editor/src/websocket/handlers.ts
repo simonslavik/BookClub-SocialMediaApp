@@ -95,22 +95,8 @@ export const handleJoin = (
 
       console.log('✅ Membership verified:', { userId, bookClubId, role: membership.role });
 
-      // Fetch user details from user service to get profile image
-      const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001/api';
+      // Profile image will be resolved from the batch user fetch below
       let userProfileImage = message.profileImage || null;
-      
-      try {
-        const response = await fetch(`${userServiceUrl}/users/${userId}`);
-        if (response.ok) {
-          const userData: any = await response.json();
-          userProfileImage = userData.profileImage || null;
-          console.log('✅ Fetched user profile image:', userProfileImage);
-        } else {
-          console.warn('Failed to fetch user details, using profileImage from join message');
-        }
-      } catch (error) {
-        console.warn('Error fetching user details, using profileImage from join message:', error);
-      }
 
       // Track if this is a new member (for WebSocket purposes, this is always false since they must already be a member)
       const wasNewMember = false;
@@ -175,6 +161,7 @@ export const handleJoin = (
       console.log('📨 Sample message:', recentMessages[0]);
 
       // Fetch all active member details from user service
+      const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001/api';
       const activeMembers = await prisma.bookClubMember.findMany({
         where: {
           bookClubId: bookClubId,
@@ -205,6 +192,12 @@ export const handleJoin = (
 
       // Create a map of userId to user details for quick lookup
       const userDetailsMap = new Map(memberDetails.map((user: any) => [user.id, user]));
+
+      // Resolve current user's profile image from batch results (avoids separate HTTP call)
+      const currentUserDetails = userDetailsMap.get(userId);
+      if (currentUserDetails?.profileImage) {
+        userProfileImage = currentUserDetails.profileImage;
+      }
 
       // Enrich messages with profile images from user details
       const enrichedMessages = recentMessages.map(msg => {
@@ -496,17 +489,20 @@ export const handleDeleteDMMessage = async (message: any, currentClient: Client 
   
   try {
     // Note: The actual deletion is handled by the HTTP DELETE endpoint
-    // This handler just broadcasts the deletion to other connected clients
+    // This handler just broadcasts the deletion to the conversation partner
     
-    // Notify all active DM clients about the deletion (except sender who already knows)
-    activeDMClients.forEach((client) => {
-      if (client.ws.readyState === WebSocket.OPEN && client.userId !== currentClient.userId) {
-        client.ws.send(JSON.stringify({
+    const { receiverId } = message;
+
+    // Only notify the specific conversation partner (not all DM clients)
+    if (receiverId) {
+      const receiverClient = activeDMClients.get(receiverId);
+      if (receiverClient && receiverClient.ws.readyState === WebSocket.OPEN) {
+        receiverClient.ws.send(JSON.stringify({
           type: 'dm-deleted',
           messageId
         }));
       }
-    });
+    }
 
     console.log(`🗑️ DM deletion broadcasted by ${currentClient.username}: ${messageId}`);
   } catch (error) {
@@ -560,11 +556,24 @@ export const handleDeleteMessage = async (message: any, currentClient: Client | 
   if (!activeClub) return;
 
   try {
-    // Get message to verify it exists and get room info
-    const messageToDelete = await prisma.message.findUnique({
-      where: { id: messageId },
-      include: { room: true }
-    });
+    // Parallelize message fetch and membership check (was sequential)
+    const isOwnMessage = (msg: any) => msg.userId === currentClient.userId;
+
+    const [messageToDelete, membership] = await Promise.all([
+      prisma.message.findUnique({
+        where: { id: messageId },
+        include: { room: true }
+      }),
+      // Only fetch membership if we might need it for role check
+      prisma.bookClubMember.findUnique({
+        where: {
+          bookClubId_userId: {
+            bookClubId: currentClient.bookClubId,
+            userId: currentClient.userId
+          }
+        }
+      })
+    ]);
 
     if (!messageToDelete) {
       currentClient.ws.send(JSON.stringify({
@@ -575,19 +584,9 @@ export const handleDeleteMessage = async (message: any, currentClient: Client | 
     }
 
     // Check if user has MODERATOR+ permission or owns the message
-    const isOwnMessage = messageToDelete.userId === currentClient.userId;
-    let hasPermission = isOwnMessage;
+    let hasPermission = isOwnMessage(messageToDelete);
 
-    if (!isOwnMessage) {
-      const membership = await prisma.bookClubMember.findUnique({
-        where: {
-          bookClubId_userId: {
-            bookClubId: currentClient.bookClubId,
-            userId: currentClient.userId
-          }
-        }
-      });
-
+    if (!hasPermission) {
       const roleHierarchy = {
         [BookClubRole.OWNER]: 4,
         [BookClubRole.ADMIN]: 3,
@@ -642,15 +641,18 @@ export const handlePinMessage = async (message: any, currentClient: Client | nul
   if (!activeClub) return;
 
   try {
-    // Check if user has MODERATOR+ permission
-    const membership = await prisma.bookClubMember.findUnique({
-      where: {
-        bookClubId_userId: {
-          bookClubId: currentClient.bookClubId,
-          userId: currentClient.userId
+    // Fetch membership and verify message exists in parallel
+    const [membership, messageExists] = await Promise.all([
+      prisma.bookClubMember.findUnique({
+        where: {
+          bookClubId_userId: {
+            bookClubId: currentClient.bookClubId,
+            userId: currentClient.userId
+          }
         }
-      }
-    });
+      }),
+      prisma.message.findUnique({ where: { id: messageId }, select: { id: true } })
+    ]);
 
     const roleHierarchy = {
       [BookClubRole.OWNER]: 4,
@@ -665,6 +667,14 @@ export const handlePinMessage = async (message: any, currentClient: Client | nul
       currentClient.ws.send(JSON.stringify({
         type: 'error',
         message: 'You need MODERATOR role or higher to pin messages'
+      }));
+      return;
+    }
+
+    if (!messageExists) {
+      currentClient.ws.send(JSON.stringify({
+        type: 'error',
+        message: 'Message not found'
       }));
       return;
     }
