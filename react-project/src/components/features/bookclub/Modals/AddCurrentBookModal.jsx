@@ -1,8 +1,8 @@
 import { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '../../../../context/index';
+import { AuthContext } from '@context/index';
 import { FiX, FiSearch, FiCalendar, FiClock } from 'react-icons/fi';
-
-const GATEWAY_URL = 'http://localhost:3000';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
   const { auth } = useContext(AuthContext);
@@ -28,13 +28,12 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
     const timeoutId = setTimeout(async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${GATEWAY_URL}/v1/books/search?q=${encodeURIComponent(query)}&limit=10`);
-        const data = await response.json();
+        const { data } = await apiClient.get(`/v1/books/search?q=${encodeURIComponent(query)}&limit=10`);
         if (data.success) {
           setSearchResults(data.data || []);
         }
       } catch (err) {
-        console.error('Search error:', err);
+        logger.error('Search error:', err);
       } finally {
         setLoading(false);
       }
@@ -66,29 +65,21 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
 
     setSubmitting(true);
     try {
-      const response = await fetch(`${GATEWAY_URL}/v1/bookclub/${bookClubId}/books`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.token}`
-        },
-        body: JSON.stringify({
-          googleBooksId: selectedBook.googleBooksId,
-          status: 'current',
-          startDate,
-          endDate
-        })
+      const { data } = await apiClient.post(`/v1/bookclub/${bookClubId}/books`, {
+        googleBooksId: selectedBook.googleBooksId,
+        status: 'current',
+        startDate,
+        endDate
       });
 
-      const data = await response.json();
-      if (response.ok && data.success) {
+      if (data.success) {
         onBookAdded(data.data);
         onClose();
       } else {
         alert(data.error || 'Failed to add book');
       }
     } catch (err) {
-      console.error('Error adding book:', err);
+      logger.error('Error adding book:', err);
       alert('Failed to add book to bookclub');
     } finally {
       setSubmitting(false);

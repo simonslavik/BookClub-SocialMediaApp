@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiUsers, FiCheck, FiX, FiClock, FiMessageSquare } from 'react-icons/fi';
-import { bookclubAPI } from '../../../api/bookclub.api';
+import { bookclubAPI } from '@api/bookclub.api';
+import logger from '@utils/logger';
 
 const AdminApprovalPanel = ({ bookclubId, userRole }) => {
   const [requests, setRequests] = useState([]);
@@ -17,14 +18,14 @@ const AdminApprovalPanel = ({ bookclubId, userRole }) => {
 
   const fetchPendingRequests = async () => {
     try {
-      console.log('Fetching pending requests for bookclub:', bookclubId);
+      logger.debug('Fetching pending requests for bookclub:', bookclubId);
       const response = await bookclubAPI.getPendingRequests(bookclubId);
-      console.log('Pending requests response:', response);
-      console.log('Requests data:', response.data);
+      logger.debug('Pending requests response:', response);
+      logger.debug('Requests data:', response.data);
       setRequests(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch pending requests:', error);
-      console.error('Error details:', error.response?.data);
+      logger.error('Failed to fetch pending requests:', error);
+      logger.error('Error details:', error.response?.data);
     } finally {
       setLoading(false);
     }

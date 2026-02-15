@@ -63,13 +63,20 @@ export const googleAuth = async (req: Request, res: Response) => {
                 email: true,
                 googleId: true,
                 authProvider: true,
+                emailVerified: true,
                 profileImage: true,
                 createdAt: true
             }
         });
 
         // If user exists but doesn't have Google ID, link the account
+        // Only auto-link if the existing local account has a verified email
         if (user && !user.googleId) {
+            if (!user.emailVerified) {
+                return res.status(409).json({
+                    message: 'An unverified account with this email exists. Please verify your email first or login with your password.'
+                });
+            }
             user = await prisma.user.update({
                 where: { id: user.id },
                 data: {
@@ -83,6 +90,7 @@ export const googleAuth = async (req: Request, res: Response) => {
                     email: true,
                     googleId: true,
                     authProvider: true,
+                    emailVerified: true,
                     profileImage: true,
                     createdAt: true
                 }
@@ -112,6 +120,7 @@ export const googleAuth = async (req: Request, res: Response) => {
                     email: true,
                     googleId: true,
                     authProvider: true,
+                    emailVerified: true,
                     profileImage: true,
                     createdAt: true
                 }

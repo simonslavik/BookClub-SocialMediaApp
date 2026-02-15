@@ -1,10 +1,14 @@
-import AuthContext from '../../context';
-import { useContext, useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 import { FiBell, FiMail, FiMenu, FiX, FiUser, FiSettings, FiLogOut, FiPlusCircle } from 'react-icons/fi';
-import LoginModule from '../common/modals/loginModule';
-import RegisterModule from '../common/modals/registerModule';
+import AuthContext from '@context/index';
+import LoginModule from '@components/common/modals/loginModule';
+import RegisterModule from '@components/common/modals/registerModule';
+import { getProfileImageUrl } from '@config/constants';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
+
+const DEFAULT_AVATAR = '/images/default.webp';
 
 
     
@@ -15,10 +19,7 @@ const HomePageHeader = () => {
     const navigate = useNavigate();
     const [showDropdown, setShowDropdown] = useState(false);
     const [newsShowDropdown, setNewsShowDropdown] = useState(false);
-    const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(false);
     const [friendRequests, setFriendRequests] = useState([]);
-    const [userBookClubs, setUserBookClubs] = useState([]);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [openLogin, setOpenLogin] = useState(false);
     const [openRegister, setOpenRegister] = useState(false);
@@ -36,60 +37,32 @@ const HomePageHeader = () => {
 
     const handleProfileClick = () => {
         setShowDropdown(!showDropdown);
-        if (newsShowDropdown) {
-            setNewsShowDropdown(false);
-        }
-
-
+        if (newsShowDropdown) setNewsShowDropdown(false);
     };
+
+    const handleFriendAction = useCallback(async (requestId, action) => {
+        try {
+            await apiClient.post(`/v1/friends/${action}`, { requestId });
+            setFriendRequests((prev) => prev.filter((r) => (r.friendshipId || r.id) !== requestId));
+        } catch (err) {
+            logger.error(`Error ${action}ing friend request:`, err);
+        }
+    }, []);
 
     useEffect(() => {
-    const fetchFriendRequests = async () => {
-      try {
-        const headers = auth?.token 
-          ? { Authorization: `Bearer ${auth.token}` }
-          : {};
-        
-        const response = await fetch(`http://localhost:3000/v1/friends/requests`, { headers });
-        const data = await response.json();
-        setLoading(true);
-        if (response.ok) {
-          setFriendRequests(data.data || []);
-          console.log('Friend Requests:', data);
+        if (!auth?.user) return;
 
-        } else {
-          setError(data.error || 'Failed to load friend requests');
-        }
-      } catch (err) {
-        console.error('Error fetching friend requests:', err);
-        setError('Failed to connect to server');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    const fetchUserBookClubs = async () => {
-      try {
-        const headers = auth?.token 
-          ? { Authorization: `Bearer ${auth.token}` }
-          : {};
-        
-        const response = await fetch('http://localhost:3000/v1/editor/bookclubs?mine=true', { headers });
-        const data = await response.json();
-        
-        if (response.ok) {
-          setUserBookClubs(data.bookClubs || []);
-        }
-      } catch (err) {
-        console.error('Error fetching user bookclubs:', err);
-      }
-    };
-    
-    if (auth?.user) {
-      fetchFriendRequests();
-      fetchUserBookClubs();
-    }
-  }, [auth]);
+        const fetchFriendRequests = async () => {
+            try {
+                const { data } = await apiClient.get('/v1/friends/requests');
+                setFriendRequests(data.data || []);
+            } catch (err) {
+                logger.error('Error fetching friend requests:', err);
+            }
+        };
+
+        fetchFriendRequests();
+    }, [auth]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -150,12 +123,10 @@ const HomePageHeader = () => {
                                         <div key={request.friendshipId} className="px-4 py-3 hover:bg-gray-50 transition">
                                             <div className="flex items-start space-x-3">
                                                 <img 
-                                                    src={request.from?.profileImage 
-                                                        ? `http://localhost:3001${request.from.profileImage}` 
-                                                        : "/images/default.webp"} 
+                                                    src={getProfileImageUrl(request.from?.profileImage) || DEFAULT_AVATAR} 
                                                     alt={request.from?.name || 'User'}
                                                     className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
-                                                    onError={(e) => { e.target.src = '/images/default.webp'; }}
+                                                    onError={(e) => { e.target.src = DEFAULT_AVATAR; }}
                                                 />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm text-gray-900">
@@ -165,57 +136,13 @@ const HomePageHeader = () => {
                                                     
                                                     <div className="mt-3 flex space-x-2">
                                                         <button 
-                                                            onClick={async () => {
-                                                                try {
-                                                                    const headers = auth?.token 
-                                                                    ? { 
-                                                                        'Content-Type': 'application/json',
-                                                                        Authorization: `Bearer ${auth.token}` 
-                                                                        }
-                                                                    : {};
-                                                                    const response = await fetch('http://localhost:3000/v1/friends/accept', {
-                                                                        method: 'POST',
-                                                                        headers,
-                                                                        body: JSON.stringify({ requestId: request.friendshipId }),
-                                                                    });
-                                                                    if (response.ok) {
-                                                                        setFriendRequests(prev => prev.filter(r => r.friendshipId !== request.friendshipId));
-                                                                    } else {
-                                                                        const data = await response.json();
-                                                                        console.error('Failed to accept:', data);
-                                                                    }
-                                                                } catch (err) {
-                                                                    console.error('Error accepting friend request:', err);
-                                                                }
-                                                            }} 
+                                                            onClick={() => handleFriendAction(request.friendshipId, 'accept')}
                                                             className="flex-1 px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition text-xs font-medium"
                                                         >
                                                             Accept
                                                         </button>
                                                         <button 
-                                                            onClick={async () => {
-                                                                try {
-                                                                    const headers = auth?.token 
-                                                                    ? { 
-                                                                        'Content-Type': 'application/json',
-                                                                        Authorization: `Bearer ${auth.token}` 
-                                                                        }
-                                                                    : {};
-                                                                    const response = await fetch('http://localhost:3000/v1/friends/reject', {
-                                                                        method: 'POST',
-                                                                        headers,
-                                                                        body: JSON.stringify({ requestId: request.friendshipId }),
-                                                                    });
-                                                                    if (response.ok) {
-                                                                        setFriendRequests(prev => prev.filter(r => r.friendshipId !== request.friendshipId));
-                                                                    } else {
-                                                                        const data = await response.json();
-                                                                        console.error('Failed to reject:', data);
-                                                                    }
-                                                                } catch (err) {
-                                                                    console.error('Error rejecting friend request:', err);
-                                                                }
-                                                            }} 
+                                                            onClick={() => handleFriendAction(request.friendshipId, 'reject')}
                                                             className="flex-1 px-3 py-1.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition text-xs font-medium"
                                                         >
                                                             Decline
@@ -240,12 +167,10 @@ const HomePageHeader = () => {
                 <div className="ml-4 relative" ref={profileDropdownRef}>
                     <button onClick={handleProfileClick}>
                         <div>
-                            <img src={auth.user.profileImage 
-                                    ? `http://localhost:3001${auth.user.profileImage}` 
-                                    : "/images/default.webp"}
+                            <img src={getProfileImageUrl(auth.user.profileImage) || DEFAULT_AVATAR}
                                 alt="Profile" 
                                 className="h-11 w-11 rounded-full object-cover border-2 border-gray-200 cursor-pointer"
-                                onError={(e) => { e.target.src = '/images/default.webp'; }}
+                                onError={(e) => { e.target.src = DEFAULT_AVATAR; }}
                             />
                         </div>
                     </button>
@@ -262,7 +187,7 @@ const HomePageHeader = () => {
                             </button>
                             <button
                                 onClick={handleLogout}
-                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full"
+                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                             >
                                 Logout
                             </button>
@@ -297,12 +222,10 @@ const HomePageHeader = () => {
                     <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
                         <div className="flex items-center gap-3">
                             <img 
-                                src={auth.user.profileImage 
-                                    ? `http://localhost:3001${auth.user.profileImage}` 
-                                    : "/images/default.webp"}
+                                src={getProfileImageUrl(auth.user.profileImage) || DEFAULT_AVATAR}
                                 alt="Profile" 
                                 className="h-14 w-14 rounded-full object-cover border-2 border-purple-300"
-                                onError={(e) => { e.target.src = '/images/default.webp'; }}
+                                onError={(e) => { e.target.src = DEFAULT_AVATAR; }}
                             />
                             <div>
                                 <p className="font-semibold text-gray-900">{auth.user.name}</p>
@@ -334,63 +257,23 @@ const HomePageHeader = () => {
                                     <div key={request.id} className="px-4 py-3 border-b border-gray-100">
                                         <div className="flex items-start gap-3">
                                             <img 
-                                                src={request.user.profileImage 
-                                                    ? `http://localhost:3001${request.user.profileImage}` 
-                                                    : "/images/default.webp"} 
-                                                alt={request.user.name}
+                                                src={getProfileImageUrl(request.user?.profileImage) || DEFAULT_AVATAR} 
+                                                alt={request.user?.name}
                                                 className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
-                                                onError={(e) => { e.target.src = '/images/default.webp'; }}
+                                                onError={(e) => { e.target.src = DEFAULT_AVATAR; }}
                                             />
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold text-gray-900 truncate">{request.user.name}</p>
-                                                <p className="text-xs text-gray-500 truncate">{request.user.email}</p>
+                                                <p className="text-sm font-semibold text-gray-900 truncate">{request.user?.name}</p>
+                                                <p className="text-xs text-gray-500 truncate">{request.user?.email}</p>
                                                 <div className="mt-2 flex gap-2">
                                                     <button 
-                                                        onClick={async () => {
-                                                            try {
-                                                                const headers = auth?.token 
-                                                                ? { 
-                                                                    'Content-Type': 'application/json',
-                                                                    Authorization: `Bearer ${auth.token}` 
-                                                                    }
-                                                                : {};
-                                                                const response = await fetch('http://localhost:3000/v1/friends/accept', {
-                                                                    method: 'POST',
-                                                                    headers,
-                                                                    body: JSON.stringify({ requestId: request.id }),
-                                                                });
-                                                                if (response.ok) {
-                                                                    setFriendRequests(prev => prev.filter(r => r.id !== request.id));
-                                                                }
-                                                            } catch (err) {
-                                                                console.error('Error accepting friend request:', err);
-                                                            }
-                                                        }} 
+                                                        onClick={() => handleFriendAction(request.id, 'accept')}
                                                         className="flex-1 px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition text-xs font-medium"
                                                     >
                                                         Accept
                                                     </button>
                                                     <button 
-                                                        onClick={async () => {
-                                                            try {
-                                                                const headers = auth?.token 
-                                                                ? { 
-                                                                    'Content-Type': 'application/json',
-                                                                    Authorization: `Bearer ${auth.token}` 
-                                                                    }
-                                                                : {};
-                                                                const response = await fetch('http://localhost:3000/v1/friends/reject', {
-                                                                    method: 'POST',
-                                                                    headers,
-                                                                    body: JSON.stringify({ requestId: request.id }),
-                                                                });
-                                                                if (response.ok) {
-                                                                    setFriendRequests(prev => prev.filter(r => r.id !== request.id));
-                                                                }
-                                                            } catch (err) {
-                                                                console.error('Error rejecting friend request:', err);
-                                                            }
-                                                        }} 
+                                                        onClick={() => handleFriendAction(request.id, 'reject')}
                                                         className="flex-1 px-3 py-1.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition text-xs font-medium"
                                                     >
                                                         Decline

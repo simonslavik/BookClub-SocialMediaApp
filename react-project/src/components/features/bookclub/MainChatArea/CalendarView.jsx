@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiChevronLeft, FiChevronRight, FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 const CalendarView = ({ bookClubId, auth, onAddEvent, onEditEvent, onDeleteEvent, onEventSaved }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -33,18 +35,10 @@ const CalendarView = ({ bookClubId, auth, onAddEvent, onEditEvent, onDeleteEvent
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/v1/editor/bookclubs/${bookClubId}/events`, {
-        headers: {
-          'Authorization': `Bearer ${auth?.token}`
-        }
-      });
-      const data = await response.json();
-      
-      if (response.ok) {
-        setEvents(data.events || []);
-      }
+      const { data } = await apiClient.get(`/v1/editor/bookclubs/${bookClubId}/events`);
+      setEvents(data.events || []);
     } catch (error) {
-      console.error('Error fetching events:', error);
+      logger.error('Error fetching events:', error);
     } finally {
       setLoading(false);
     }
@@ -52,14 +46,10 @@ const CalendarView = ({ bookClubId, auth, onAddEvent, onEditEvent, onDeleteEvent
 
   const fetchBookClubBooks = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/v1/bookclub/${bookClubId}/books`);
-      const data = await response.json();
-      
-      if (response.ok) {
-        return setBookClubBooks(data.data || []);
-      }
+      const { data } = await apiClient.get(`/v1/bookclub/${bookClubId}/books`);
+      return setBookClubBooks(data.data || []);
     } catch (error) {
-      console.error('Error fetching book club books:', error);
+      logger.error('Error fetching book club books:', error);
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { FiPaperclip, FiX, FiFile, FiImage } from 'react-icons/fi';
-import { uploadChatFile } from '../../api/upload.api';
+import { uploadChatFile } from '@api/upload.api';
+import logger from '@utils/logger';
 
 const FileUpload = forwardRef(({ onFilesSelected, auth, disabled = false }, ref) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -12,34 +13,34 @@ const FileUpload = forwardRef(({ onFilesSelected, auth, disabled = false }, ref)
     uploadFiles: async () => {
       if (selectedFiles.length === 0) return [];
 
-      console.log('FileUpload: Starting upload for', selectedFiles.length, 'files');
-      console.log('FileUpload: Auth token exists:', !!auth?.token);
-      console.log('FileUpload: Auth token preview:', auth?.token?.substring(0, 20) + '...');
+      logger.debug('FileUpload: Starting upload for', selectedFiles.length, 'files');
+      logger.debug('FileUpload: Auth token exists:', !!auth?.token);
+      logger.debug('FileUpload: Auth token preview:', auth?.token?.substring(0, 20) + '...');
 
       setUploading(true);
       const uploadedFiles = [];
 
       try {
         for (const file of selectedFiles) {
-          console.log('FileUpload: Uploading file:', file.name, 'Size:', file.size);
+          logger.debug('FileUpload: Uploading file:', file.name, 'Size:', file.size);
 
           const data = await uploadChatFile(file);
-          console.log('FileUpload: Response data:', data);
+          logger.debug('FileUpload: Response data:', data);
           
           if (data.success) {
             uploadedFiles.push(data.data);
-            console.log('FileUpload: File uploaded successfully:', data.data);
+            logger.debug('FileUpload: File uploaded successfully:', data.data);
           } else {
-            console.error('FileUpload: Upload failed:', data);
+            logger.error('FileUpload: Upload failed:', data);
             alert(`Failed to upload ${file.name}: ${data.message || data.error || 'Unknown error'}`);
           }
         }
 
         setSelectedFiles([]);
-        console.log('FileUpload: All uploads complete. Total:', uploadedFiles.length);
+        logger.debug('FileUpload: All uploads complete. Total:', uploadedFiles.length);
         return uploadedFiles;
       } catch (error) {
-        console.error('FileUpload: Upload error:', error);
+        logger.error('FileUpload: Upload error:', error);
         throw error;
       } finally {
         setUploading(false);

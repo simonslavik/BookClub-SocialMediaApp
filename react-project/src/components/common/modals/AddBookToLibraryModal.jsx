@@ -1,8 +1,8 @@
 import { useState, useContext } from 'react';
 import { FiSearch, FiX, FiBook } from 'react-icons/fi';
-import { AuthContext } from '../../../context';
-
-const GATEWAY_URL = 'http://localhost:3000';
+import { AuthContext } from '@context/index';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 const AddBookToLibraryModal = ({ onClose, onBookAdded }) => {
   const { auth } = useContext(AuthContext);
@@ -24,8 +24,7 @@ const AddBookToLibraryModal = ({ onClose, onBookAdded }) => {
     setHasSearched(true);
 
     try {
-      const response = await fetch(`${GATEWAY_URL}/v1/books/search?q=${encodeURIComponent(query)}&limit=20`);
-      const data = await response.json();
+      const { data } = await apiClient.get(`/v1/books/search?q=${encodeURIComponent(query)}&limit=20`);
       
       if (data.success) {
         setResults(data.data || []);
@@ -34,7 +33,7 @@ const AddBookToLibraryModal = ({ onClose, onBookAdded }) => {
       }
     } catch (err) {
       setError('Network error. Please try again.');
-      console.error('Search error:', err);
+      logger.error('Search error:', err);
     } finally {
       setLoading(false);
     }
@@ -50,18 +49,9 @@ const AddBookToLibraryModal = ({ onClose, onBookAdded }) => {
     setError(null);
 
     try {
-      const response = await fetch(`${GATEWAY_URL}/v1/user-books`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.token}`
-        },
-        body: JSON.stringify({ googleBooksId, status })
-      });
+      const { data } = await apiClient.post('/v1/user-books', { googleBooksId, status });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (data.success) {
         // Mark this book as added with its status
         setAddedBooks(prev => ({ ...prev, [googleBooksId]: status }));
         setSuccessMessage(`✓ Book added to ${status.replace('_', ' ')}!`);
@@ -76,7 +66,7 @@ const AddBookToLibraryModal = ({ onClose, onBookAdded }) => {
       }
     } catch (err) {
       setError('Network error. Please try again.');
-      console.error('Add book error:', err);
+      logger.error('Add book error:', err);
     } finally {
       setAddingBookId(null);
     }

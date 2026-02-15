@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { WS_URL } from '@config/constants';
+import logger from '@utils/logger';
 
 export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId) => {
   const ws = useRef(null);
@@ -12,7 +14,7 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId) =>
 
   useEffect(() => {
     if (!bookClub || !auth?.token || !currentRoom) {
-      console.log('WebSocket not connecting - missing required data:', {
+      logger.debug('WebSocket not connecting - missing required data:', {
         hasBookClub: !!bookClub,
         hasAuth: !!auth?.token,
         hasRoom: !!currentRoom
@@ -26,7 +28,7 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId) =>
 
     if (isRoomSwitch && ws.current && ws.current.readyState === WebSocket.OPEN) {
       // Just switch rooms without reconnecting
-      console.log('🔄 Switching room from', currentRoomIdRef.current, 'to', currentRoom.id);
+      logger.debug('🔄 Switching room from', currentRoomIdRef.current, 'to', currentRoom.id);
       currentRoomIdRef.current = currentRoom.id;
       ws.current.send(JSON.stringify({
         type: 'switch-room',
@@ -38,25 +40,24 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId) =>
     }
 
     // Need to establish new connection (different bookclub or no existing connection)
-    console.log('Establishing new WebSocket connection for bookclub:', bookClubId);
+    logger.debug('Establishing new WebSocket connection for bookclub:', bookClubId);
     
     // Reset the intentional close flag for new connection
     isIntentionalCloseRef.current = false;
 
     const connectWebSocket = () => {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//localhost:4000`;
+      const wsUrl = WS_URL;
       
-      console.log('Attempting to connect WebSocket to:', wsUrl);
+      logger.debug('Attempting to connect WebSocket to:', wsUrl);
       const socket = new WebSocket(wsUrl);
       ws.current = socket;
 
       socket.onopen = () => {
-        console.log('✅ WebSocket connected to bookclub:', bookClubId);
+        logger.debug('✅ WebSocket connected to bookclub:', bookClubId);
         
         // Check if this socket is still the current one (not replaced by another effect run)
         if (ws.current !== socket) {
-          console.log('Socket replaced, closing old connection');
+          logger.debug('Socket replaced, closing old connection');
           socket.close();
           return;
         }
@@ -152,21 +153,21 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId) =>
               break;
             
             case 'error':
-              console.error('WebSocket error:', data.message);
+              logger.error('WebSocket error:', data.message);
               alert(data.message);
               break;
           }
         } catch (err) {
-          console.error('Error processing WebSocket message:', err);
+          logger.error('Error processing WebSocket message:', err);
         }
       };
 
       socket.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
+        logger.error('❌ WebSocket error:', error);
       };
 
       socket.onclose = (event) => {
-        console.log('📪 WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
+        logger.debug('📪 WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
         
         // Only clear ws.current if this socket is still the current one
         if (ws.current === socket) {
@@ -175,9 +176,9 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId) =>
         
         // Only attempt to reconnect if it wasn't an intentional close and socket is still current
         if (!isIntentionalCloseRef.current && ws.current === null) {
-          console.log('🔄 Attempting to reconnect in 3 seconds...');
+          logger.debug('🔄 Attempting to reconnect in 3 seconds...');
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log('Reconnecting WebSocket...');
+            logger.debug('Reconnecting WebSocket...');
             connectWebSocket();
           }, 3000);
         }

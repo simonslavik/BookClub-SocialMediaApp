@@ -42,13 +42,16 @@ app.use(express.json({ limit: '1mb' }));
 app.use(requestLogger); // HTTP request logging
 app.use(metricsMiddleware); // Prometheus metrics
 app.use(express.static(path.join(__dirname, '../public')));
+// Serve uploaded files WITHOUT auth — files use random UUIDs as filenames (unguessable).
+// Browser <img src="..."> and fetch() requests don't carry x-user-id headers,
+// so authMiddleware would reject them with 401.
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // HTTP server
 const server = createServer(app);
 
-// WebSocket server
-const wss = new WebSocketServer({ server });
+// WebSocket server (64KB max payload to prevent memory abuse)
+const wss = new WebSocketServer({ server, maxPayload: 64 * 1024 });
 setupWebSocket(wss);
 
 // Health and monitoring endpoints

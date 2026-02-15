@@ -1,5 +1,6 @@
 
 import { FiPlus, FiStar } from 'react-icons/fi';
+import logger from '@utils/logger';
 
 const BookClubBookView = ({ setShowAddBookModal, bookclubBooks, setCurrentBookData, setCurrentBookDetailsOpen, handleStatusChange }) => {
   return (

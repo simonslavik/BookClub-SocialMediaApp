@@ -115,6 +115,15 @@ export const getUsersByIds = async (req: Request, res: Response) => {
         throw new BadRequestError('userIds must be a non-empty array');
     }
 
+    if (userIds.length > 100) {
+        throw new BadRequestError('userIds cannot exceed 100 items');
+    }
+
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!userIds.every((id: string) => typeof id === 'string' && uuidRegex.test(id))) {
+        throw new BadRequestError('All userIds must be valid UUIDs');
+    }
+
     const users = await UserService.getUsersByIds(userIds);
 
     return res.status(200).json({

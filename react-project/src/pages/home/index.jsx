@@ -1,8 +1,11 @@
-import { AuthContext } from '../../context';
+import AuthContext from '@context/index';
 import { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import HomePageHeader from '../../components/layout/Header';
+import HomePageHeader from '@components/layout/Header';
+import { COLLAB_EDITOR_URL, getProfileImageUrl } from '@config/constants';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 
 
@@ -26,7 +29,7 @@ const Home = () => {
     
     
     useEffect(() => {
-        console.log('Home page auth state:', {
+        logger.debug('Home page auth state:', {
             hasAuth: !!auth,
             hasToken: !!auth?.token,
             hasUser: !!auth?.user,
@@ -64,10 +67,10 @@ const Home = () => {
         }
         
         // Always fetch all public bookclubs using discover API
-        fetch('http://localhost:3000/v1/bookclubs/discover', { headers })
-            .then(response => response.json())
-            .then(responseData => {
-                console.log('All Bookclubs response:', responseData);
+        apiClient.get('/v1/bookclubs/discover')
+            .then(response => {
+                const responseData = response.data;
+                logger.debug('All Bookclubs response:', responseData);
                 // Handle new API response format { success: true, data: [...] }
                 const clubs = responseData.success ? responseData.data : (responseData.bookClubs || []);
                 setBookClubs(clubs);
@@ -95,7 +98,7 @@ const Home = () => {
                     setSuggestedUsers([]);
                 }
             })
-            .catch(error => console.error('Error fetching all book clubs:', error));
+            .catch(error => logger.error('Error fetching all book clubs:', error));
     }, [auth]);
     
     const createNewBookClub = () => {
@@ -104,101 +107,70 @@ const Home = () => {
 
     const handleSendFriendRequest = async (userId) => {
         if (!auth?.token) {
-            console.error('No auth token available');
+            logger.error('No auth token available');
             alert('Please log in to send friend requests');
             return;
         }
         
         try {
-            console.log('Sending friend request to userId:', userId);
-            console.log('Auth object:', { hasToken: !!auth.token, hasUser: !!auth.user, userId: auth.user?.id });
+            logger.debug('Sending friend request to userId:', userId);
+            logger.debug('Auth object:', { hasToken: !!auth.token, hasUser: !!auth.user, userId: auth.user?.id });
             
-            const response = await fetch('http://localhost:3000/v1/friends/request', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${auth.token}`
-                },
-                body: JSON.stringify({ recipientId: userId })
-            });
+            const response = await apiClient.post('/v1/friends/request', { recipientId: userId });
             
-            const data = await response.json();
-            console.log('Friend request response:', data, 'Status:', response.status);
+            const data = response.data;
+            logger.debug('Friend request response:', data, 'Status:', response.status);
             
             if (response.status === 403 || response.status === 401) {
                 alert('Your session has expired. Please log out and log back in.');
                 return;
             }
             
-            if (response.ok) {
-                alert('Friend request sent!');
-                // Refetch friend requests to get the updated list with proper IDs
-                await fetchFriendRequests();
-            } else {
-                console.error('Friend request failed:', data);
-                alert(data.error || data.message || 'Failed to send friend request');
-            }
+            alert('Friend request sent!');
+            // Refetch friend requests to get the updated list with proper IDs
+            await fetchFriendRequests();
         } catch (err) {
-            console.error('Error sending friend request:', err);
-            alert('Failed to send friend request: ' + err.message);
+            if (err.response?.status === 403 || err.response?.status === 401) {
+                alert('Your session has expired. Please log out and log back in.');
+                return;
+            }
+            logger.error('Error sending friend request:', err);
+            const errorMsg = err.response?.data?.error || err.response?.data?.message || err.message;
+            alert('Failed to send friend request: ' + errorMsg);
         }
     };
 
     const fetchFriends = async () => {
         if (!auth?.token) {
-            console.log('fetchFriends: No auth token available');
+            logger.debug('fetchFriends: No auth token available');
             return;
         }
         
-        console.log('fetchFriends: Making request with token');
+        logger.debug('fetchFriends: Making request with token');
         try {
-            const response = await fetch('http://localhost:3000/v1/friends/list', {
-                headers: { Authorization: `Bearer ${auth.token}` }
-            });
+            const response = await apiClient.get('/v1/friends/list');
+            const data = response.data;
             
-            if (!response.ok) {
-                console.error('fetchFriends failed:', response.status);
-                const text = await response.text();
-                console.error('Error response:', text);
-                return;
-            }
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                setFriends(data.data || []);
-            }
+            setFriends(data.data || []);
         } catch (err) {
-            console.error('Error fetching friends:', err);
+            logger.error('Error fetching friends:', err);
         }
     };
 
     const fetchFriendRequests = async () => {
         if (!auth?.token) {
-            console.log('fetchFriendRequests: No auth token available');
+            logger.debug('fetchFriendRequests: No auth token available');
             return;
         }
         
-        console.log('fetchFriendRequests: Making request with token');
+        logger.debug('fetchFriendRequests: Making request with token');
         try {
-            const response = await fetch('http://localhost:3000/v1/friends/requests', {
-                headers: { Authorization: `Bearer ${auth.token}` }
-            });
+            const response = await apiClient.get('/v1/friends/requests');
+            const data = response.data;
             
-            if (!response.ok) {
-                console.error('fetchFriendRequests failed:', response.status);
-                const text = await response.text();
-                console.error('Error response:', text);
-                return;
-            }
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                setFriendRequests(data.data || []);
-            }
+            setFriendRequests(data.data || []);
         } catch (err) {
-            console.error('Error fetching friend requests:', err);
+            logger.error('Error fetching friend requests:', err);
         }
     };
 
@@ -226,7 +198,7 @@ const Home = () => {
                                         className="p-4 shadow border rounded cursor-pointer flex-shrink-0 w-[280px] h-[420px] flex flex-col"
                                     >
                                         <img 
-                                            src={bookClub.imageUrl ? `http://localhost:4000${bookClub.imageUrl}` : '/images/default.webp'} 
+                                            src={bookClub.imageUrl ? `${COLLAB_EDITOR_URL}${bookClub.imageUrl}` : '/images/default.webp'} 
                                             alt={bookClub.name}
                                             className="w-full h-40 object-cover mb-3 rounded"
                                             onError={(e) => { e.target.src = '/images/default.webp'; }}
@@ -241,10 +213,7 @@ const Home = () => {
                                                     {bookClub.members.slice(0, 5).map(member => (
                                                         <img 
                                                             key={member.id} 
-                                                            src={member.profileImage 
-                                                                ? `http://localhost:3001${member.profileImage}` 
-                                                                : '/images/default.webp'
-                                                            } 
+                                                            src={getProfileImageUrl(member.profileImage) || '/images/default.webp'} 
                                                             alt={member.username} 
                                                             className="w-8 h-8 rounded-full border-2 border-white object-cover"
                                                             title={member.username}
@@ -289,7 +258,7 @@ const Home = () => {
                                     className="p-4 border rounded hover:bg-gray-50 cursor-pointer flex-shrink-0 w-[280px] h-[420px] flex flex-col"
                                 >
                                     <img 
-                                        src={bookClub.imageUrl ? `http://localhost:4000${bookClub.imageUrl}` : '/images/default.webp'} 
+                                        src={bookClub.imageUrl ? `${COLLAB_EDITOR_URL}${bookClub.imageUrl}` : '/images/default.webp'} 
                                         alt={bookClub.name}
                                         className="w-full h-40 object-cover mb-3 rounded"
                                         onError={(e) => { e.target.src = '/images/default.webp'; }}
@@ -324,10 +293,7 @@ const Home = () => {
                                                 {bookClub.members.slice(0, 5).map(member => (
                                                     <img 
                                                         key={member.id} 
-                                                        src={member.profileImage 
-                                                            ? `http://localhost:3001${member.profileImage}` 
-                                                            : '/images/default.webp'
-                                                        } 
+                                                        src={getProfileImageUrl(member.profileImage) || '/images/default.webp'} 
                                                         alt={member.username} 
                                                         className="w-8 h-8 rounded-full border-2 border-white object-cover"
                                                         title={member.username}
@@ -376,10 +342,7 @@ const Home = () => {
                                 >
                                     <div className="flex flex-col items-center">
                                         <img 
-                                            src={user.profileImage 
-                                                ? `http://localhost:3001${user.profileImage}` 
-                                                : '/images/default.webp'
-                                            }
+                                            src={getProfileImageUrl(user.profileImage) || '/images/default.webp'}
                                             alt={user.username}
                                             className="w-20 h-20 rounded-full object-cover mb-3 border-2 border-gray-200"
                                             onError={(e) => { e.target.src = '/images/default.webp'; }}
@@ -438,7 +401,7 @@ const Home = () => {
                                     className="p-4 border rounded hover:bg-gray-50 flex-shrink-0 w-[280px] h-[420px] cursor-pointer flex flex-col"
                                 >
                                     <img 
-                                        src={bookClub.imageUrl ? `http://localhost:4000${bookClub.imageUrl}` : '/images/default.webp'} 
+                                        src={bookClub.imageUrl ? `${COLLAB_EDITOR_URL}${bookClub.imageUrl}` : '/images/default.webp'} 
                                         alt={bookClub.name}
                                         className="w-full h-40 object-cover mb-3 rounded"
                                         onError={(e) => { e.target.src = '/images/default.webp'; }}
@@ -473,10 +436,7 @@ const Home = () => {
                                                 {bookClub.members.slice(0, 5).map(member => (
                                                     <img 
                                                         key={member.id} 
-                                                        src={member.profileImage 
-                                                            ? `http://localhost:3001${member.profileImage}` 
-                                                            : '/images/default.webp'
-                                                        } 
+                                                        src={getProfileImageUrl(member.profileImage) || '/images/default.webp'} 
                                                         alt={member.username} 
                                                         className="w-8 h-8 rounded-full border-2 border-white object-cover"
                                                         title={member.username}

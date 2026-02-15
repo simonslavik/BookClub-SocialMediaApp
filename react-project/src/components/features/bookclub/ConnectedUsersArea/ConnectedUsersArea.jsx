@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { FiUsers } from 'react-icons/fi';
+import { getProfileImageUrl } from '@config/constants';
+import logger from '@utils/logger';
 
 
 const ConnectedUsersArea = (
@@ -52,7 +54,7 @@ const ConnectedUsersArea = (
                             top: rect.top,
                             left: left
                           };
-                          console.log('Setting menu position:', newPosition, 'Screen width:', window.innerWidth);
+                          logger.debug('Setting menu position:', newPosition, 'Screen width:', window.innerWidth);
                           setMenuPosition(newPosition);
                           setSelectedUserId(selectedUserId === user.id ? null : user.id);
                         }
@@ -61,10 +63,7 @@ const ConnectedUsersArea = (
                     >
                       <div className="relative">
                         <img 
-                          src={user.profileImage 
-                            ? `http://localhost:3001${user.profileImage}` 
-                            : '/images/default.webp'
-                          } 
+                          src={getProfileImageUrl(user.profileImage) || '/images/default.webp'} 
                           alt={user.username} 
                           className="w-8 h-8 rounded-full object-cover"
                           onError={(e) => { e.target.src = '/images/default.webp'; }}
@@ -88,7 +87,7 @@ const ConnectedUsersArea = (
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {console.log('Rendering menu at:', menuPosition, 'for user:', user.id)}
+                        {logger.debug('Rendering menu at:', menuPosition, 'for user:', user.id)}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

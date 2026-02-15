@@ -125,6 +125,11 @@ export class BookSuggestionsService {
       throw new NotFoundError('Suggestion', suggestionId);
     }
 
+    // Verify suggestion belongs to this book club
+    if (suggestion.bookClubId !== bookClubId) {
+      throw new ForbiddenError('This suggestion does not belong to the specified book club');
+    }
+
     const bookClubBook = await BookSuggestionsRepository.acceptSuggestion(
       bookClubId,
       suggestionId,

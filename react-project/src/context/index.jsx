@@ -1,5 +1,7 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useRef, useCallback } from "react";
 import axios from 'axios';
+import { API_URL } from '@config/constants';
+import logger from '@utils/logger';
 
 const AuthContext = createContext({});
 
@@ -14,8 +16,12 @@ export const AuthProvider = ({ children }) => {
         }
     });
 
+    // Keep a ref so the interceptor always reads the latest auth without re-registering
+    const authRef = useRef(auth);
+    authRef.current = auth;
+
     // helper to set auth both in state and localStorage
-    const setAuth = (payload) => {
+    const setAuth = useCallback((payload) => {
         const next = {
             user: payload?.user || null,
             token: payload?.token || null,
@@ -30,45 +36,44 @@ export const AuthProvider = ({ children }) => {
         // apply axios default Authorization header
         if (next.token) axios.defaults.headers.common['Authorization'] = `Bearer ${next.token}`;
         else delete axios.defaults.headers.common['Authorization'];
-    };
+    }, []);
 
-    const logout = () => {
+    const logout = useCallback(() => {
         setAuth({ user: null, token: null, refreshToken: null });
-    };
+    }, [setAuth]);
 
     useEffect(() => {
         // ensure axios has header if token exists on initial load
         if (auth?.token) axios.defaults.headers.common['Authorization'] = `Bearer ${auth.token}`;
         else delete axios.defaults.headers.common['Authorization'];
+    }, [auth?.token]);
 
-        // Axios interceptor for automatic token refresh
+    // Register interceptor ONCE (not on every auth change)
+    useEffect(() => {
         const interceptor = axios.interceptors.response.use(
-            (response) => response, // Pass through successful responses
+            (response) => response,
             async (error) => {
                 const originalRequest = error.config;
+                const currentAuth = authRef.current;
 
-                // If 401 error and we have a refresh token, try to refresh
-                if (error.response?.status === 401 && auth?.refreshToken && !originalRequest._retry) {
+                if (error.response?.status === 401 && currentAuth?.refreshToken && !originalRequest._retry) {
                     originalRequest._retry = true;
 
                     try {
-                        const { data } = await axios.post('http://localhost:3000/v1/auth/refresh', {
-                            refreshToken: auth.refreshToken
+                        const { data } = await axios.post(`${API_URL}/v1/auth/refresh`, {
+                            refreshToken: currentAuth.refreshToken
                         });
 
-                        // Update auth with new tokens
                         setAuth({
-                            user: auth.user,
+                            user: currentAuth.user,
                             token: data.accessToken,
                             refreshToken: data.refreshToken
                         });
 
-                        // Retry original request with new token
                         originalRequest.headers['Authorization'] = `Bearer ${data.accessToken}`;
                         return axios(originalRequest);
                     } catch (refreshError) {
-                        // Refresh failed, logout user
-                        console.error('Token refresh failed:', refreshError);
+                        logger.error('Token refresh failed:', refreshError);
                         setAuth({ user: null, token: null, refreshToken: null });
                         return Promise.reject(refreshError);
                     }
@@ -78,11 +83,10 @@ export const AuthProvider = ({ children }) => {
             }
         );
 
-        // Cleanup interceptor on unmount
         return () => {
             axios.interceptors.response.eject(interceptor);
         };
-    }, [auth]);
+    }, [setAuth]);
 
     return (
         <AuthContext.Provider value={{ auth, setAuth, logout }}>

@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import AuthContext from '../../context';
-import MyBookClubsSidebar from '../../components/features/bookclub/MyBookClubsSidebar';
-import DMSidebar from '../../components/features/bookclub/SideBar/DMSidebar';
-import DMChat from '../../components/features/bookclub/MainChatArea/DMChat';
+import AuthContext from '@context/index';
+import MyBookClubsSidebar from '@components/features/bookclub/MyBookClubsSidebar';
+import DMSidebar from '@components/features/bookclub/SideBar/DMSidebar';
+import DMChat from '@components/features/bookclub/MainChatArea/DMChat';
+import { WS_URL } from '@config/constants';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 const DMChatPage = () => {
   const { auth } = useContext(AuthContext);
@@ -22,13 +25,9 @@ const DMChatPage = () => {
   // Fetch my bookclubs for sidebar
   useEffect(() => {
     if (auth?.user) {
-      const headers = auth?.token 
-        ? { Authorization: `Bearer ${auth.token}` }
-        : {};
-      
-      fetch('http://localhost:3000/v1/bookclubs/discover', { headers })
-        .then(response => response.json())
-        .then(data => {
+      apiClient.get('/v1/bookclubs/discover')
+        .then(response => {
+          const data = response.data;
           const clubs = data.success ? data.data : (data.bookClubs || []);
           const myClubs = clubs.filter(club => 
             club.creatorId === auth.user.id || club.isMember === true
@@ -37,7 +36,7 @@ const DMChatPage = () => {
           myClubs.sort((a, b) => a.name.localeCompare(b.name));
           setMyBookClubs(myClubs);
         })
-        .catch(error => console.error('Error fetching my book clubs:', error));
+        .catch(error => logger.error('Error fetching my book clubs:', error));
     }
   }, [auth]);
 
@@ -45,11 +44,11 @@ const DMChatPage = () => {
   useEffect(() => {
     if (!auth?.user?.id || !auth?.user?.name || !auth?.token) return;
 
-    const ws = new WebSocket('ws://localhost:4000');
+    const ws = new WebSocket(WS_URL);
     dmWs.current = ws;
 
     ws.onopen = () => {
-      console.log('📨 DM WebSocket connected');
+      logger.debug('📨 DM WebSocket connected');
       ws.send(JSON.stringify({
         type: 'join-dm',
         userId: auth.user.id,
@@ -63,11 +62,11 @@ const DMChatPage = () => {
       
       switch (data.type) {
         case 'dm-joined':
-          console.log('✅ Joined DM connection');
+          logger.debug('✅ Joined DM connection');
           break;
           
         case 'auth-error':
-          console.error('❌ DM auth failed:', data.message);
+          logger.error('❌ DM auth failed:', data.message);
           break;
           
         case 'dm-sent':
@@ -100,19 +99,9 @@ const DMChatPage = () => {
             )
           );
           break;
-                  case 'dm-deleted':
-          // Handle message deletion from WebSocket
-          setDmMessages(prev => 
-            prev.map(msg => 
-              msg.id === data.messageId 
-                ? { ...msg, content: '[Message deleted]', deletedAt: new Date().toISOString(), attachments: [] }
-                : msg
-            )
-          );
-          break;
           
         case 'error':
-          console.error('WebSocket error:', data.message);
+          logger.error('WebSocket error:', data.message);
           setSendingMessage(false);
           alert(data.message || 'Failed to send message');
           break;
@@ -120,11 +109,11 @@ const DMChatPage = () => {
     };
 
     ws.onerror = (error) => {
-      console.error('DM WebSocket error:', error);
+      logger.error('DM WebSocket error:', error);
     };
 
     ws.onclose = () => {
-      console.log('📪 DM WebSocket disconnected');
+      logger.debug('📪 DM WebSocket disconnected');
     };
 
     return () => {
@@ -139,16 +128,12 @@ const DMChatPage = () => {
     if (!auth?.token) return;
     
     try {
-      const response = await fetch('http://localhost:3000/v1/messages/conversations', {
-        headers: { Authorization: `Bearer ${auth.token}` }
-      });
-      const data = await response.json();
+      const response = await apiClient.get('/v1/messages/conversations');
+      const data = response.data;
       
-      if (response.ok) {
-        setConversations(data.data || []);
-      }
+      setConversations(data.data || []);
     } catch (err) {
-      console.error('Error fetching conversations:', err);
+      logger.error('Error fetching conversations:', err);
     }
   };
 
@@ -157,16 +142,12 @@ const DMChatPage = () => {
     if (!auth?.token) return;
     
     try {
-      const response = await fetch('http://localhost:3000/v1/friends/list', {
-        headers: { Authorization: `Bearer ${auth.token}` }
-      });
-      const data = await response.json();
+      const response = await apiClient.get('/v1/friends/list');
+      const data = response.data;
       
-      if (response.ok) {
-        setFriends(data.data || []);
-      }
+      setFriends(data.data || []);
     } catch (err) {
-      console.error('Error fetching friends:', err);
+      logger.error('Error fetching friends:', err);
     }
   };
 
@@ -191,7 +172,7 @@ const DMChatPage = () => {
         sessionStorage.removeItem('openDM');
         navigate(`/dm/${intentUserId}`);
       } catch (err) {
-        console.error('Error parsing DM intent:', err);
+        logger.error('Error parsing DM intent:', err);
         sessionStorage.removeItem('openDM');
       }
     }
@@ -202,30 +183,26 @@ const DMChatPage = () => {
     if (!auth?.token) return;
     
     try {
-      const response = await fetch(`http://localhost:3000/v1/messages/${userId}`, {
-        headers: { Authorization: `Bearer ${auth.token}` }
-      });
-      const data = await response.json();
+      const response = await apiClient.get(`/v1/messages/${userId}`);
+      const data = response.data;
       
-      if (response.ok) {
-        const messagesInOrder = [...(data.data.messages || [])].reverse();
-        setDmMessages(messagesInOrder);
-        setCurrentDMUser(data.data.otherUser);
+      const messagesInOrder = [...(data.data.messages || [])].reverse();
+      setDmMessages(messagesInOrder);
+      setCurrentDMUser(data.data.otherUser);
+      
+      // Mark conversation as read
+      await markConversationAsRead(userId);
+    } catch (err) {
+      const userFromConv = conversations.find(c => c.friend?.id === userId)?.friend;
+      if (userFromConv) {
+        setCurrentDMUser(userFromConv);
+        setDmMessages([]);
         
-        // Mark conversation as read
+        // Mark conversation as read even if no messages yet
         await markConversationAsRead(userId);
       } else {
-        const userFromConv = conversations.find(c => c.friend?.id === userId)?.friend;
-        if (userFromConv) {
-          setCurrentDMUser(userFromConv);
-          setDmMessages([]);
-          
-          // Mark conversation as read even if no messages yet
-          await markConversationAsRead(userId);
-        }
+        logger.error('Error fetching DM messages:', err);
       }
-    } catch (err) {
-      console.error('Error fetching DM messages:', err);
     }
   };
 
@@ -233,10 +210,7 @@ const DMChatPage = () => {
     if (!auth?.token) return;
     
     try {
-      await fetch(`http://localhost:3000/v1/messages/${userId}/read`, {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${auth.token}` }
-      });
+      await apiClient.put(`/v1/messages/${userId}/read`);
       
       // Update local conversation state to set unreadCount to 0
       setConversations(prev => 
@@ -247,7 +221,7 @@ const DMChatPage = () => {
         )
       );
     } catch (err) {
-      console.error('Error marking conversation as read:', err);
+      logger.error('Error marking conversation as read:', err);
     }
   };
 

@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { FiX, FiCopy, FiTrash2, FiCheck, FiLink, FiUsers, FiSearch } from 'react-icons/fi';
-import AuthContext from '../../../context';
-import { bookclubAPI } from '../../../api/bookclub.api';
+import AuthContext from '@context/index';
+import { bookclubAPI } from '@api/bookclub.api';
+import apiClient from '@api/axios';
+import { getProfileImageUrl } from '@config/constants';
+import logger from '@utils/logger';
 
 const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], currentUserRole, onClose }) => {
   const { auth } = useContext(AuthContext);
@@ -15,7 +18,6 @@ const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], currentUs
   const [searchResults, setSearchResults] = useState([]);
   const [sendingInvites, setSendingInvites] = useState(new Set());
 
-  const GATEWAY_URL = 'http://localhost:3000';
 
   useEffect(() => {
     fetchInvite();
@@ -25,19 +27,19 @@ const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], currentUs
   const fetchInvite = async () => {
     try {
       setLoading(true);
-      console.log('Fetching shareable invite for bookclub:', bookClubId);
+      logger.debug('Fetching shareable invite for bookclub:', bookClubId);
       
       const response = await bookclubAPI.getShareableInvite(bookClubId);
-      console.log('Shareable invite response:', response);
+      logger.debug('Shareable invite response:', response);
       
       if (response.data) {
         setInvite(response.data);
-        console.log('Using invite:', response.data);
+        logger.debug('Using invite:', response.data);
       } else {
-        console.log('No active invite found');
+        logger.debug('No active invite found');
       }
     } catch (error) {
-      console.error('Error fetching invite:', error);
+      logger.error('Error fetching invite:', error);
     } finally {
       setLoading(false);
     }
@@ -45,29 +47,21 @@ const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], currentUs
 
   const fetchFriends = async () => {
     try {
-      const response = await fetch('http://localhost:3000/v1/friends/list', {
-        headers: { Authorization: `Bearer ${auth.token}` }
+      const { data } = await apiClient.get('/v1/friends/list');
+      logger.debug('Friends API Response:', data);
+      // Extract the actual friend data from the response
+      // API returns array of objects like: { friendshipId, friend: { id, username, ... }, since }
+      const friendsList = (data.data || []).map(item => {
+        // If item has a 'friend' property, use that, otherwise use the item itself
+        const friendData = item.friend || item;
+        logger.debug('Processing friend item:', item, 'Extracted:', friendData);
+        return friendData;
       });
-      const data = await response.json();
-      console.log('Friends API Response:', data);
-      if (response.ok) {
-        // Extract the actual friend data from the response
-        // API returns array of objects like: { friendshipId, friend: { id, username, ... }, since }
-        const friendsList = (data.data || []).map(item => {
-          // If item has a 'friend' property, use that, otherwise use the item itself
-          const friendData = item.friend || item;
-          console.log('Processing friend item:', item, 'Extracted:', friendData);
-          return friendData;
-        });
-        console.log('Processed Friends List:', friendsList);
-        setFriends(friendsList);
-        setSearchResults(friendsList);
-      } else {
-        setFriends([]);
-        setSearchResults([]);
-      }
+      logger.debug('Processed Friends List:', friendsList);
+      setFriends(friendsList);
+      setSearchResults(friendsList);
     } catch (error) {
-      console.error('Error fetching friends:', error);
+      logger.error('Error fetching friends:', error);
       setFriends([]);
       setSearchResults([]);
     }
@@ -91,7 +85,7 @@ const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], currentUs
       }
       
       if (!invite) {
-        console.error('No invite available. Invite state:', invite);
+        logger.error('No invite available. Invite state:', invite);
         alert('Invite link not available. Please try closing and reopening the modal.');
         return;
       }
@@ -100,32 +94,19 @@ const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], currentUs
       const inviteLink = `${window.location.origin}/invite/${inviteCode}`;
       const message = `You've been invited to join "${bookClubName}"! Click here to join: ${inviteLink}`;
 
-      console.log('Sending DM to:', userId, 'with invite link:', inviteLink);
+      logger.debug('Sending DM to:', userId, 'with invite link:', inviteLink);
 
       // Send DM with invite
-      const dmResponse = await fetch('http://localhost:3000/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.token}`
-        },
-        body: JSON.stringify({
-          receiverId: userId,
-          content: message
-        })
+      const { data: responseData } = await apiClient.post('/v1/messages', {
+        receiverId: userId,
+        content: message
       });
 
-      const responseData = await dmResponse.json();
-      console.log('DM Response:', responseData, 'Status:', dmResponse.status);
+      logger.debug('DM Response:', responseData);
 
-      if (dmResponse.ok) {
-        alert(`Invite sent to ${username}!`);
-      } else {
-        console.error('Failed to send invite:', responseData);
-        alert(`Failed to send invite: ${responseData.message || 'Unknown error'}`);
-      }
+      alert(`Invite sent to ${username}!`);
     } catch (error) {
-      console.error('Error sending DM invite:', error);
+      logger.error('Error sending DM invite:', error);
       alert('Failed to send invite: ' + error.message);
     } finally {
       setSendingInvites(prev => {
@@ -246,16 +227,12 @@ const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], currentUs
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     {searchResults.map(friend => {
-                      console.log('Friend from searchResults:', friend);
+                      logger.debug('Friend from searchResults:', friend);
                       const isAlreadyMember = isMember(friend.id);
                       const friendName = friend.username || friend.name || 'Unknown User';
-                      const friendImage = friend.profileImage 
-                        ? (friend.profileImage.startsWith('http') 
-                            ? friend.profileImage 
-                            : `http://localhost:3001${friend.profileImage}`)
-                        : '/images/default.webp';
+                      const friendImage = getProfileImageUrl(friend.profileImage) || '/images/default.webp';
                       
-                      console.log('Rendering friend:', { 
+                      logger.debug('Rendering friend:', { 
                         friendId: friend.id,
                         friendUsername: friend.username,
                         friendName: friend.name,

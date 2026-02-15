@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { authAPI } from '../../../api';
+import { authAPI } from '@api/index';
+import logger from '@utils/logger';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
   const [currentPassword, setCurrentPassword] = useState('');

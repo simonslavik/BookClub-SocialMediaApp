@@ -1,15 +1,9 @@
 import { Router } from 'express';
-import { authMiddleware } from '../middleware/authMiddleware.js';
-import { optionalAuth } from '../middleware/optionalAuth.js';
+import { authMiddleware, optionalAuthMiddleware } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
 import { createClubSchema, updateClubSchema } from '../utils/validation.js';
 import { bookClubImageUpload } from '../config/multer.js';
 import {
-  createBookClub,
-  getBookClub,
-  updateBookClub,
-  getAllBookClubs,
-  getMyBookClubs,
   uploadBookClubImage,
   deleteBookClubImage
 } from '../controllers/bookClubController.js';
@@ -19,15 +13,18 @@ const router = Router();
 
 // ===== PUBLIC ROUTES (with optional auth) =====
 // Discover bookclubs - Shows PUBLIC and PRIVATE clubs
-router.get('/discover', optionalAuth, BookClubController.discoverClubs);
+router.get('/discover', optionalAuthMiddleware, BookClubController.discoverClubs);
 
 // Get club preview - Limited info for non-members
-router.get('/:id/preview', optionalAuth, BookClubController.getClubPreview);
+router.get('/:id/preview', optionalAuthMiddleware, BookClubController.getClubPreview);
 
 // Join via invite code
 router.post('/join-by-invite/:code', authMiddleware, BookClubController.joinByInvite);
 
 // ===== PROTECTED ROUTES (auth required) =====
+// Get user's own bookclubs
+router.get('/my', authMiddleware, BookClubController.getMyClubs);
+
 // Create new bookclub
 router.post('/', authMiddleware, validate(createClubSchema), BookClubController.createClub);
 
@@ -73,23 +70,8 @@ router.delete('/:id/members/:userId', authMiddleware, BookClubController.removeM
 // Update member role
 router.put('/:id/members/:userId/role', authMiddleware, BookClubController.updateMemberRole);
 
-// ===== LEGACY ROUTES (keep for backwards compatibility) =====
-// Get all bookclubs (with optional filtering)
-router.get('/', getAllBookClubs);
-
-// Get my bookclubs
-router.get('/my-bookclubs', authMiddleware, getMyBookClubs);
-
-// Get bookclub by ID (old endpoint)
-router.get('/:bookClubId', getBookClub);
-
-// Update bookclub (old endpoint)
-router.put('/:bookClubId', authMiddleware, updateBookClub);
-
-// Upload bookclub image
+// ===== BOOK CLUB IMAGE MANAGEMENT =====
 router.post('/:id/image', authMiddleware, bookClubImageUpload.single('image'), uploadBookClubImage);
-
-// Delete bookclub image
 router.delete('/:id/image', authMiddleware, deleteBookClubImage);
 
 export default router;

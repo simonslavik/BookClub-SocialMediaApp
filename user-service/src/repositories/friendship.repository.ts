@@ -64,7 +64,7 @@ export class FriendshipRepository {
   /**
    * Get all user friendships with status
    */
-  static async findAllByUserId(userId: string, status?: FriendshipStatus) {
+  static async findAllByUserId(userId: string, status?: FriendshipStatus, limit = 200) {
     const where: any = {
       OR: [
         { userId },
@@ -82,13 +82,14 @@ export class FriendshipRepository {
         user: { select: USER_BASIC_FIELDS },
         friend: { select: USER_BASIC_FIELDS },
       },
+      take: limit,
     });
   }
 
   /**
    * Get pending friend requests received by user
    */
-  static async getPendingRequests(userId: string) {
+  static async getPendingRequests(userId: string, limit = 100) {
     return await prisma.friendship.findMany({
       where: {
         friendId: userId,
@@ -97,13 +98,15 @@ export class FriendshipRepository {
       include: {
         user: { select: USER_BASIC_FIELDS },
       },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   /**
    * Get pending friend requests sent by user
    */
-  static async getSentRequests(userId: string) {
+  static async getSentRequests(userId: string, limit = 100) {
     return await prisma.friendship.findMany({
       where: {
         userId,
@@ -112,13 +115,15 @@ export class FriendshipRepository {
       include: {
         friend: { select: USER_BASIC_FIELDS },
       },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   /**
    * Get accepted friends
    */
-  static async getAcceptedFriends(userId: string) {
+  static async getAcceptedFriends(userId: string, limit = 200) {
     return await prisma.friendship.findMany({
       where: {
         OR: [
@@ -130,6 +135,7 @@ export class FriendshipRepository {
         user: { select: USER_BASIC_FIELDS },
         friend: { select: USER_BASIC_FIELDS },
       },
+      take: limit,
     });
   }
 

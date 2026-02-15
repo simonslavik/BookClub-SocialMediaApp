@@ -1,10 +1,11 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from "react-router-dom";
-import AuthContext from '../../../context';
+import AuthContext from '@context/index';
 import { FiX } from 'react-icons/fi';
 import { GoogleLogin } from '@react-oauth/google';
 import ForgotPasswordModal from './ForgotPasswordModal';
+import logger from '@utils/logger';
 
 const Login = ({ onClose, onSwitchToRegister }) => {
 
@@ -48,7 +49,7 @@ const Login = ({ onClose, onSwitchToRegister }) => {
         try {
             const res = await axios.post('/v1/auth/login', formData);
             
-            console.log('Login response:', res.data);
+            logger.debug('Login response:', res.data);
             
             // Extract token, refreshToken, and user from response
             // Handle both nested and direct response formats
@@ -57,10 +58,10 @@ const Login = ({ onClose, onSwitchToRegister }) => {
             const refreshToken = responseData?.refreshToken || res?.data?.refreshToken;
             const user = responseData?.user || res?.data?.user;
             
-            console.log('Extracted data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
+            logger.debug('Extracted data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
             
             if (!accessToken || !user) {
-                console.error('Missing required data - accessToken:', !!accessToken, 'user:', !!user);
+                logger.error('Missing required data - accessToken:', !!accessToken, 'user:', !!user);
                 setErrors(['Login succeeded but received incomplete data from server']);
                 return;
             }
@@ -94,7 +95,7 @@ const Login = ({ onClose, onSwitchToRegister }) => {
                 credential: credentialResponse.credential
             });
 
-            console.log('Google login response:', res.data);
+            logger.debug('Google login response:', res.data);
 
             // Handle both nested and direct response formats
             const responseData = res?.data?.data || res?.data;
@@ -102,7 +103,7 @@ const Login = ({ onClose, onSwitchToRegister }) => {
             const refreshToken = responseData?.refreshToken || res?.data?.refreshToken;
             const user = responseData?.user || res?.data?.user;
 
-            console.log('Extracted Google data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
+            logger.debug('Extracted Google data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
 
             if (accessToken && user) {
                 setAuth({ 

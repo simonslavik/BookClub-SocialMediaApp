@@ -1,30 +1,21 @@
 import { FiX, FiTrash2, FiUser } from 'react-icons/fi';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 const BookSuggestionDetailsModal = ({ suggestion, bookClubId, auth, onClose, onDeleted }) => {
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this book suggestion?')) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/v1/bookclub/${bookClubId}/suggestions/${suggestion.id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${auth.token}`
-          }
-        }
+      await apiClient.delete(
+        `/v1/bookclub/${bookClubId}/suggestions/${suggestion.id}`
       );
 
-      if (response.ok) {
-        onDeleted();
-        onClose();
-      } else {
-        const data = await response.json();
-        alert(data.message || 'Failed to delete suggestion');
-      }
+      onDeleted();
+      onClose();
     } catch (err) {
-      console.error('Error deleting suggestion:', err);
-      alert('Failed to delete suggestion');
+      logger.error('Error deleting suggestion:', err);
+      alert(err.response?.data?.message || 'Failed to delete suggestion');
     }
   };
 

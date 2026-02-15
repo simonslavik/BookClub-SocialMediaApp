@@ -12,6 +12,31 @@ import {
   handleDisconnect
 } from './handlers.js';
 
+const MAX_MESSAGE_LENGTH = 4000;
+const RATE_LIMIT_WINDOW_MS = 5000;
+const RATE_LIMIT_MAX_MESSAGES = 15;
+
+/** Per-client sliding window rate limiter */
+const clientMessageTimestamps = new Map<WebSocket, number[]>();
+
+function isRateLimited(ws: WebSocket): boolean {
+  const now = Date.now();
+  let timestamps = clientMessageTimestamps.get(ws);
+  if (!timestamps) {
+    timestamps = [];
+    clientMessageTimestamps.set(ws, timestamps);
+  }
+  // Remove timestamps outside the window
+  while (timestamps.length > 0 && timestamps[0] <= now - RATE_LIMIT_WINDOW_MS) {
+    timestamps.shift();
+  }
+  if (timestamps.length >= RATE_LIMIT_MAX_MESSAGES) {
+    return true;
+  }
+  timestamps.push(now);
+  return false;
+}
+
 export const setupWebSocket = (wss: WebSocketServer) => {
   wss.on('connection', (ws: WebSocket) => {
     let currentClient: Client | null = null;
@@ -21,6 +46,22 @@ export const setupWebSocket = (wss: WebSocketServer) => {
     ws.on('message', (data: Buffer) => {
       try {
         const message = JSON.parse(data.toString());
+
+        // Validate message content length for chat/dm messages
+        if ((message.type === 'chat-message' || message.type === 'dm-message') && message.message) {
+          if (typeof message.message !== 'string' || message.message.length > MAX_MESSAGE_LENGTH) {
+            ws.send(JSON.stringify({ type: 'error', message: `Message content must be a string of at most ${MAX_MESSAGE_LENGTH} characters` }));
+            return;
+          }
+        }
+
+        // Rate limit chat and DM messages
+        if (['chat-message', 'dm-message'].includes(message.type)) {
+          if (isRateLimited(ws)) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Rate limited — slow down' }));
+            return;
+          }
+        }
         
         switch (message.type) {
           case 'join':
@@ -68,6 +109,7 @@ export const setupWebSocket = (wss: WebSocketServer) => {
     });
 
     ws.on('close', () => {
+      clientMessageTimestamps.delete(ws);
       if (currentClient) {
         handleDisconnect(currentClient);
       }

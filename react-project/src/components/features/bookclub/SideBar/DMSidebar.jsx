@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { FiMessageCircle, FiUsers } from 'react-icons/fi';
+import { getProfileImageUrl } from '@config/constants';
+import logger from '@utils/logger';
 
 const DMSidebar = ({ conversations, friends = [], currentConversation, onSelectConversation, onStartConversation }) => {
   const [view, setView] = useState('conversations'); // 'conversations' or 'friends'
@@ -54,10 +56,7 @@ const DMSidebar = ({ conversations, friends = [], currentConversation, onSelectC
                 >
                   <div className="flex items-center gap-3">
                     <img 
-                      src={friend.profileImage 
-                        ? `http://localhost:3001${friend.profileImage}` 
-                        : '/images/default.webp'
-                      }
+                      src={getProfileImageUrl(friend.profileImage) || '/images/default.webp'}
                       alt={friend.name}
                       className="w-10 h-10 rounded-full object-cover"
                       onError={(e) => { e.target.src = '/images/default.webp'; }}
@@ -95,10 +94,7 @@ const DMSidebar = ({ conversations, friends = [], currentConversation, onSelectC
                 >
                   <div className="flex items-center gap-3">
                     <img 
-                      src={conv.friend.profileImage 
-                        ? `http://localhost:3001${conv.friend.profileImage}` 
-                        : '/images/default.webp'
-                      }
+                      src={getProfileImageUrl(conv.friend.profileImage) || '/images/default.webp'}
                       alt={conv.friend.name || 'User'}
                       className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                       onError={(e) => { e.target.src = '/images/default.webp'; }}

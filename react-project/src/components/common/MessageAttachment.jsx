@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { FiDownload, FiFile, FiX } from 'react-icons/fi';
+import { COLLAB_EDITOR_URL } from '@config/constants';
+import logger from '@utils/logger';
 
 const MessageAttachment = ({ attachment, canDelete, onDelete, auth }) => {
   const [imageExpanded, setImageExpanded] = useState(false);
@@ -9,7 +11,7 @@ const MessageAttachment = ({ attachment, canDelete, onDelete, auth }) => {
   const handleDownload = async () => {
     try {
       // Fetch the file as a blob to force download instead of opening in browser
-      const response = await fetch(`http://localhost:4000${attachment.url}`);
+      const response = await fetch(`${COLLAB_EDITOR_URL}${attachment.url}`);
       const blob = await response.blob();
       
       // Create a blob URL and trigger download
@@ -24,7 +26,7 @@ const MessageAttachment = ({ attachment, canDelete, onDelete, auth }) => {
       // Clean up the blob URL
       window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      console.error('Download failed:', error);
+      logger.error('Download failed:', error);
       alert('Failed to download file');
     }
   };
@@ -40,7 +42,7 @@ const MessageAttachment = ({ attachment, canDelete, onDelete, auth }) => {
       <>
         <div className="relative inline-block mt-2 group">
           <img
-            src={`http://localhost:4000${attachment.url}`}
+            src={`${COLLAB_EDITOR_URL}${attachment.url}`}
             alt={attachment.filename}
             className="max-w-sm max-h-64 rounded-lg cursor-pointer hover:brightness-110 transition-all duration-200 border border-gray-600/30 hover:border-purple-500/50 shadow-lg"
             onClick={() => setImageExpanded(true)}
@@ -80,7 +82,7 @@ const MessageAttachment = ({ attachment, canDelete, onDelete, auth }) => {
           >
             <div className="relative max-w-7xl max-h-full">
               <img
-                src={`http://localhost:4000${attachment.url}`}
+                src={`${COLLAB_EDITOR_URL}${attachment.url}`}
                 alt={attachment.filename}
                 className="max-w-full max-h-[90vh] object-contain"
                 onError={(e) => { e.target.src = '/images/default.webp'; }}

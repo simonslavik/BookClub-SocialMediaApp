@@ -1,4 +1,5 @@
 import axios from 'axios';
+import logger from '@utils/logger';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -23,7 +24,7 @@ apiClient.interceptors.request.use(
         token = parsed.token;
       }
     } catch (e) {
-      console.error('[AXIOS] Error parsing auth from localStorage:', e);
+      logger.error('Error parsing auth from localStorage:', e);
     }
     
     if (token) {
@@ -40,15 +41,9 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle 401 Unauthorized - token expired
-    if (error.response?.status === 401) {
-      localStorage.removeItem('auth');
-      window.location.href = '/';
-    }
-    
     // Handle network errors
     if (!error.response) {
-      console.error('Network error:', error.message);
+      logger.error('Network error:', error.message);
     }
     
     return Promise.reject(error);

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { FiUsers, FiShield, FiUserX, FiChevronDown } from 'react-icons/fi';
-import { bookclubAPI } from '../../../api/bookclub.api';
+import { bookclubAPI } from '@api/bookclub.api';
+import { getProfileImageUrl } from '@config/constants';
+import logger from '@utils/logger';
 
 const ROLE_COLORS = {
   OWNER: 'bg-purple-100 text-purple-700 border-purple-300',
@@ -20,7 +22,7 @@ const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUp
   const isAdmin = currentUserRole && ['OWNER', 'ADMIN'].includes(currentUserRole);
 
   // Debug logging
-  console.log('MemberManagement Debug:', {
+  logger.debug('MemberManagement Debug:', {
     bookclub,
     members: bookclub?.members,
     memberCount: bookclub?.members?.length,
@@ -82,7 +84,7 @@ const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUp
     return new Date(a.joinedAt || 0) - new Date(b.joinedAt || 0);
   });
 
-  console.log('Sorted Members:', sortedMembers);
+  logger.debug('Sorted Members:', sortedMembers);
 
   if (!bookclub || !bookclub.members || bookclub.members.length === 0) {
     return (
@@ -128,13 +130,7 @@ const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUp
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1">
                   <img
-                    src={
-                      member.profileImage
-                        ? (member.profileImage.startsWith('http') 
-                            ? member.profileImage 
-                            : `http://localhost:3001${member.profileImage}`)
-                        : '/images/default.webp'
-                    }
+                    src={getProfileImageUrl(member.profileImage) || '/images/default.webp'}
                     alt={member.username}
                     className="w-12 h-12 rounded-full object-cover border-2 border-purple-200"
                     onError={(e) => { e.target.src = '/images/default.webp'; }}

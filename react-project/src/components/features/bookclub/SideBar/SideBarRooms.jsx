@@ -4,6 +4,7 @@ import React from 'react';
 import { FiHome, FiPlus, FiHash, FiMail, FiBook, FiCalendar } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import BookClubImage from './BookClubImage';
+import logger from '@utils/logger';
 
 
 

@@ -133,8 +133,9 @@ export const acceptSuggestionSchema = joi.object({
     'date.base': 'Start date must be a valid date',
     'any.required': 'Start date is required',
   }),
-  endDate: joi.date().required().messages({
+  endDate: joi.date().greater(joi.ref('startDate')).required().messages({
     'date.base': 'End date must be a valid date',
+    'date.greater': 'End date must be after start date',
     'any.required': 'End date is required',
   }),
 });

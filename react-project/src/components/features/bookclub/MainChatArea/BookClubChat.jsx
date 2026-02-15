@@ -3,7 +3,9 @@ import React, { useRef, useEffect, useState } from 'react';
 import { FiHash, FiTrash2, FiMoreVertical } from 'react-icons/fi';
 import { BsPinAngle } from 'react-icons/bs';
 import MessageAttachment from '../../../common/MessageAttachment';
-import { messageModerationAPI } from '../../../../api/messageModeration.api';
+import { messageModerationAPI } from '@api/messageModeration.api';
+import { getProfileImageUrl } from '@config/constants';
+import logger from '@utils/logger';
 
 // Function to convert URLs in text to clickable links
 const linkifyText = (text) => {
@@ -143,7 +145,7 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws }
           )
         );
       } catch (error) {
-        console.error('Error deleting message:', error);
+        logger.error('Error deleting message:', error);
         alert('Failed to delete message');
       }
     };
@@ -173,7 +175,7 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws }
           )
         );
       } catch (error) {
-        console.error('Error pinning message:', error);
+        logger.error('Error pinning message:', error);
         alert('Failed to pin message');
       }
     };
@@ -265,10 +267,7 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws }
                         ) : (
                           <div className="flex gap-3 group">
                             <img 
-                              src={msg.profileImage 
-                                ? `http://localhost:3001${msg.profileImage}` 
-                                : '/images/default.webp'
-                              } 
+                              src={getProfileImageUrl(msg.profileImage) || '/images/default.webp'} 
                               alt={msg.username} 
                               className="w-10 h-10 rounded-full object-cover flex-shrink-0 self-end"
                               onError={(e) => { e.target.src = '/images/default.webp'; }}

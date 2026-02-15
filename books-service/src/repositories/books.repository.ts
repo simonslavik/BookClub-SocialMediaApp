@@ -16,7 +16,15 @@ export class BooksRepository {
   static async upsert(googleBooksId: string, bookData: any) {
     return await prisma.book.upsert({
       where: { googleBooksId },
-      update: {},
+      update: {
+        title: bookData.title,
+        author: bookData.author,
+        description: bookData.description,
+        coverUrl: bookData.coverUrl,
+        pageCount: bookData.pageCount,
+        isbn: bookData.isbn,
+        publishedDate: bookData.publishedDate,
+      },
       create: bookData,
     });
   }

@@ -1,8 +1,8 @@
 
 import { useState, useContext, useEffect } from 'react';
-import { AuthContext } from '../../../context';
-
-const GATEWAY_URL = 'http://localhost:3000';
+import { AuthContext } from '@context/index';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 const BookSearch = () => {
   const [query, setQuery] = useState('');
@@ -28,8 +28,7 @@ const BookSearch = () => {
       setError(null);
 
       try {
-        const response = await fetch(`${GATEWAY_URL}/v1/books/search?q=${encodeURIComponent(query)}&limit=20`);
-        const data = await response.json();
+        const { data } = await apiClient.get(`/v1/books/search?q=${encodeURIComponent(query)}&limit=20`);
         
         if (data.success) {
           setResults(data.data || []);
@@ -38,7 +37,7 @@ const BookSearch = () => {
         }
       } catch (err) {
         setError('Network error. Please try again.');
-        console.error('Search error:', err);
+        logger.error('Search error:', err);
       } finally {
         setLoading(false);
       }
@@ -63,18 +62,9 @@ const BookSearch = () => {
     setError(null);
 
     try {
-      const response = await fetch(`${GATEWAY_URL}/v1/user-books`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.token}`
-        },
-        body: JSON.stringify({ googleBooksId, status })
-      });
+      const { data } = await apiClient.post('/v1/user-books', { googleBooksId, status });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (data.success) {
         setSuccessMessage(`Book added to ${status.replace('_', ' ')}!`);
         setTimeout(() => setSuccessMessage(''), 3000);
       } else {
@@ -82,7 +72,7 @@ const BookSearch = () => {
       }
     } catch (err) {
       setError('Network error. Please try again.');
-      console.error('Add book error:', err);
+      logger.error('Add book error:', err);
     } finally {
       setAddingBookId(null);
     }

@@ -1,9 +1,10 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
-import AuthContext from '../../../context';
+import AuthContext from '@context/index';
 import { FiX } from 'react-icons/fi';
 import { GoogleLogin } from '@react-oauth/google';
+import logger from '@utils/logger';
 
 const RegisterModule = ({ onClose, onSwitchToLogin }) => {
     const navigate = useNavigate();
@@ -52,7 +53,7 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
         try {
             const res = await axios.post('/v1/auth/register', form);
             
-            console.log('Register response:', res.data);
+            logger.debug('Register response:', res.data);
             
             // Handle both nested and direct response formats
             const responseData = res?.data?.data || res?.data;
@@ -60,10 +61,10 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
             const refreshToken = responseData?.refreshToken || res?.data?.refreshToken;
             const user = responseData?.user || res?.data?.user;
             
-            console.log('Extracted register data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
+            logger.debug('Extracted register data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
             
             if (!accessToken || !user) {
-                console.error('Missing required data - accessToken:', !!accessToken, 'user:', !!user);
+                logger.error('Missing required data - accessToken:', !!accessToken, 'user:', !!user);
                 setErrors(['Registration succeeded but received incomplete data from server']);
                 return;
             }
@@ -97,7 +98,7 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
                 credential: credentialResponse.credential
             });
 
-            console.log('Google register response:', res.data);
+            logger.debug('Google register response:', res.data);
 
             // Handle both nested and direct response formats
             const responseData = res?.data?.data || res?.data;
@@ -105,7 +106,7 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
             const refreshToken = responseData?.refreshToken || res?.data?.refreshToken;
             const user = responseData?.user || res?.data?.user;
 
-            console.log('Extracted Google register data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
+            logger.debug('Extracted Google register data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
 
             if (accessToken && user) {
                 setAuth({ 

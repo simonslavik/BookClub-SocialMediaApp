@@ -1,8 +1,9 @@
 import React, { useContext, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiImage, FiX, FiUnlock, FiLock, FiEyeOff } from 'react-icons/fi';
-import { bookclubAPI } from '../../api/bookclub.api';
-import AuthContext from '../../context';
+import { bookclubAPI } from '@api/bookclub.api';
+import AuthContext from '@context/index';
+import logger from '@utils/logger';
 
 const categories = [
     'General',
@@ -96,7 +97,7 @@ const NewBookClubPage = () => {
 
             // Response format: { success: true, data: { id, name, ... } }
             const bookClubId = response.success ? response.data.id : response.data?.data?.id || response.data.id;
-            console.log('Created Bookclub:', bookClubId);
+            logger.debug('Created Bookclub:', bookClubId);
 
             // Upload image if selected
             if (selectedImage) {
@@ -109,7 +110,7 @@ const NewBookClubPage = () => {
             // Redirect to the bookclub chat page
             navigate(`/bookclub/${bookClubId}`);
         } catch (err) {
-            console.error('Error creating book club:', err);
+            logger.error('Error creating book club:', err);
             setError(err.response?.data?.error || 'Failed to create book club. Please try again.');
         } finally {
             setLoading(false);

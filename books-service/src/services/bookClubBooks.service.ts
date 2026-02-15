@@ -73,9 +73,16 @@ export class BookClubBooksService {
     }
 
     const updatedData: any = {};
-    if (data.status) updatedData.status = data.status;
-    if (data.startDate) updatedData.startDate = data.startDate;
-    if (data.endDate) updatedData.endDate = data.endDate;
+    if (data.status !== undefined) updatedData.status = data.status;
+    if (data.startDate !== undefined) updatedData.startDate = data.startDate;
+    if (data.endDate !== undefined) updatedData.endDate = data.endDate;
+
+    // Validate date ordering
+    const effectiveStart = updatedData.startDate ?? existingBookClubBook.startDate;
+    const effectiveEnd = updatedData.endDate ?? existingBookClubBook.endDate;
+    if (effectiveStart && effectiveEnd && new Date(effectiveEnd) <= new Date(effectiveStart)) {
+      throw new Error('End date must be after start date');
+    }
 
     const updatedBook = await BookClubBooksRepository.update(bookClubId, bookId, updatedData);
     logger.info('Bookclub book updated:', { bookClubId, bookId });

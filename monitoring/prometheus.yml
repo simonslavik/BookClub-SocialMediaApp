@@ -24,7 +24,7 @@ scrape_configs:
   # Collab Editor
   - job_name: 'collab-editor'
     static_configs:
-      - targets: ['collab-editor:3003']
+      - targets: ['collab-editor:4000']
     metrics_path: '/metrics'
   
   # Prometheus itself

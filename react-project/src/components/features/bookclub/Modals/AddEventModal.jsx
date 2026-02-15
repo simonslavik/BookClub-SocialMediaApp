@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiCalendar } from 'react-icons/fi';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 
 
@@ -72,37 +74,26 @@ const AddEventModal = ({ isOpen, onClose, bookClubId, auth, eventToEdit, onEvent
     setError('');
     
     try {
-      const url = eventToEdit
-        ? `http://localhost:3000/v1/editor/events/${eventToEdit.id}`
-        : `http://localhost:3000/v1/editor/bookclubs/${bookClubId}/events`;
+      const path = eventToEdit
+        ? `/v1/editor/events/${eventToEdit.id}`
+        : `/v1/editor/bookclubs/${bookClubId}/events`;
       
-      const method = eventToEdit ? 'PATCH' : 'POST';
+      const body = {
+        title: formData.title.trim(),
+        description: formData.description.trim() || null,
+        eventDate: new Date(formData.eventDate).toISOString(),
+        eventType: formData.eventType
+      };
+
+      const { data } = eventToEdit
+        ? await apiClient.patch(path, body)
+        : await apiClient.post(path, body);
       
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.token}`
-        },
-        body: JSON.stringify({
-          title: formData.title.trim(),
-          description: formData.description.trim() || null,
-          eventDate: new Date(formData.eventDate).toISOString(),
-          eventType: formData.eventType
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        onEventSaved && onEventSaved(data.event);
-        onClose();
-      } else {
-        setError(data.error || `Failed to ${eventToEdit ? 'update' : 'create'} event`);
-      }
+      onEventSaved && onEventSaved(data.event);
+      onClose();
     } catch (err) {
-      console.error('Error saving event:', err);
-      setError('Failed to connect to server');
+      logger.error('Error saving event:', err);
+      setError(err.response?.data?.error || `Failed to ${eventToEdit ? 'update' : 'create'} event`);
     } finally {
       setLoading(false);
     }

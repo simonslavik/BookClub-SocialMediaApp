@@ -1,3 +1,4 @@
+import compression from 'compression';
 import cors from 'cors';
 import express, { Express } from 'express';
 import dotenv from 'dotenv';
@@ -20,11 +21,16 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 /**
  * Initialize Express application
  */
+let redisClient: Awaited<ReturnType<typeof initializeRedis>> | null = null;
+
 const initializeApp = async (): Promise<Express> => {
   const app = express();
 
   // Security middleware
   app.use(helmet());
+
+  // Compress all responses (gzip/brotli)
+  app.use(compression());
   
   // CORS configuration
   app.use(cors({
@@ -39,7 +45,7 @@ const initializeApp = async (): Promise<Express> => {
   app.use(express.urlencoded({ limit: BODY_LIMITS.URL_ENCODED, extended: true }));
 
   // Initialize Redis connection
-  const redisClient = await initializeRedis();
+  redisClient = await initializeRedis();
 
   // Pre-route middleware (request ID, timeout, rate limiting, logging)
   setupMiddleware(app, redisClient);
@@ -79,8 +85,18 @@ const startServer = async (): Promise<void> => {
 /**
  * Graceful shutdown — close server, drain connections, then exit
  */
-const shutdown = (signal: string) => {
+const shutdown = async (signal: string) => {
   logger.info(`${signal} received, shutting down gracefully...`);
+
+  // Close Redis connection
+  if (redisClient) {
+    try {
+      await redisClient.disconnect();
+      logger.info('Redis connection closed');
+    } catch (err) {
+      logger.error('Error closing Redis:', err);
+    }
+  }
 
   if (server) {
     server.close(() => {

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiFilter, FiUsers, FiBook, FiX, FiLock, FiUnlock, FiEyeOff } from 'react-icons/fi';
-import HomePageHeader from '../../components/layout/Header';
-import { AuthContext } from '../../context';
-import { bookclubAPI } from '../../api/bookclub.api';
-import JoinBookclubModal from '../../components/common/modals/JoinBookclubModal';
+import HomePageHeader from '@components/layout/Header';
+import { AuthContext } from '@context/index';
+import { bookclubAPI } from '@api/bookclub.api';
+import JoinBookclubModal from '@components/common/modals/JoinBookclubModal';
+import { COLLAB_EDITOR_URL } from '@config/constants';
+import logger from '@utils/logger';
 
 const categories = [
     'All',
@@ -46,12 +48,12 @@ const DiscoverBookClubs = () => {
                     selectedCategory === 'All' ? undefined : selectedCategory
                 );
                 
-                console.log('Fetched bookclubs:', response);
+                logger.debug('Fetched bookclubs:', response);
                 const clubs = response.data || [];
                 setBookClubs(clubs);
                 setFilteredBookClubs(clubs);
             } catch (error) {
-                console.error('Error fetching book clubs:', error);
+                logger.error('Error fetching book clubs:', error);
             } finally {
                 setLoading(false);
             }
@@ -111,7 +113,7 @@ const DiscoverBookClubs = () => {
             setBookClubs(clubs);
             setFilteredBookClubs(clubs);
         } catch (error) {
-            console.error('Error refreshing book clubs:', error);
+            logger.error('Error refreshing book clubs:', error);
         }
         
         // Navigate to club
@@ -260,7 +262,7 @@ const DiscoverBookClubs = () => {
                                     {/* Book Club Image */}
                                     <div className="relative h-48 bg-gradient-to-br from-purple-400 to-blue-400">
                                         <img
-                                            src={bookClub.imageUrl ? `http://localhost:4000${bookClub.imageUrl}` : '/images/default.webp'}
+                                            src={bookClub.imageUrl ? `${COLLAB_EDITOR_URL}${bookClub.imageUrl}` : '/images/default.webp'}
                                             alt={bookClub.name}
                                             className="w-full h-full object-cover"
                                             onError={(e) => { e.target.src = '/images/default.webp'; }}

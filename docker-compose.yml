@@ -38,11 +38,11 @@ services:
       context: ./user-service
       dockerfile: Dockerfile
     container_name: user-service
-    ports:
-      - "3001:3001"
+    expose:
+      - "3001"
     environment:
       PORT: 3001
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?connection_limit=20&pool_timeout=30
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
@@ -98,7 +98,7 @@ services:
       - "4000:4000"
     environment:
       PORT: 4000
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/collab_editor
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/collab_editor?connection_limit=20&pool_timeout=30
       NODE_ENV: development
       JWT_SECRET: ${JWT_SECRET}
       USER_SERVICE_URL: http://user-service:3001/api
@@ -118,12 +118,11 @@ services:
       context: ./books-service
       dockerfile: Dockerfile
     container_name: books-service
-    ports:
-      - "3002:3002"
+    expose:
+      - "3002"
     environment:
       PORT: 3002
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/books_service
-      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/books_service?connection_limit=20&pool_timeout=30
       NODE_ENV: development
       GOOGLE_BOOKS_API_KEY: ${GOOGLE_BOOKS_API_KEY}
       REDIS_URL: redis://redis:6379

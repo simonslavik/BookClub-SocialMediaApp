@@ -1,17 +1,17 @@
 import { Route, Routes } from "react-router-dom";
-import Home from "./pages/Home";
-import BookClub from "./pages/BookClub/:id";
-import ProtectedRoute from "./components/common/ProtectedRoute";
-import NewBookClubPage from "./pages/CreateBookClub";
-import ChangeProfilePage from "./pages/ChangeProfile";
-import ProfilePage from "./pages/Profile/:id";
-import BookClubPage from "./pages/BookClubDetails/:id";
-import DiscoverBookClubs from "./pages/Discover";
-import InviteJoinPage from "./pages/Invite/:code";
-import ResetPasswordPage from "./pages/ResetPassword";
-import VerifyEmailPage from "./pages/VerifyEmail";
-import BookclubSettings from "./pages/BookclubSettings";
-import DMChatPage from "./pages/DMChat";
+import Home from "@pages/Home";
+import BookClub from "@pages/BookClub/:id";
+import ProtectedRoute from "@components/common/ProtectedRoute";
+import NewBookClubPage from "@pages/CreateBookClub";
+import ChangeProfilePage from "@pages/ChangeProfile";
+import ProfilePage from "@pages/Profile/:id";
+import BookClubPage from "@pages/BookClubDetails/:id";
+import DiscoverBookClubs from "@pages/Discover";
+import InviteJoinPage from "@pages/Invite/:code";
+import ResetPasswordPage from "@pages/ResetPassword";
+import VerifyEmailPage from "@pages/VerifyEmail";
+import BookclubSettings from "@pages/BookclubSettings";
+import DMChatPage from "@pages/DMChat";
 
 
 function App() {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiX, FiSearch, FiBook } from 'react-icons/fi';
-
-const GATEWAY_URL = 'http://localhost:3000';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 const SuggestBookModal = ({ isOpen, onClose, bookClubId, auth, onBookSuggested }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,23 +20,18 @@ const SuggestBookModal = ({ isOpen, onClose, bookClubId, auth, onBookSuggested }
     setError('');
 
     try {
-      const response = await fetch(
-        `${GATEWAY_URL}/v1/books/search?q=${encodeURIComponent(searchQuery)}&limit=10`
+      const { data } = await apiClient.get(
+        `/v1/books/search?q=${encodeURIComponent(searchQuery)}&limit=10`
       );
-      const data = await response.json();
 
-      if (response.ok) {
-        const books = data.data || data.books || [];
-        setSearchResults(books);
-        if (books.length === 0) {
-          setError('No books found. Try a different search term.');
-        }
-      } else {
-        setError(data.error || 'Failed to search books');
+      const books = data.data || data.books || [];
+      setSearchResults(books);
+      if (books.length === 0) {
+        setError('No books found. Try a different search term.');
       }
     } catch (err) {
-      console.error('Error searching books:', err);
-      setError('Failed to connect to server');
+      logger.error('Error searching books:', err);
+      setError(err.response?.data?.error || 'Failed to connect to server');
     } finally {
       setSearching(false);
     }
@@ -58,32 +53,19 @@ const SuggestBookModal = ({ isOpen, onClose, bookClubId, auth, onBookSuggested }
     setError('');
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/v1/bookclub/${bookClubId}/suggestions`,
+      const { data } = await apiClient.post(
+        `/v1/bookclub/${bookClubId}/suggestions`,
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${auth.token}`
-          },
-          body: JSON.stringify({
-            googleBooksId: selectedBook.googleBooksId,
-            reason: reason.trim() || null
-          })
+          googleBooksId: selectedBook.googleBooksId,
+          reason: reason.trim() || null
         }
       );
 
-      const data = await response.json();
-
-      if (response.ok) {
-        onBookSuggested && onBookSuggested(data.data);
-        onClose();
-      } else {
-        setError(data.error || 'Failed to suggest book');
-      }
+      onBookSuggested && onBookSuggested(data.data);
+      onClose();
     } catch (err) {
-      console.error('Error suggesting book:', err);
-      setError('Failed to connect to server');
+      logger.error('Error suggesting book:', err);
+      setError(err.response?.data?.error || 'Failed to connect to server');
     } finally {
       setLoading(false);
     }

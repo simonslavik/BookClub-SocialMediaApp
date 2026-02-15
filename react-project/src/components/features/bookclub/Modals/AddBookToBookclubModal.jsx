@@ -1,6 +1,8 @@
 import { useState, useContext } from 'react';
 import { FiSearch, FiX, FiBook, FiCalendar, FiCheck } from 'react-icons/fi';
-import AuthContext from '../../../../context/index';
+import AuthContext from '@context/index';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
   const { auth } = useContext(AuthContext);
@@ -19,25 +21,17 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
 
     setSearching(true);
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchQuery)}&maxResults=20`
+      const { data } = await apiClient.get(
+        `/v1/books/search?q=${encodeURIComponent(searchQuery)}&limit=20`
       );
-      const data = await response.json();
-      
-      const books = (data.items || [])
-        .filter(item => item.id && item.volumeInfo) // Filter out items without ID or volumeInfo
-        .map(item => ({
-          googleBooksId: item.id,
-          title: item.volumeInfo.title || 'Untitled',
-          author: item.volumeInfo.authors?.[0] || 'Unknown Author',
-          coverUrl: item.volumeInfo.imageLinks?.thumbnail || item.volumeInfo.imageLinks?.smallThumbnail || null,
-          pageCount: item.volumeInfo.pageCount || 0,
-          description: item.volumeInfo.description || ''
-        }));
-      
-      setSearchResults(books);
+
+      if (data.success) {
+        setSearchResults(data.data || []);
+      } else {
+        alert('Failed to search for books');
+      }
     } catch (err) {
-      console.error('Error searching books:', err);
+      logger.error('Error searching books:', err);
       alert('Failed to search for books');
     } finally {
       setSearching(false);
@@ -59,7 +53,7 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
 
     setAdding(true);
     try {
-      console.log('Adding book with data:', {
+      logger.debug('Adding book with data:', {
         googleBooksId: selectedBook.googleBooksId,
         status: status,
         startDate: startDate || undefined,
@@ -70,48 +64,19 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      const response = await fetch(
-        `http://localhost:3000/v1/bookclub/${bookClubId}/books`,
+      const { data } = await apiClient.post(
+        `/v1/bookclub/${bookClubId}/books`,
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${auth.token}`
-          },
-          body: JSON.stringify({
-            googleBooksId: selectedBook.googleBooksId,
-            status: status,
-            startDate: startDate || undefined,
-            endDate: endDate || undefined
-          }),
-          signal: controller.signal
-        }
+          googleBooksId: selectedBook.googleBooksId,
+          status: status,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined
+        },
+        { signal: controller.signal }
       );
 
       clearTimeout(timeoutId);
-      console.log('Response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server error response:', errorText);
-        try {
-          const errorData = JSON.parse(errorText);
-          const errorMsg = errorData.error || errorData.message || 'Failed to add book';
-          
-          // Check for specific error messages
-          if (errorMsg.includes('Failed to fetch book details') || errorMsg.includes('Google Books')) {
-            alert('Unable to fetch book details from Google Books. This might be a network issue with the backend server. The book has been selected but couldn\'t be added. Please try again in a moment.');
-          } else {
-            alert(errorMsg);
-          }
-        } catch {
-          alert(`Server error: ${response.status} - ${errorText.substring(0, 100)}`);
-        }
-        return;
-      }
-
-      const data = await response.json();
-      console.log('Success response:', data);
+      logger.debug('Success response:', data);
       
       if (data.success) {
         onBookAdded(data.data);
@@ -120,7 +85,7 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
         alert(data.error || 'Failed to add book');
       }
     } catch (err) {
-      console.error('Error adding book:', err);
+      logger.error('Error adding book:', err);
       if (err.name === 'AbortError') {
         alert('Request timed out. The server might be slow. Please try again.');
       } else if (err.message.includes('fetch')) {

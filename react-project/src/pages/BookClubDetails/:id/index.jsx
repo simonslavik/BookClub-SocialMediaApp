@@ -4,10 +4,13 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiUsers, FiBook, FiCalendar, FiMessageSquare, FiStar, FiArrowRight, FiClock, FiTrendingUp } from 'react-icons/fi';
-import HomePageHeader from '../../../components/layout/Header';
-import AuthContext from '../../../context';
-import LoginModule from '../../../components/common/modals/loginModule';
-import RegisterModule from '../../../components/common/modals/registerModule';
+import HomePageHeader from '@components/layout/Header';
+import AuthContext from '@context/index';
+import LoginModule from '@components/common/modals/loginModule';
+import RegisterModule from '@components/common/modals/registerModule';
+import { COLLAB_EDITOR_URL, getProfileImageUrl } from '@config/constants';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 const BookClubPage = () => {
     const { id: bookClubId } = useParams();
@@ -29,29 +32,21 @@ const BookClubPage = () => {
     useEffect(() => {
         const fetchBookClub = async () => {
             try {
-                const headers = auth?.token 
-                    ? { Authorization: `Bearer ${auth.token}` }
-                    : {};
+                const response = await apiClient.get(`/v1/bookclubs/${bookClubId}/preview`);
+                const responseData = response.data;
                 
-                const response = await fetch(`http://localhost:3000/v1/bookclubs/${bookClubId}/preview`, { headers });
-                const responseData = await response.json();
+                logger.debug('📚 BookClub Preview Response:', responseData);
                 
-                console.log('📚 BookClub Preview Response:', responseData);
-                
-                if (response.ok) {
-                    // Handle new response format { success: true, data: {...} }
-                    const data = responseData.success ? responseData.data : responseData;
-                    console.log('📚 BookClub Data:', data);
-                    console.log('👥 Members:', data.members);
-                    setBookClub(data);
-                    setConnectedUsers(data.connectedUsers || []);
-                    setBookClubMembers(data.members || []);
-                } else {
-                    setError(responseData.error || responseData.message || 'Failed to load book club');
-                }
+                // Handle new response format { success: true, data: {...} }
+                const data = responseData.success ? responseData.data : responseData;
+                logger.debug('📚 BookClub Data:', data);
+                logger.debug('👥 Members:', data.members);
+                setBookClub(data);
+                setConnectedUsers(data.connectedUsers || []);
+                setBookClubMembers(data.members || []);
             } catch (err) {
-                console.error('Error fetching book club:', err);
-                setError('Failed to connect to server');
+                logger.error('Error fetching book club:', err);
+                setError(err.response?.data?.error || err.response?.data?.message || 'Failed to connect to server');
             } finally {
                 setLoading(false);
             }
@@ -68,15 +63,8 @@ const BookClubPage = () => {
             if (!auth?.token || !bookClubId) return;
             
             try {
-                const response = await fetch(
-                    `http://localhost:3000/v1/bookclub/${bookClubId}/books`,
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${auth.token}`
-                        }
-                    }
-                );
-                const data = await response.json();
+                const response = await apiClient.get(`/v1/bookclub/${bookClubId}/books`);
+                const data = response.data;
                 
                 if (data.success) {
                     setCurrentBook(data.data.find(book => book.status === 'current') || null);
@@ -84,7 +72,7 @@ const BookClubPage = () => {
                     setCompletedBooks(data.data.filter(book => book.status === 'completed').slice(0, 3));
                 }
             } catch (err) {
-                console.error('Error fetching books:', err);
+                logger.error('Error fetching books:', err);
             }
         };
 
@@ -157,7 +145,7 @@ const BookClubPage = () => {
                             <div className="flex-shrink-0">
                                 {bookClub?.imageUrl ? (
                                     <img
-                                        src={`http://localhost:4000${bookClub.imageUrl}`}
+                                        src={`${COLLAB_EDITOR_URL}${bookClub.imageUrl}`}
                                         alt={bookClub.name}
                                         className="w-32 h-32 rounded-2xl object-cover border-4 border-white shadow-2xl"
                                         onError={(e) => { e.target.src = '/images/default.webp'; }}
@@ -208,41 +196,21 @@ const BookClubPage = () => {
                                     try {
                                         if (bookClub?.visibility === 'PUBLIC') {
                                             // Join public bookclub directly
-                                            const response = await fetch(`http://localhost:3000/v1/bookclubs/${bookClubId}/join`, {
-                                                method: 'POST',
-                                                headers: {
-                                                    'Authorization': `Bearer ${auth.token}`,
-                                                    'Content-Type': 'application/json'
-                                                }
-                                            });
-                                            const data = await response.json();
-                                            if (response.ok) {
-                                                // Successfully joined, navigate to bookclub
-                                                navigate(`/bookclub/${bookClubId}`);
-                                            } else {
-                                                alert(data.message || 'Failed to join bookclub');
-                                            }
+                                            const response = await apiClient.post(`/v1/bookclubs/${bookClubId}/join`);
+                                            const data = response.data;
+                                            // Successfully joined, navigate to bookclub
+                                            navigate(`/bookclub/${bookClubId}`);
                                         } else {
                                             // Request to join private bookclub
-                                            const response = await fetch(`http://localhost:3000/v1/bookclubs/${bookClubId}/request`, {
-                                                method: 'POST',
-                                                headers: {
-                                                    'Authorization': `Bearer ${auth.token}`,
-                                                    'Content-Type': 'application/json'
-                                                }
-                                            });
-                                            const data = await response.json();
-                                            if (response.ok) {
-                                                alert('Join request sent! Wait for admin approval.');
-                                                // Refresh page to update status
-                                                window.location.reload();
-                                            } else {
-                                                alert(data.message || 'Failed to send join request');
-                                            }
+                                            const response = await apiClient.post(`/v1/bookclubs/${bookClubId}/request`);
+                                            const data = response.data;
+                                            alert('Join request sent! Wait for admin approval.');
+                                            // Refresh page to update status
+                                            window.location.reload();
                                         }
                                     } catch (error) {
-                                        console.error('Error joining bookclub:', error);
-                                        alert('Failed to join bookclub');
+                                        logger.error('Error joining bookclub:', error);
+                                        alert(error.response?.data?.message || 'Failed to join bookclub');
                                     }
                                 }}
                                 className="px-8 py-4 bg-white text-purple-600 rounded-xl font-semibold hover:bg-purple-50 transition-all transform hover:scale-105 shadow-xl flex items-center gap-2"
@@ -443,10 +411,7 @@ const BookClubPage = () => {
                                                 >
                                                     <div className="relative">
                                                         <img
-                                                            src={member.profileImage 
-                                                                ? `http://localhost:3001${member.profileImage}` 
-                                                                : '/images/default.webp'
-                                                            }
+                                                            src={getProfileImageUrl(member.profileImage) || '/images/default.webp'}
                                                             alt={member.username}
                                                             className="w-12 h-12 rounded-full object-cover"
                                                             onError={(e) => { e.target.src = '/images/default.webp'; }}

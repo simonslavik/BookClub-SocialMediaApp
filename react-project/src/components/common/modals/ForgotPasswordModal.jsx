@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { authAPI } from '../../../api';
+import { authAPI } from '@api/index';
+import logger from '@utils/logger';
 
 const ForgotPasswordModal = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
@@ -96,7 +97,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
               <p className="text-sm text-green-700">{message}</p>
             </div>
 
-            {resetToken && (
+            {import.meta.env.DEV && resetToken && (
               <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
                 <p className="text-sm font-medium text-yellow-800 mb-2">Development Mode - Reset Token:</p>
                 <code className="text-xs bg-white p-2 block rounded border border-yellow-300 break-all">

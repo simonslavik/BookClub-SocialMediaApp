@@ -1,11 +1,14 @@
 
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import AuthContext from '../../../context';
-import HomePageHeader from '../../../components/layout/Header';
+import AuthContext from '@context/index';
+import HomePageHeader from '@components/layout/Header';
 import { FiInfo, FiMail, FiMessageCircle, FiPlus } from 'react-icons/fi';
-import AddBookToLibraryModal from '../../../components/common/modals/AddBookToLibraryModal';
-import BookDetailsModal from '../../../components/common/modals/BookDetails';
+import AddBookToLibraryModal from '@components/common/modals/AddBookToLibraryModal';
+import BookDetailsModal from '@components/common/modals/BookDetails';
+import { COLLAB_EDITOR_URL, getProfileImageUrl } from '@config/constants';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 
 const ProfilePage = () => {
@@ -31,7 +34,6 @@ const ProfilePage = () => {
 
 
   // Books
-  const GATEWAY_URL = 'http://localhost:3000';
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [booksImReading, setBooksImReading] = useState([]);
   const [booksToRead, setBooksToRead] = useState([]);
@@ -49,59 +51,39 @@ const ProfilePage = () => {
   // Fetch books function that can be reused
   const fetchBooks = async () => {
     try {
-      const favoriteBooksResponse = await fetch(`${GATEWAY_URL}/v1/user-books?status=favorite`, {
-        headers: auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}
-      });
-      if (favoriteBooksResponse.ok) {
-        const data2 = await favoriteBooksResponse.json();
-        if (data2.success) {
-          setFavoriteBooks(data2.data || []);
-        }
+      const { data: data2 } = await apiClient.get('/v1/user-books?status=favorite');
+      if (data2.success) {
+        setFavoriteBooks(data2.data || []);
       }
     } catch (err) {
-      console.warn('Failed to fetch favorite books:', err);
+      logger.warn('Failed to fetch favorite books:', err);
     }
 
     try {
-      const booksImReadingResponse = await fetch(`${GATEWAY_URL}/v1/user-books?status=reading`, {
-        headers: auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}
-      });
-      if (booksImReadingResponse.ok) {
-        const data3 = await booksImReadingResponse.json();
-        if (data3.success) {
-          setBooksImReading(data3.data || []);
-        }
+      const { data: data3 } = await apiClient.get('/v1/user-books?status=reading');
+      if (data3.success) {
+        setBooksImReading(data3.data || []);
       }
     } catch (err) {
-      console.warn('Failed to fetch reading books:', err);
+      logger.warn('Failed to fetch reading books:', err);
     }
 
     try {
-      const booksToReadResponse = await fetch(`${GATEWAY_URL}/v1/user-books?status=want_to_read`, {
-        headers: auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}
-      });
-      if (booksToReadResponse.ok) {
-        const data4 = await booksToReadResponse.json();
-        if (data4.success) {
-          setBooksToRead(data4.data || []);
-        }
+      const { data: data4 } = await apiClient.get('/v1/user-books?status=want_to_read');
+      if (data4.success) {
+        setBooksToRead(data4.data || []);
       }
     } catch (err) {
-      console.warn('Failed to fetch want_to_read books:', err);
+      logger.warn('Failed to fetch want_to_read books:', err);
     }
 
     try {
-      const booksReadResponse = await fetch(`${GATEWAY_URL}/v1/user-books?status=completed`, {
-        headers: auth?.token ? { Authorization: `Bearer ${auth.token}` } : {}
-      });
-      if (booksReadResponse.ok) {
-        const data5 = await booksReadResponse.json();
-        if (data5.success) {
-          setBooksRead(data5.data || []);
-        }
+      const { data: data5 } = await apiClient.get('/v1/user-books?status=completed');
+      if (data5.success) {
+        setBooksRead(data5.data || []);
       }
     } catch (err) {
-      console.warn('Failed to fetch completed books:', err);
+      logger.warn('Failed to fetch completed books:', err);
     }
   };
 
@@ -111,24 +93,10 @@ const ProfilePage = () => {
         setLoading(true);
         
         // Fetch user profile with optional auth for friendship status
-        const headers = auth?.token 
-          ? { Authorization: `Bearer ${auth.token}` }
-          : {};
-          
-        const profileResponse = await fetch(`http://localhost:3000/v1/profile/${id}`, { headers });
+        const profileResponse = await apiClient.get(`/v1/profile/${id}`);
+        const profileData = profileResponse.data;
         
-        // Check if response is JSON
-        const contentType = profileResponse.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          const text = await profileResponse.text();
-          console.error('Profile endpoint returned non-JSON:', text);
-          setError('Failed to load profile - server error');
-          return;
-        }
-        
-        const profileData = await profileResponse.json();
-        
-        if (profileResponse.ok && profileData.success) {
+        if (profileData.success) {
           setProfile(profileData.data);
         } else {
           setError('Failed to load profile');
@@ -136,18 +104,14 @@ const ProfilePage = () => {
         }
         
         // Fetch user's created bookclubs - filter from discover endpoint
-        const allBookClubsResponse = await fetch('http://localhost:3000/v1/bookclubs/discover', { headers });
         let allBookClubsData = { success: false, data: [] };
         
-        if (!allBookClubsResponse.ok) {
-          console.warn('Failed to fetch all bookclubs:', allBookClubsResponse.status);
-        } else {
-          const contentType = allBookClubsResponse.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            allBookClubsData = await allBookClubsResponse.json();
-            
-            // Handle new API response format { success: true, data: [...] }
-            const clubs = allBookClubsData.success ? allBookClubsData.data : (allBookClubsData.bookClubs || []);
+        try {
+          const allBookClubsResponse = await apiClient.get('/v1/bookclubs/discover');
+          allBookClubsData = allBookClubsResponse.data;
+          
+          // Handle new API response format { success: true, data: [...] }
+          const clubs = allBookClubsData.success ? allBookClubsData.data : (allBookClubsData.bookClubs || []);
             
             // Filter for created bookclubs
             const created = clubs.filter(club => club.creatorId === id);
@@ -161,9 +125,8 @@ const ProfilePage = () => {
               return isMember && !isCreator; // Only show if member but not creator
             });
             setMemberBookClubs(memberClubs);
-          } else {
-            console.warn('All bookclubs endpoint returned non-JSON');
-          }
+        } catch (err) {
+          logger.warn('Failed to fetch all bookclubs:', err);
         }
 
         // Fetch books
@@ -193,13 +156,13 @@ const ProfilePage = () => {
             
             setCurrentUserBookClubs(currentUserAllClubs);
           } catch (err) {
-            console.warn('Failed to fetch current user bookclubs:', err);
+            logger.warn('Failed to fetch current user bookclubs:', err);
           }
         }
         
       } catch (err) {
-        console.error('Error fetching profile:', err);
-        console.error('Error details:', {
+        logger.error('Error fetching profile:', err);
+        logger.error('Error details:', {
           message: err.message,
           stack: err.stack,
           name: err.name
@@ -240,42 +203,35 @@ const ProfilePage = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('http://localhost:3000/v1/profile/image', {
-        method: 'POST',
+      const response = await apiClient.post('/v1/profile/image', formData, {
         headers: {
-          'Authorization': `Bearer ${auth.token}`
-        },
-        body: formData
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        // Update profile state
-        setProfile(prev => ({
-          ...prev,
-          profileImage: data.imageUrl
-        }));
-        // Update auth context only if user exists and this is own profile
-        if (auth?.user && isOwnProfile) {
-          setAuth({
-            user: {
-              ...auth.user,
-              profileImage: data.imageUrl
-            },
-            token: auth.token,
-            refreshToken: auth.refreshToken
-          });
-        }
-        // Reset selection
-        setSelectedImage(null);
-        setImagePreview(null);
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || 'Failed to upload image');
+      const data = response.data;
+      // Update profile state
+      setProfile(prev => ({
+        ...prev,
+        profileImage: data.imageUrl
+      }));
+      // Update auth context only if user exists and this is own profile
+      if (auth?.user && isOwnProfile) {
+        setAuth({
+          user: {
+            ...auth.user,
+            profileImage: data.imageUrl
+          },
+          token: auth.token,
+          refreshToken: auth.refreshToken
+        });
       }
+      // Reset selection
+      setSelectedImage(null);
+      setImagePreview(null);
     } catch (err) {
-      console.error('Error uploading image:', err);
-      alert('Failed to upload image');
+      logger.error('Error uploading image:', err);
+      alert(err.response?.data?.message || 'Failed to upload image');
     } finally {
       setUploadingImage(false);
       if (fileInputRef.current) {
@@ -286,25 +242,16 @@ const ProfilePage = () => {
 
   const DeleteUserBook = async (userBookId) => {
     try {
-      const response = await fetch(`http://localhost:3000/v1/user-books/${userBookId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${auth.token}`
-        }
-      });
+      await apiClient.delete(`/v1/user-books/${userBookId}`);
 
-      if (response.ok) {
-        // Remove the book from local state
-        setFavoriteBooks(prev => prev.filter(ub => ub.id !== userBookId));
-        setBooksImReading(prev => prev.filter(ub => ub.id !== userBookId));
-        setBooksToRead(prev => prev.filter(ub => ub.id !== userBookId));
-        setBooksRead(prev => prev.filter(ub => ub.id !== userBookId));
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || 'Failed to delete book');
-      }
+      // Remove the book from local state
+      setFavoriteBooks(prev => prev.filter(ub => ub.id !== userBookId));
+      setBooksImReading(prev => prev.filter(ub => ub.id !== userBookId));
+      setBooksToRead(prev => prev.filter(ub => ub.id !== userBookId));
+      setBooksRead(prev => prev.filter(ub => ub.id !== userBookId));
     } catch (err) {
-      console.error('Error deleting user book:', err);
+      logger.error('Error deleting user book:', err);
+      alert(err.response?.data?.message || 'Failed to delete book');
     }
   }
 
@@ -352,10 +299,7 @@ const ProfilePage = () => {
             {/* Profile Image */}
             <div className="relative">
               <img 
-                src={imagePreview || (profile.profileImage 
-                  ? `http://localhost:3001${profile.profileImage}` 
-                  : '/images/default.webp')
-                }
+                src={imagePreview || getProfileImageUrl(profile.profileImage) || '/images/default.webp'}
                 alt={profile.name}
                 className={`w-32 h-32 rounded-full object-cover border-4 border-purple-200 ${
                   isOwnProfile ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
@@ -438,24 +382,12 @@ const ProfilePage = () => {
                           
                           setFriendRequestLoading(true);
                           try {
-                            const response = await fetch('http://localhost:3000/v1/friends/request', {
-                              method: 'POST',
-                              headers: {
-                                'Content-Type': 'application/json',
-                                Authorization: `Bearer ${auth.token}`
-                              },
-                              body: JSON.stringify({ recipientId: id })
-                            });
+                            await apiClient.post('/v1/friends/request', { recipientId: id });
                             
-                            if (response.ok) {
-                              setProfile(prev => ({ ...prev, friendshipStatus: 'request_sent' }));
-                            } else {
-                              const data = await response.json();
-                              alert(data.message || 'Failed to send friend request');
-                            }
+                            setProfile(prev => ({ ...prev, friendshipStatus: 'request_sent' }));
                           } catch (err) {
-                            console.error('Error sending friend request:', err);
-                            alert('Failed to send friend request');
+                            logger.error('Error sending friend request:', err);
+                            alert(err.response?.data?.message || 'Failed to send friend request');
                           } finally {
                             setFriendRequestLoading(false);
                           }
@@ -520,7 +452,7 @@ const ProfilePage = () => {
                 >
                   <img 
                     src={club.imageUrl 
-                      ? `http://localhost:4000${club.imageUrl}` 
+                      ? `${COLLAB_EDITOR_URL}${club.imageUrl}` 
                       : '/images/default.webp'
                     }
                     alt={club.name}
@@ -590,7 +522,7 @@ const ProfilePage = () => {
                 >
                   <img 
                     src={club.imageUrl 
-                      ? `http://localhost:4000${club.imageUrl}` 
+                      ? `${COLLAB_EDITOR_URL}${club.imageUrl}` 
                       : '/images/default.webp'
                     }
                     alt={club.name}
@@ -624,10 +556,7 @@ const ProfilePage = () => {
                         {club.members.slice(0, 3).map((member, idx) => (
                           <img 
                             key={idx}
-                            src={member.profileImage 
-                              ? `http://localhost:3001${member.profileImage}` 
-                              : '/images/default.webp'
-                            }
+                            src={getProfileImageUrl(member.profileImage) || '/images/default.webp'}
                             alt=""
                             className="w-6 h-6 rounded-full border-2 border-white object-cover"
                             onError={(e) => { e.target.src = '/images/default.webp'; }}

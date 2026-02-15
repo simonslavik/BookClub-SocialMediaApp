@@ -1,6 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { logError } from '../utils/logger.js';
 
 // Extend Express Request to include user property
 declare global {
@@ -14,80 +12,29 @@ declare global {
     }
 }
 
-interface TokenPayload {
-    userId: string;
-    email: string;
-    iat: number;
-    exp: number;
-}
-
 /**
- * Middleware to verify JWT access token
- * Extracts token from Authorization header and verifies it
- * Attaches user info to req.user if valid
+ * Authentication middleware — trusts x-user-id header set by the API gateway.
+ * The gateway has already verified the JWT and forwards user info as headers.
+ * 
+ * IMPORTANT: This service must NEVER be exposed publicly.
+ * Only the gateway should be accessible from outside the Docker network.
  */
-export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        // Check for internal service-to-service authentication via X-User-Id header
-        const internalUserId = req.headers['x-user-id'] as string;
-        if (internalUserId) {
-            // Internal service call (e.g., from collab-editor WebSocket)
-            req.user = {
-                userId: internalUserId,
-                email: '' // Not needed for internal calls
-            };
-            return next();
-        }
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.headers['x-user-id'] as string;
+    const userEmail = req.headers['x-user-email'] as string;
 
-        // Get token from Authorization header
-        const authHeader = req.headers.authorization;
-
-        if (!authHeader) {
-            return res.status(401).json({ 
-                message: 'No authorization token provided' 
-            });
-        }
-
-        // Expected format: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        const parts = authHeader.split(' ');
-
-        if (parts.length !== 2 || parts[0] !== 'Bearer') {
-            return res.status(401).json({ 
-                message: 'Invalid authorization format. Expected: Bearer <token>' 
-            });
-        }
-
-        const token = parts[1];
-
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
-
-        // Attach user info to request object
-        req.user = {
-            userId: decoded.userId,
-            email: decoded.email
-        };
-
-        // Continue to next middleware/controller
-        next();
-    } catch (error: any) {
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).json({ 
-                message: 'Token expired. Please refresh your token.' 
-            });
-        }
-
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({ 
-                message: 'Invalid token' 
-            });
-        }
-
-        logError(error, 'Auth middleware error');
-        return res.status(500).json({ 
-            message: 'Authentication error'
+    if (!userId) {
+        return res.status(401).json({ 
+            message: 'Authentication required' 
         });
     }
+
+    req.user = {
+        userId,
+        email: userEmail || ''
+    };
+
+    next();
 };
 
 
@@ -99,41 +46,19 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
  * router.delete('/users/:id', authMiddleware, requireRole(['ADMIN']), deleteUser)
  */
 /**
- * Optional auth middleware - doesn't require token but uses it if present
- * Useful for endpoints that work with or without authentication
+ * Optional auth middleware — attaches user info if gateway forwarded it, continues regardless.
+ * Used for endpoints that work with or without authentication.
  */
-export const optionalAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const authHeader = req.headers.authorization;
+export const optionalAuthMiddleware = (req: Request, _res: Response, next: NextFunction) => {
+    const userId = req.headers['x-user-id'] as string;
+    const userEmail = req.headers['x-user-email'] as string;
 
-        if (!authHeader) {
-            // No token provided - continue without user
-            return next();
-        }
-
-        const parts = authHeader.split(' ');
-
-        if (parts.length !== 2 || parts[0] !== 'Bearer') {
-            // Invalid format - continue without user
-            return next();
-        }
-
-        const token = parts[1];
-
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
-            
-            req.user = {
-                userId: decoded.userId,
-                email: decoded.email
-            };
-        } catch {
-            // Invalid token - continue without user
-        }
-
-        next();
-    } catch (error) {
-        // On any error, just continue without user
-        next();
+    if (userId) {
+        req.user = {
+            userId,
+            email: userEmail || ''
+        };
     }
+
+    next();
 };

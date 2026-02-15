@@ -3,6 +3,9 @@ import { FiSend, FiMoreVertical, FiTrash2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import FileUpload from '../../../common/FileUpload';
 import MessageAttachment from '../../../common/MessageAttachment';
+import apiClient from '@api/axios';
+import { getProfileImageUrl } from '@config/constants';
+import logger from '@utils/logger';
 
 // Function to convert URLs in text to clickable links
 const linkifyText = (text) => {
@@ -107,28 +110,18 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs })
       }
       
       // Call DM delete API endpoint
-      const response = await fetch(`http://localhost:3000/v1/messages/${messageId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${auth.token}`
-        }
-      });
+      const { data } = await apiClient.delete(`/v1/messages/${messageId}`);
 
-      if (response.ok) {
-        // Update local state immediately
-        setMessages(prevMessages => 
-          prevMessages.map(msg => 
-            msg.id === messageId 
-              ? { ...msg, content: '[Message deleted]', deletedAt: new Date().toISOString(), attachments: [] }
-              : msg
-          )
-        );
-      } else {
-        const data = await response.json();
-        alert(data.error || 'Failed to delete message');
-      }
+      // Update local state immediately
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, content: '[Message deleted]', deletedAt: new Date().toISOString(), attachments: [] }
+            : msg
+        )
+      );
     } catch (error) {
-      console.error('Error deleting message:', error);
+      logger.error('Error deleting message:', error);
       alert('Failed to delete message');
     }
   };
@@ -175,7 +168,7 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs })
       setNewMessage('');
       setSelectedFiles([]);
     } catch (error) {
-      console.error('Error sending DM:', error);
+      logger.error('Error sending DM:', error);
       alert('Failed to send message');
     } finally {
       setUploadingFiles(false);
@@ -197,10 +190,7 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs })
       {/* DM Header */}
       <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center gap-3">
         <img 
-          src={otherUser.profileImage 
-            ? `http://localhost:3001${otherUser.profileImage}` 
-            : '/images/default.webp'
-          }
+          src={getProfileImageUrl(otherUser.profileImage) || '/images/default.webp'}
           alt={otherUser.name}
           className="w-10 h-10 rounded-full object-cover cursor-pointer"
           onClick={() => navigate(`/profile/${otherUser.id}`)}

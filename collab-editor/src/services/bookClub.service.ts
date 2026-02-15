@@ -2,6 +2,7 @@ import prisma from '../config/database.js';
 import { BookClubRole, MembershipStatus, ClubVisibility, RequestStatus } from '@prisma/client';
 import crypto from 'crypto';
 import logger from '../utils/logger.js';
+import { hasMinRole } from '../utils/roles.js';
 
 export class BookClubService {
   /**
@@ -21,14 +22,7 @@ export class BookClubService {
 
     if (!member) return false;
 
-    const roleHierarchy = {
-      [BookClubRole.OWNER]: 4,
-      [BookClubRole.ADMIN]: 3,
-      [BookClubRole.MODERATOR]: 2,
-      [BookClubRole.MEMBER]: 1
-    };
-
-    return roleHierarchy[member.role] >= roleHierarchy[requiredRole];
+    return hasMinRole(member.role, requiredRole);
   }
 
   /**
@@ -40,6 +34,36 @@ export class BookClubService {
         bookClubId_userId: { bookClubId, userId }
       }
     });
+  }
+
+  /**
+   * Get all clubs the user is a member of
+   */
+  static async getMyClubs(userId: string) {
+    const memberships = await prisma.bookClubMember.findMany({
+      where: { userId, status: MembershipStatus.ACTIVE },
+      include: {
+        bookClub: {
+          include: {
+            _count: {
+              select: {
+                members: {
+                  where: { status: MembershipStatus.ACTIVE }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: { joinedAt: 'desc' },
+    });
+
+    return memberships.map(m => ({
+      ...m.bookClub,
+      memberCount: m.bookClub._count.members,
+      role: m.role,
+      isMember: true
+    }));
   }
 
   /**

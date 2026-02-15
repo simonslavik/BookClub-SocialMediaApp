@@ -18,7 +18,12 @@ const PORT = process.env.PORT || 3002;
 
 // Security Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: process.env.GATEWAY_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Gateway-Source', 'X-Request-ID', 'X-Forwarded-For', 'X-User-Id', 'X-User-Email', 'X-User-Name'],
+}));
 app.use(express.json({ limit: '10kb' }));
 
 // Metrics middleware

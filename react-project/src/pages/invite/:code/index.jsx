@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import AuthContext from '../../../context';
-import HomePageHeader from '../../../components/layout/Header';
+import AuthContext from '@context/index';
+import HomePageHeader from '@components/layout/Header';
 import { FiCheck, FiX, FiUsers, FiBook } from 'react-icons/fi';
+import { COLLAB_EDITOR_URL } from '@config/constants';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 const InviteJoinPage = () => {
   const { code } = useParams();
@@ -15,7 +18,6 @@ const InviteJoinPage = () => {
   const [error, setError] = useState(null);
   const [joined, setJoined] = useState(false);
 
-  const GATEWAY_URL = 'http://localhost:3000';
 
   useEffect(() => {
     fetchInviteInfo();
@@ -24,20 +26,19 @@ const InviteJoinPage = () => {
   const fetchInviteInfo = async () => {
     try {
       setLoading(true);
-      console.log('Fetching invite info for code:', code);
-      const response = await fetch(`${GATEWAY_URL}/v1/invites/${code}`);
-      const data = await response.json();
+      logger.debug('Fetching invite info for code:', code);
+      const { data } = await apiClient.get(`/v1/invites/${code}`);
 
-      console.log('Invite info response:', data);
+      logger.debug('Invite info response:', data);
 
-      if (response.ok && data.success) {
+      if (data.success) {
         setInviteInfo(data);
       } else {
         setError(data.error || data.message || 'Invalid invite link');
       }
     } catch (err) {
-      console.error('Error fetching invite:', err);
-      setError('Failed to load invite information');
+      logger.error('Error fetching invite:', err);
+      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to load invite information');
     } finally {
       setLoading(false);
     }
@@ -53,18 +54,12 @@ const InviteJoinPage = () => {
 
     try {
       setJoining(true);
-      console.log('Joining via invite code:', code);
-      const response = await fetch(`${GATEWAY_URL}/v1/invites/${code}/join`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${auth.token}`
-        }
-      });
+      logger.debug('Joining via invite code:', code);
+      const { data } = await apiClient.post(`/v1/invites/${code}/join`);
 
-      const data = await response.json();
-      console.log('Join response:', data);
+      logger.debug('Join response:', data);
 
-      if (response.ok && data.success) {
+      if (data.success) {
         setJoined(true);
         // Redirect to bookclub after a short delay
         setTimeout(() => {
@@ -74,8 +69,8 @@ const InviteJoinPage = () => {
         setError(data.error || data.message || 'Failed to join book club');
       }
     } catch (err) {
-      console.error('Error joining bookclub:', err);
-      setError('Failed to join book club');
+      logger.error('Error joining bookclub:', err);
+      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to join book club');
     } finally {
       setJoining(false);
     }
@@ -144,7 +139,7 @@ const InviteJoinPage = () => {
           <div className="mb-6">
             <img
               src={inviteInfo.bookClub.imageUrl 
-                ? `http://localhost:4000${inviteInfo.bookClub.imageUrl}` 
+                ? `${COLLAB_EDITOR_URL}${inviteInfo.bookClub.imageUrl}` 
                 : '/images/default.webp'}
               alt={inviteInfo.bookClub.name}
               className="w-full h-48 object-cover rounded-xl"

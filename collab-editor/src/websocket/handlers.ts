@@ -2,6 +2,7 @@ import { WebSocket } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import { MembershipStatus, BookClubRole } from '@prisma/client';
 import { verifyWebSocketToken } from '../utils/websocketAuth.js';
+import { hasMinRole } from '../utils/roles.js';
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
 import { 
@@ -588,14 +589,7 @@ export const handleDeleteMessage = async (message: any, currentClient: Client | 
     let hasPermission = isOwnMessage(messageToDelete);
 
     if (!hasPermission) {
-      const roleHierarchy = {
-        [BookClubRole.OWNER]: 4,
-        [BookClubRole.ADMIN]: 3,
-        [BookClubRole.MODERATOR]: 2,
-        [BookClubRole.MEMBER]: 1
-      };
-
-      hasPermission = membership ? roleHierarchy[membership.role] >= roleHierarchy[BookClubRole.MODERATOR] : false;
+      hasPermission = membership ? hasMinRole(membership.role, BookClubRole.MODERATOR) : false;
     }
 
     if (!hasPermission) {
@@ -617,11 +611,15 @@ export const handleDeleteMessage = async (message: any, currentClient: Client | 
       }
     });
 
-    // Broadcast deletion to all users in the room
-    broadcastToBookClub(activeClub, {
-      type: 'message-deleted',
-      messageId,
-      deletedBy: currentClient.userId
+    // Broadcast deletion to users in the same room only
+    activeClub.clients.forEach((client) => {
+      if (client.roomId === currentClient.roomId && client.ws.readyState === WebSocket.OPEN) {
+        client.ws.send(JSON.stringify({
+          type: 'message-deleted',
+          messageId,
+          deletedBy: currentClient.userId
+        }));
+      }
     });
 
     console.log(`🗑️ Message ${messageId} deleted by ${currentClient.username}`);
@@ -655,14 +653,7 @@ export const handlePinMessage = async (message: any, currentClient: Client | nul
       prisma.message.findUnique({ where: { id: messageId }, select: { id: true } })
     ]);
 
-    const roleHierarchy = {
-      [BookClubRole.OWNER]: 4,
-      [BookClubRole.ADMIN]: 3,
-      [BookClubRole.MODERATOR]: 2,
-      [BookClubRole.MEMBER]: 1
-    };
-
-    const hasPermission = membership ? roleHierarchy[membership.role] >= roleHierarchy[BookClubRole.MODERATOR] : false;
+    const hasPermission = membership ? hasMinRole(membership.role, BookClubRole.MODERATOR) : false;
 
     if (!hasPermission) {
       currentClient.ws.send(JSON.stringify({
@@ -686,12 +677,16 @@ export const handlePinMessage = async (message: any, currentClient: Client | nul
       data: { isPinned }
     });
 
-    // Broadcast pin status to all users in the room
-    broadcastToBookClub(activeClub, {
-      type: 'message-pinned',
-      messageId,
-      isPinned,
-      pinnedBy: currentClient.userId
+    // Broadcast pin status to users in the same room only
+    activeClub.clients.forEach((client) => {
+      if (client.roomId === currentClient.roomId && client.ws.readyState === WebSocket.OPEN) {
+        client.ws.send(JSON.stringify({
+          type: 'message-pinned',
+          messageId,
+          isPinned,
+          pinnedBy: currentClient.userId
+        }));
+      }
     });
 
     console.log(`📌 Message ${messageId} ${isPinned ? 'pinned' : 'unpinned'} by ${currentClient.username}`);

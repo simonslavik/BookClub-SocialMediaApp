@@ -61,7 +61,7 @@ export class AuthService {
    */
   static async login(email: string, password: string) {
     // Find user
-    const user = await UserRepository.findByEmail(email);
+    const user = await UserRepository.findByEmailWithPassword(email);
     if (!user) {
       authenticationAttempts.inc({ type: 'login', result: 'failure' });
       throw new UnauthorizedError('Invalid email or password');
@@ -125,7 +125,7 @@ export class AuthService {
    * Request password reset
    */
   static async requestPasswordReset(email: string) {
-    const user = await UserRepository.findByEmail(email);
+    const user = await UserRepository.findByEmailWithPassword(email);
     
     // Don't reveal if email exists
     if (!user) {
@@ -346,12 +346,8 @@ export class AuthService {
     logger.info('CHANGE_PASSWORD_NEW_PASSWORD_HASHED', { userId });
 
     // Update password
-    const updatedUser = await UserRepository.updatePassword(userId, hashedPassword);
-    logger.info('CHANGE_PASSWORD_DB_UPDATED', {
-      userId,
-      passwordChanged: updatedUser.password !== user.password,
-      newPasswordHash: updatedUser.password.substring(0, 10) + '...'
-    });
+    await UserRepository.updatePassword(userId, hashedPassword);
+    logger.info('CHANGE_PASSWORD_DB_UPDATED', { userId });
 
     // Revoke all refresh tokens
     await TokenRepository.deleteAllUserTokens(userId);

@@ -1,5 +1,6 @@
 import React from 'react';
 import FileUpload from '../../common/FileUpload';
+import logger from '@utils/logger';
 
 const MessageInput = ({ 
   newMessage,

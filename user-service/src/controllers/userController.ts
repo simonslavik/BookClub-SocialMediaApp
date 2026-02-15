@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service.js';
-import { verifyRefreshToken, generateAccessToken, generateRefreshToken } from '../utils/tokenUtils.js';
+import { verifyRefreshToken, generateTokens, revokeRefreshToken } from '../utils/tokenUtils.js';
 import logger, { logError } from '../utils/logger.js';
 import { sendVerificationEmail } from './authController.js';
 import { ConflictError, UnauthorizedError, NotFoundError } from '../utils/errors.js';
@@ -78,9 +78,9 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
             throw new UnauthorizedError('Invalid or expired refresh token');
         }
 
-        // Generate new tokens
-        const newAccessToken = generateAccessToken(user);
-        const newRefreshToken = generateRefreshToken(user.id);
+        // Rotate tokens: delete old, generate & persist new pair
+        await revokeRefreshToken(refreshToken);
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await generateTokens(user);
 
         logger.info({
             type: LogType.TOKEN_REFRESHED,

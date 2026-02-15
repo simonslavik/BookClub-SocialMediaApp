@@ -16,9 +16,19 @@ export class UserRepository {
   }
 
   /**
-   * Find user by email
+   * Find user by email (safe — no password hash)
    */
   static async findByEmail(email: string) {
+    return await prisma.user.findUnique({
+      where: { email },
+      select: USER_PUBLIC_FIELDS,
+    });
+  }
+
+  /**
+   * Find user by email WITH password hash (auth flows ONLY)
+   */
+  static async findByEmailWithPassword(email: string) {
     return await prisma.user.findUnique({
       where: { email },
     });
@@ -172,7 +182,7 @@ export class UserRepository {
   /**
    * Get all users (admin)
    */
-  static async findAll() {
+  static async findAll(limit = 100, offset = 0) {
     return await prisma.user.findMany({
       select: {
         id: true,
@@ -182,6 +192,8 @@ export class UserRepository {
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset,
     });
   }
 

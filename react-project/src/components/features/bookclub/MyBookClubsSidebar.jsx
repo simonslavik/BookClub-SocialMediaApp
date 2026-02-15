@@ -1,6 +1,8 @@
 import React from 'react';
 import { FiHome, FiMail, FiSend } from 'react-icons/fi';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { COLLAB_EDITOR_URL, getProfileImageUrl } from '@config/constants';
+import logger from '@utils/logger';
 
 // Helper function to get user initials
 const getUserInitials = (name) => {
@@ -65,7 +67,7 @@ const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, onSelectBookClub, on
             >
               {club.imageUrl ? (
                 <img
-                  src={`http://localhost:4000${club.imageUrl}`}
+                  src={`${COLLAB_EDITOR_URL}${club.imageUrl}`}
                   alt={club.name}
                   className="w-full h-full rounded-full object-cover"
                   onError={(e) => { 
@@ -91,10 +93,7 @@ const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, onSelectBookClub, on
           <button className='cursor-pointer absolute bottom-4' onClick={() => navigate(`/profile/${auth.user.id}`)}>
             <div className="relative">
               <img
-                src={auth.user.profileImage 
-                  ? `http://localhost:3001${auth.user.profileImage}` 
-                  : '/images/default.webp'
-                } 
+                src={getProfileImageUrl(auth.user.profileImage) || '/images/default.webp'} 
                 alt={auth.user.name}
                 className="w-10 h-10 rounded-full object-cover hover:bg-gray-50 cursor-pointer"
                 onError={(e) => { e.target.src = '/images/default.webp'; }}

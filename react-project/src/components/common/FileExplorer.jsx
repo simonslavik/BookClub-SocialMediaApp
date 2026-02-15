@@ -3,6 +3,7 @@ import {
   FiFile, FiFolder, FiFolderPlus, FiFilePlus, FiTrash2, 
   FiChevronRight, FiChevronDown 
 } from 'react-icons/fi';
+import logger from '@utils/logger';
 
 export default function FileExplorer({ files, currentFile, onFileSelect, onCreateFile, onDeleteFile }) {
   const [expandedFolders, setExpandedFolders] = useState(new Set(['root']));

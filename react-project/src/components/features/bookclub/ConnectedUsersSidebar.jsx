@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUsers, FiStar, FiShield, FiAward, FiHeart } from 'react-icons/fi';
+import { getProfileImageUrl } from '@config/constants';
+import logger from '@utils/logger';
 
 // Role badge component
 const RoleBadge = ({ role }) => {
@@ -38,10 +40,10 @@ const ConnectedUsersSidebar = ({
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
   // Debug logging
-  console.log('ConnectedUsersSidebar - bookClubMembers:', bookClubMembers);
-  console.log('ConnectedUsersSidebar - sample member:', bookClubMembers[0]);
-  console.log('ConnectedUsersSidebar - friends:', friends);
-  console.log('ConnectedUsersSidebar - friends length:', friends.length);
+  logger.debug('ConnectedUsersSidebar - bookClubMembers:', bookClubMembers);
+  logger.debug('ConnectedUsersSidebar - sample member:', bookClubMembers[0]);
+  logger.debug('ConnectedUsersSidebar - friends:', friends);
+  logger.debug('ConnectedUsersSidebar - friends length:', friends.length);
 
   // Sort users by role hierarchy: OWNER > ADMIN > MODERATOR > MEMBER
   const roleOrder = { OWNER: 1, ADMIN: 2, MODERATOR: 3, MEMBER: 4 };
@@ -66,7 +68,7 @@ const ConnectedUsersSidebar = ({
           const isFriend = friends.some(f => f.friend?.id === user.id);
           
           // Debug logging for each user
-          console.log(`User ${user.username} - ID: ${user.id}, isFriend: ${isFriend}`, {
+          logger.debug(`User ${user.username} - ID: ${user.id}, isFriend: ${isFriend}`, {
             user,
             friendsIds: friends.map(f => f.friend?.id)
           });
@@ -96,10 +98,7 @@ const ConnectedUsersSidebar = ({
               >
                 <div className="relative">
                   <img 
-                    src={user.profileImage 
-                      ? `http://localhost:3001${user.profileImage}` 
-                      : '/images/default.webp'
-                    } 
+                    src={getProfileImageUrl(user.profileImage) || '/images/default.webp'} 
                     alt={user.username} 
                     className="w-8 h-8 rounded-full object-cover"
                     onError={(e) => { e.target.src = '/images/default.webp'; }}

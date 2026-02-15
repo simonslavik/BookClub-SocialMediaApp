@@ -2,8 +2,11 @@ import proxy from 'express-http-proxy';
 import { Express, Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 import logger from '../utils/logger.js';
-import authHandler from '../middleware/authHandler.js';
+import authHandler, { optionalAuth } from '../middleware/authHandler.js';
 import { TIMEOUTS, HTTP_STATUS } from '../config/constants.js';
+
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const ALLOWED_ORIGINS = [FRONTEND_URL, 'http://localhost:5174', 'http://localhost:5173'];
 
 /**
  * Service route configuration
@@ -12,7 +15,7 @@ interface ServiceConfig {
   envVar: string;
   route: string;
   name: string;
-  requireAuth: boolean;
+  requireAuth: boolean | 'optional';
   pathTransform?: (path: string) => string;
 }
 
@@ -22,6 +25,7 @@ interface ServiceConfig {
 interface ProxyConfig {
   proxyReqPathResolver: (req: Request) => string;
   proxyReqOptDecorator: (proxyReqOpts: any, srcReq: Request) => any;
+  userResHeaderDecorator: (headers: import('http').IncomingHttpHeaders, userReq: Request, userRes: Response, proxyReq: any, proxyRes: any) => import('http').OutgoingHttpHeaders;
   userResDecorator: (proxyRes: any, proxyResData: Buffer, userReq: Request, userRes: Response) => Buffer;
   proxyErrorHandler: (err: Error, res: Response) => void;
   timeout: number;
@@ -33,17 +37,26 @@ interface ProxyConfig {
 const SERVICES: ServiceConfig[] = [
   // User Service routes
   { envVar: 'USER_SERVICE_URL', route: '/v1/auth', name: 'Auth Service', requireAuth: false },
-  { envVar: 'USER_SERVICE_URL', route: '/v1/profile', name: 'Profile Service', requireAuth: false },
+  { envVar: 'USER_SERVICE_URL', route: '/v1/profile', name: 'Profile Service', requireAuth: 'optional' },
   { envVar: 'USER_SERVICE_URL', route: '/v1/users', name: 'User Service', requireAuth: true },
   { envVar: 'USER_SERVICE_URL', route: '/v1/friends', name: 'Friends Service', requireAuth: true },
   { envVar: 'USER_SERVICE_URL', route: '/v1/messages', name: 'Messages Service', requireAuth: true },
   
+  // User Service static uploads (profile images)
+  {
+    envVar: 'USER_SERVICE_URL',
+    route: '/user-uploads',
+    name: 'User Uploads',
+    requireAuth: false,
+    pathTransform: (path: string) => path.replace(/^\/user-uploads/, '/uploads'),
+  },
+
   // Collab Editor Service
   { 
     envVar: 'COLLAB_EDITOR_URL', 
     route: '/v1/editor', 
     name: 'Collab Editor Service', 
-    requireAuth: false,
+    requireAuth: 'optional',
     pathTransform: (path: string) => path.replace(/^\/v1\/editor/, ''),
   },
   
@@ -52,7 +65,7 @@ const SERVICES: ServiceConfig[] = [
     envVar: 'COLLAB_EDITOR_URL', 
     route: '/v1/bookclubs', 
     name: 'Bookclubs Service', 
-    requireAuth: false, 
+    requireAuth: 'optional', 
     pathTransform: (path: string) => path.replace(/^\/v1/, ''),
   },
   
@@ -61,7 +74,7 @@ const SERVICES: ServiceConfig[] = [
     envVar: 'COLLAB_EDITOR_URL', 
     route: '/v1/invites', 
     name: 'Invites Service', 
-    requireAuth: false, 
+    requireAuth: 'optional', 
     pathTransform: (path: string) => path.replace(/^\/v1/, ''),
   },
   
@@ -102,7 +115,7 @@ const SERVICES: ServiceConfig[] = [
     envVar: 'BOOKS_SERVICE_URL', 
     route: '/v1/bookclub', 
     name: 'BookClub Book Service', 
-    requireAuth: false, 
+    requireAuth: 'optional', 
     pathTransform: (path: string) => path,
   },
   { 
@@ -149,6 +162,9 @@ const createProxyConfig = (
     if (srcReq.user) {
       proxyReqOpts.headers['X-User-Id'] = (srcReq.user as any).userId;
       proxyReqOpts.headers['X-User-Email'] = (srcReq.user as any).email;
+      if ((srcReq.user as any).name) {
+        proxyReqOpts.headers['X-User-Name'] = (srcReq.user as any).name;
+      }
     }
 
     // Forward authorization header
@@ -158,6 +174,33 @@ const createProxyConfig = (
 
     logger.debug(`[${requestId}] Proxying ${srcReq.method} ${srcReq.url} → ${serviceName}`);
     return proxyReqOpts;
+  },
+
+  /**
+   * Strip CORS headers from downstream service responses.
+   * The gateway's own CORS middleware (in index.ts) handles CORS for all client responses.
+   * Without this, downstream services (e.g. books-service) can leak `Access-Control-Allow-Origin: *`
+   * which conflicts with the client's `withCredentials: true`.
+   */
+  userResHeaderDecorator: (headers: import('http').IncomingHttpHeaders, userReq: Request) => {
+    const corsPrefix = 'access-control-';
+    const filtered: import('http').OutgoingHttpHeaders = {};
+
+    // Keep all non-CORS headers from the downstream service
+    for (const [key, value] of Object.entries(headers)) {
+      if (!key.toLowerCase().startsWith(corsPrefix)) {
+        filtered[key] = value;
+      }
+    }
+
+    // Re-apply CORS headers using the same allowed origins as the gateway's cors() middleware
+    const requestOrigin = userReq.headers.origin;
+    if (requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)) {
+      filtered['access-control-allow-origin'] = requestOrigin;
+      filtered['access-control-allow-credentials'] = 'true';
+    }
+
+    return filtered;
   },
 
   /**
@@ -215,13 +258,18 @@ export const setupProxyRoutes = (app: Express): void => {
     }
 
     const proxyConfig = createProxyConfig(name, pathTransform);
-    const middleware = requireAuth 
-      ? [authHandler, proxy(serviceUrl, proxyConfig)]
-      : [proxy(serviceUrl, proxyConfig)];
+    let middleware;
+    if (requireAuth === true) {
+      middleware = [authHandler, proxy(serviceUrl, proxyConfig)];
+    } else if (requireAuth === 'optional') {
+      middleware = [optionalAuth, proxy(serviceUrl, proxyConfig)];
+    } else {
+      middleware = [proxy(serviceUrl, proxyConfig)];
+    }
 
     app.use(route, ...middleware);
 
-    const authStatus = requireAuth ? '🔒 protected' : '🌐 public';
+    const authStatus = requireAuth === true ? '🔒 protected' : requireAuth === 'optional' ? '🔓 optional' : '🌐 public';
     logger.info(`✓ ${authStatus}: ${route} → ${serviceUrl} [${name}]`);
   });
 };

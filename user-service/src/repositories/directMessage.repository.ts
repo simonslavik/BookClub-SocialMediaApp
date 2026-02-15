@@ -96,6 +96,7 @@ export class DirectMessageRepository {
         ],
       },
       orderBy: { createdAt: 'desc' },
+      take: 500,
       include: {
         sender: { select: USER_BASIC_FIELDS },
         receiver: { select: USER_BASIC_FIELDS },

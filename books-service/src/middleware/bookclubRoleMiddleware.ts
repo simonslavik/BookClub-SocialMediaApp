@@ -29,10 +29,15 @@ export const requireBookClubRole = (
 
       logger.info(`Verifying role at: ${verifyUrl}`);
 
+      // Forward x-user-* headers that collab-editor's authMiddleware expects
+      // (service-to-service calls bypass the gateway which normally sets these)
       const response = await fetch(verifyUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'x-user-id': userId,
+          'x-user-email': req.user?.email || '',
+          ...(req.user?.name && { 'x-user-name': req.user.name }),
           ...(req.headers.authorization && {
             Authorization: req.headers.authorization,
           }),

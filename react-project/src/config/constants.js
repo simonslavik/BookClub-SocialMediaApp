@@ -1,6 +1,32 @@
 // API Configuration
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 export const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:4000';
+export const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL || 'http://localhost:3001';
+export const COLLAB_EDITOR_URL = import.meta.env.VITE_COLLAB_EDITOR_URL || 'http://localhost:4000';
+
+/**
+ * Resolve an image URL that may be either:
+ * - An absolute URL (e.g. Google profile pic: https://lh3.googleusercontent.com/...)
+ * - A relative path (e.g. /uploads/profile-images/uuid.jpg)
+ * Returns the URL as-is if absolute, or prefixes with the given base URL.
+ */
+export const resolveImageUrl = (baseUrl, path) => {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${baseUrl}${path}`;
+};
+
+/** Shorthand for profile images — routes through the gateway since user-service port is not published */
+export const getProfileImageUrl = (profileImage) => {
+  if (!profileImage) return null;
+  if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) return profileImage;
+  // Rewrite /uploads/profile-images/... → /user-uploads/profile-images/... via gateway
+  const gatewayPath = profileImage.replace(/^\/uploads/, '/user-uploads');
+  return `${API_URL}${gatewayPath}`;
+};
+
+/** Shorthand for collab-editor images (prefixed with COLLAB_EDITOR_URL if relative) */
+export const getCollabImageUrl = (imageUrl) => resolveImageUrl(COLLAB_EDITOR_URL, imageUrl);
 
 // Authentication
 export const TOKEN_KEY = 'token';

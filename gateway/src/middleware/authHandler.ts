@@ -9,6 +9,7 @@ import { HTTP_STATUS } from '../config/constants.js';
 export interface JwtPayload {
   userId: string;
   email: string;
+  name?: string;
   iat: number;
   exp: number;
 }
@@ -57,6 +58,9 @@ const authHandler = (req: Request, res: Response, next: NextFunction): void => {
     // Add user info to headers for microservices
     req.headers['x-user-id'] = decoded.userId;
     req.headers['x-user-email'] = decoded.email;
+    if (decoded.name) {
+      req.headers['x-user-name'] = decoded.name.replace(/[\r\n]/g, '');
+    }
 
     logger.debug(`Auth: user ${decoded.userId} → ${req.method} ${req.path}`);
     next();
@@ -109,6 +113,9 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction): v
     req.user = decoded;
     req.headers['x-user-id'] = decoded.userId;
     req.headers['x-user-email'] = decoded.email;
+    if (decoded.name) {
+      req.headers['x-user-name'] = decoded.name.replace(/[\r\n]/g, '');
+    }
   } catch {
     // Invalid/expired token on optional auth — continue without user
   }

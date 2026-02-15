@@ -67,6 +67,8 @@ model Friendship {
   @@index([userId])
   @@index([friendId])
   @@index([status])
+  @@index([userId, status])
+  @@index([friendId, status])
   @@map("friendships")
 }
 
@@ -92,5 +94,7 @@ model DirectMessage {
   @@index([senderId])
   @@index([receiverId])
   @@index([createdAt])
+  @@index([senderId, receiverId, createdAt])
+  @@index([receiverId, isRead])
   @@map("direct_messages")
 }

@@ -1,9 +1,11 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import AuthContext from '../../context';
+import apiClient from '@api/axios';
+import AuthContext from '@context/index';
 import { FiImage, FiX, FiTrash2, FiUser, FiLock } from 'react-icons/fi';
-import ChangePasswordModal from '../../components/common/modals/ChangePasswordModal';
+import ChangePasswordModal from '@components/common/modals/ChangePasswordModal';
+import { getProfileImageUrl } from '@config/constants';
+import logger from '@utils/logger';
 
 const ChangeProfilePage = () => {
     const { auth, setAuth } = useContext(AuthContext);
@@ -31,10 +33,9 @@ const ChangeProfilePage = () => {
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/v1/profile/${auth.user.id}`);
-                const data = await response.json();
+                const { data } = await apiClient.get(`/v1/profile/${auth.user.id}`);
                 
-                if (!response.ok || !data.success) {
+                if (!data.success) {
                     throw new Error(data.message || 'Failed to fetch profile');
                 }
 
@@ -42,10 +43,10 @@ const ChangeProfilePage = () => {
                 setForm({ name: userData.name });
                 if (userData.profileImage) {
                     setCurrentProfileImage(userData.profileImage); // Store just the path
-                    setImagePreview(`http://localhost:3001${userData.profileImage}`); // Display with full URL
+                    setImagePreview(getProfileImageUrl(userData.profileImage)); // Display with full URL
                 }
             } catch (err) {
-                console.error('Error fetching profile:', err);
+                logger.error('Error fetching profile:', err);
                 setError('Failed to load profile data');
             } finally {
                 setFetchingProfile(false);
@@ -104,29 +105,16 @@ const ChangeProfilePage = () => {
 
         try {
             // Update user name
-            const profileResponse = await axios.put(
-                'http://localhost:3000/v1/profile',
-                { name: form.name.trim() },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${auth.token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
+            const profileResponse = await apiClient.put(
+                `/v1/profile`,
+                { name: form.name.trim() }
             );
 
             let updatedImageUrl = currentProfileImage;
 
             // Delete image if requested
             if (deleteImage && currentProfileImage) {
-                await axios.delete(
-                    'http://localhost:3000/v1/profile/image',
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${auth.token}`
-                        }
-                    }
-                );
+                await apiClient.delete(`/v1/profile/image`);
                 updatedImageUrl = null;
             }
 
@@ -135,12 +123,11 @@ const ChangeProfilePage = () => {
                 const formData = new FormData();
                 formData.append('image', selectedImage);
 
-                const imageResponse = await axios.post(
-                    'http://localhost:3000/v1/profile/image',
+                const imageResponse = await apiClient.post(
+                    `/v1/profile/image`,
                     formData,
                     {
                         headers: {
-                            'Authorization': `Bearer ${auth.token}`,
                             'Content-Type': 'multipart/form-data'
                         }
                     }
@@ -163,7 +150,7 @@ const ChangeProfilePage = () => {
             // Go back to previous page
             navigate(-1);
         } catch (err) {
-            console.error('Error changing profile:', err);
+            logger.error('Error changing profile:', err);
             setError(err.response?.data?.error || err.response?.data?.message || 'Failed to change profile. Please try again.');
         } finally {
             setLoading(false);

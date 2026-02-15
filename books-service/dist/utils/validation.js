@@ -125,8 +125,9 @@ exports.acceptSuggestionSchema = joi_1.default.object({
         'date.base': 'Start date must be a valid date',
         'any.required': 'Start date is required',
     }),
-    endDate: joi_1.default.date().required().messages({
+    endDate: joi_1.default.date().greater(joi_1.default.ref('startDate')).required().messages({
         'date.base': 'End date must be a valid date',
+        'date.greater': 'End date must be after start date',
         'any.required': 'End date is required',
     }),
 });

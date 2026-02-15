@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiSettings, FiLock, FiUnlock, FiEyeOff } from 'react-icons/fi';
-import { bookclubAPI } from '../../api/bookclub.api';
-import HomePageHeader from '../../components/layout/Header';
-import AdminApprovalPanel from '../../components/features/bookclub/AdminApprovalPanel';
-import MemberManagement from '../../components/features/bookclub/MemberManagement';
+import { bookclubAPI } from '@api/bookclub.api';
+import HomePageHeader from '@components/layout/Header';
+import AdminApprovalPanel from '@components/features/bookclub/AdminApprovalPanel';
+import MemberManagement from '@components/features/bookclub/MemberManagement';
+import logger from '@utils/logger';
 
 const BookclubSettings = () => {
   const { id } = useParams();
@@ -44,7 +45,7 @@ const BookclubSettings = () => {
       const userMembership = data.members?.find(m => m.userId === authData.user?.id);
       setMembership(userMembership);
     } catch (error) {
-      console.error('Failed to fetch bookclub:', error);
+      logger.error('Failed to fetch bookclub:', error);
       if (error.response?.status === 403) {
         alert('You do not have access to this bookclub');
         navigate('/discover');

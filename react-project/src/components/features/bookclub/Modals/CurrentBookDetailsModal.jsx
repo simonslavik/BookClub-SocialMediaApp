@@ -1,8 +1,8 @@
 import { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '../../../../context/index';
+import { AuthContext } from '@context/index';
 import { FiX, FiCalendar, FiClock, FiEdit2, FiTrash2, FiBook, FiBarChart2, FiStar } from 'react-icons/fi';
-
-const GATEWAY_URL = 'http://localhost:3000';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookUpdated, onBookRemoved }) => {
   const { auth } = useContext(AuthContext);
@@ -65,15 +65,9 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
       
       setLoadingProgress(true);
       try {
-        const response = await fetch(
-          `${GATEWAY_URL}/v1/bookclub-books/${currentBookData.id}/progress`,
-          {
-            headers: {
-              'Authorization': `Bearer ${auth.token}`
-            }
-          }
+        const { data } = await apiClient.get(
+          `/v1/bookclub-books/${currentBookData.id}/progress`
         );
-        const data = await response.json();
         
         if (data.success && data.data) {
           setMyProgress(data.data);
@@ -81,7 +75,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
           setProgressNotes(data.data.notes || '');
         }
       } catch (err) {
-        console.error('Error fetching progress:', err);
+        logger.error('Error fetching progress:', err);
       } finally {
         setLoadingProgress(false);
       }
@@ -97,22 +91,14 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
     
     setSavingProgress(true);
     try {
-      const response = await fetch(
-        `${GATEWAY_URL}/v1/bookclub-books/${currentBookData.id}/progress`,
+      const { data } = await apiClient.post(
+        `/v1/bookclub-books/${currentBookData.id}/progress`,
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${auth.token}`
-          },
-          body: JSON.stringify({
-            pagesRead: parseInt(pagesRead),
-            notes: progressNotes
-          })
+          pagesRead: parseInt(pagesRead),
+          notes: progressNotes
         }
       );
 
-      const data = await response.json();
       if (data.success) {
         setMyProgress(data.data);
         alert('Progress saved successfully!');
@@ -120,7 +106,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
         alert(data.error || 'Failed to save progress');
       }
     } catch (err) {
-      console.error('Error saving progress:', err);
+      logger.error('Error saving progress:', err);
       alert('Failed to save progress');
     } finally {
       setSavingProgress(false);
@@ -134,10 +120,9 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
       
       setLoadingReviews(true);
       try {
-        const response = await fetch(
-          `${GATEWAY_URL}/v1/bookclub-books/${currentBookData.id}/reviews`
+        const { data } = await apiClient.get(
+          `/v1/bookclub-books/${currentBookData.id}/reviews`
         );
-        const data = await response.json();
         
         if (data.success) {
           setReviews(data.data.reviews || []);
@@ -154,7 +139,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
           }
         }
       } catch (err) {
-        console.error('Error fetching reviews:', err);
+        logger.error('Error fetching reviews:', err);
       } finally {
         setLoadingReviews(false);
       }
@@ -173,29 +158,20 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
     
     setSavingReview(true);
     try {
-      const response = await fetch(
-        `${GATEWAY_URL}/v1/bookclub-books/${currentBookData.id}/review`,
+      const { data } = await apiClient.post(
+        `/v1/bookclub-books/${currentBookData.id}/review`,
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${auth.token}`
-          },
-          body: JSON.stringify({
-            rating,
-            reviewText
-          })
+          rating,
+          reviewText
         }
       );
 
-      const data = await response.json();
       if (data.success) {
         setMyReview(data.data);
         // Refresh reviews
-        const reviewsResponse = await fetch(
-          `${GATEWAY_URL}/v1/bookclub-books/${currentBookData.id}/reviews`
+        const { data: reviewsData } = await apiClient.get(
+          `/v1/bookclub-books/${currentBookData.id}/reviews`
         );
-        const reviewsData = await reviewsResponse.json();
         if (reviewsData.success) {
           setReviews(reviewsData.data.reviews || []);
           setAverageRating(reviewsData.data.averageRating || 0);
@@ -205,7 +181,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
         alert(data.error || 'Failed to save review');
       }
     } catch (err) {
-      console.error('Error saving review:', err);
+      logger.error('Error saving review:', err);
       alert('Failed to save review');
     } finally {
       setSavingReview(false);
@@ -217,26 +193,18 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
     if (!confirm('Are you sure you want to delete your review?')) return;
     
     try {
-      const response = await fetch(
-        `${GATEWAY_URL}/v1/bookclub-books/${currentBookData.id}/review`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${auth.token}`
-          }
-        }
+      const { data } = await apiClient.delete(
+        `/v1/bookclub-books/${currentBookData.id}/review`
       );
 
-      const data = await response.json();
       if (data.success) {
         setMyReview(null);
         setRating(0);
         setReviewText('');
         // Refresh reviews
-        const reviewsResponse = await fetch(
-          `${GATEWAY_URL}/v1/bookclub-books/${currentBookData.id}/reviews`
+        const { data: reviewsData } = await apiClient.get(
+          `/v1/bookclub-books/${currentBookData.id}/reviews`
         );
-        const reviewsData = await reviewsResponse.json();
         if (reviewsData.success) {
           setReviews(reviewsData.data.reviews || []);
           setAverageRating(reviewsData.data.averageRating || 0);
@@ -246,7 +214,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
         alert(data.error || 'Failed to delete review');
       }
     } catch (err) {
-      console.error('Error deleting review:', err);
+      logger.error('Error deleting review:', err);
       alert('Failed to delete review');
     }
   };
@@ -283,23 +251,15 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
 
     setSubmitting(true);
     try {
-      const response = await fetch(
-        `${GATEWAY_URL}/v1/bookclub/${currentBookData.bookClubId}/books/${currentBookData.bookId}`,
+      const { data } = await apiClient.patch(
+        `/v1/bookclub/${currentBookData.bookClubId}/books/${currentBookData.bookId}`,
         {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${auth.token}`
-          },
-          body: JSON.stringify({
-            startDate,
-            endDate
-          })
+          startDate,
+          endDate
         }
       );
 
-      const data = await response.json();
-      if (response.ok && data.success) {
+      if (data.success) {
         onBookUpdated(data.data);
         setEditingSchedule(false);
         alert('Schedule updated successfully!');
@@ -307,7 +267,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
         alert(data.error || 'Failed to update schedule');
       }
     } catch (err) {
-      console.error('Error updating schedule:', err);
+      logger.error('Error updating schedule:', err);
       alert('Failed to update schedule');
     } finally {
       setSubmitting(false);
@@ -319,25 +279,18 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
 
     setSubmitting(true);
     try {
-      const response = await fetch(
-        `${GATEWAY_URL}/v1/bookclub/${currentBookData.bookClubId}/books/${currentBookData.bookId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${auth.token}`
-          }
-        }
+      const { data } = await apiClient.delete(
+        `/v1/bookclub/${currentBookData.bookClubId}/books/${currentBookData.bookId}`
       );
 
-      const data = await response.json();
-      if (response.ok && data.success) {
+      if (data.success) {
         onBookRemoved();
         onClose();
       } else {
         alert(data.error || 'Failed to remove book');
       }
     } catch (err) {
-      console.error('Error removing book:', err);
+      logger.error('Error removing book:', err);
       alert('Failed to remove book');
     } finally {
       setSubmitting(false);

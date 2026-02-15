@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FiX, FiLock, FiUnlock, FiEyeOff, FiUserPlus, FiCheckCircle } from 'react-icons/fi';
-import { bookclubAPI } from '../../../api/bookclub.api';
+import { bookclubAPI } from '@api/bookclub.api';
+import logger from '@utils/logger';
 
 const JoinBookclubModal = ({ isOpen, onClose, bookclub, onJoinSuccess }) => {
   const [message, setMessage] = useState('');

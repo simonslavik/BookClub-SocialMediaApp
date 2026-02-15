@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { FiX } from 'react-icons/fi';
+import logger from '@utils/logger';
 
 const BookDetailsModal = ({ onClose, book }) => {
   return (

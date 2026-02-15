@@ -1,6 +1,7 @@
 import React from 'react';
 import { FiHash, FiSettings, FiCalendar, FiUserPlus } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import logger from '@utils/logger';
 
 const BookclubHeader = ({ 
   showBooksHistory, 

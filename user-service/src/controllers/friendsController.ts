@@ -31,7 +31,7 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
             data: 'id' in result ? result : result.friendship
         });
     } catch (error: any) {
-        if (error.message === 'CANNOT_ADD_YOURSELF') {
+        if (error.message === 'CANNOT_ADD_SELF') {
             logger.warn({
                 type: 'VALIDATION_ERROR',
                 action: 'SEND_FRIEND_REQUEST',

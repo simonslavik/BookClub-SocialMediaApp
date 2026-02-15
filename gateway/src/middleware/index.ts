@@ -3,6 +3,7 @@ import requestId from './requestId.js';
 import requestTimeout from './requestTimeout.js';
 import requestLogger from './requestLogger.js';
 import createRateLimiter from './rateLimiter.js';
+import stripInternalHeaders from './stripInternalHeaders.js';
 import errorHandler from './errorHandler.js';
 import { RedisClientType } from 'redis';
 import { TIMEOUTS } from '../config/constants.js';
@@ -13,6 +14,9 @@ import { TIMEOUTS } from '../config/constants.js';
  * @param redisClient - Redis client instance for rate limiting
  */
 export const setupMiddleware = (app: Express, redisClient: RedisClientType): void => {
+  // Strip internal headers to prevent client spoofing (MUST be first)
+  app.use(stripInternalHeaders);
+
   // Request ID tracking
   app.use(requestId);
 

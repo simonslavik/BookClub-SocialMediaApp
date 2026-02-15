@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { FiSend, FiMessageSquare } from 'react-icons/fi';
+import logger from '@utils/logger';
 
 export default function ChatSidebar({ ws, username, messages, onSendMessage }) {
   const [message, setMessage] = useState('');

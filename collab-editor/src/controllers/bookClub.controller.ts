@@ -61,6 +61,24 @@ export class BookClubController {
   }
 
   /**
+   * Get clubs the current user is a member of
+   */
+  static async getMyClubs(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?.userId;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      const clubs = await BookClubService.getMyClubs(userId);
+      res.json({ success: true, bookClubs: clubs });
+    } catch (error: any) {
+      logger.error('ERROR_GET_MY_CLUBS', { error: error.message });
+      res.status(500).json({ success: false, message: 'Failed to fetch your clubs' });
+    }
+  }
+
+  /**
    * Get club preview (public endpoint for PUBLIC/PRIVATE clubs)
    */
   static async getClubPreview(req: Request, res: Response) {

@@ -1,4 +1,6 @@
-
+import { useNavigate } from 'react-router-dom';
+import { FiPlus } from 'react-icons/fi';
+import logger from '@utils/logger';
 
 const SideBarDmComponent = ({
     directMessages,

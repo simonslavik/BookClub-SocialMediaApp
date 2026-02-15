@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiLink, FiCopy, FiTrash2, FiPlus, FiCheck, FiCalendar, FiUsers } from 'react-icons/fi';
-import { bookclubAPI } from '../../../api/bookclub.api';
+import { bookclubAPI } from '@api/bookclub.api';
+import logger from '@utils/logger';
 
 const InviteLinkManager = ({ bookclubId, userRole }) => {
   const [invites, setInvites] = useState([]);
@@ -24,7 +25,7 @@ const InviteLinkManager = ({ bookclubId, userRole }) => {
       const response = await bookclubAPI.getInvites(bookclubId);
       setInvites(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch invites:', error);
+      logger.error('Failed to fetch invites:', error);
     } finally {
       setLoading(false);
     }

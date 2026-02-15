@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FiPlus, FiThumbsUp, FiThumbsDown, FiStar, FiTrash2 } from 'react-icons/fi';
 import SuggestBookModal from '../Modals/SuggestBookModal';
 import BookSuggestionDetailsModal from '../Modals/BookSuggestionDetailsModal';
+import apiClient from '@api/axios';
+import logger from '@utils/logger';
 
 const BookSuggestionsView = ({ bookClubId, auth }) => {
   const [bookSuggestions, setBookSuggestions] = useState([]);
@@ -18,20 +20,12 @@ const BookSuggestionsView = ({ bookClubId, auth }) => {
     
     setLoading(true);
     try {
-      const response = await fetch(
-        `http://localhost:3000/v1/bookclub/${bookClubId}/suggestions`,
-        {
-          headers: {
-            'Authorization': `Bearer ${auth.token}`
-          }
-        }
-      );
-      const data = await response.json();
+      const { data } = await apiClient.get(`/v1/bookclub/${bookClubId}/suggestions`);
       if (data.success) {
         setBookSuggestions(data.data || []);
       }
     } catch (err) {
-      console.error('Error fetching book suggestions:', err);
+      logger.error('Error fetching book suggestions:', err);
     } finally {
       setLoading(false);
     }
@@ -39,32 +33,21 @@ const BookSuggestionsView = ({ bookClubId, auth }) => {
 
   const handleVote = async (suggestionId, voteType) => {
     try {
-      const response = await fetch(
-        `http://localhost:3000/v1/bookclub/${bookClubId}/suggestions/${suggestionId}/vote`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${auth.token}`
-          },
-          body: JSON.stringify({ voteType })
-        }
+      const { data } = await apiClient.post(
+        `/v1/bookclub/${bookClubId}/suggestions/${suggestionId}/vote`,
+        { voteType }
       );
-
-      if (response.ok) {
-        const data = await response.json();
-        const { vote, upvotes, downvotes } = data.data;
-        // Update only the voted suggestion using actual server counts
-        setBookSuggestions((prev) =>
-          prev.map((s) =>
-            s.id !== suggestionId
-              ? s
-              : { ...s, upvotes, downvotes, userVote: vote.voteType }
-          )
-        );
-      }
+      const { vote, upvotes, downvotes } = data.data;
+      // Update only the voted suggestion using actual server counts
+      setBookSuggestions((prev) =>
+        prev.map((s) =>
+          s.id !== suggestionId
+            ? s
+            : { ...s, upvotes, downvotes, userVote: vote.voteType }
+        )
+      );
     } catch (err) {
-      console.error('Error voting:', err);
+      logger.error('Error voting:', err);
     }
   };
 
