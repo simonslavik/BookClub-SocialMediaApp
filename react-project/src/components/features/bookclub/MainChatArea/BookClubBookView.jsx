@@ -13,7 +13,8 @@ const BookClubBookView = ({
   handleStatusChange, 
   onRateBook, 
   onRemoveRating, 
-  currentUserId 
+  currentUserId,
+  userRole 
 }) => {
   const [hoveredBookId, setHoveredBookId] = useState(null);
   const [rateModalOpen, setRateModalOpen] = useState(false);
@@ -133,14 +134,18 @@ const BookClubBookView = ({
 
   const ratingBookUserRating = ratingBookData ? getRatingInfo(ratingBookData).userRating : null;
 
+  const canManageBooks = userRole && ['OWNER', 'ADMIN', 'MODERATOR'].includes(userRole);
+
   return (
     <div className="space-y-6">
+        {canManageBooks && (
         <div className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg transition-all transform hover:scale-105 flex items-center gap-2 cursor-pointer"
             onClick={() => setShowAddBookModal(true)}
             >
             <FiPlus size={20} />
             Add New Book to Bookclub
         </div>
+        )}
         {/* Current Book */}
         {bookclubBooks.current.length > 0 && (
         <div>

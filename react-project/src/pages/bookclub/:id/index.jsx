@@ -634,14 +634,15 @@ const BookClub = () => {
       // If we don't have bookClub.members yet, show all
       if (!bookClub?.members) return true;
       // Only show members who exist in the API response (ACTIVE status)
-      return bookClub.members.some(m => m.userId === member.id);
+      // Preview API returns { id: userId, ... } while initial load may use { userId: ... }
+      return bookClub.members.some(m => (m.userId || m.id) === member.id);
     });
     
     return activeMembers.map(member => {
       // bookClubMembers from WebSocket has: id, username, email, profileImage
-      // bookClub.members from API has: id, userId, role, bookClubId
-      // Match by: bookClub.members.userId === bookClubMembers.id
-      const memberWithRole = bookClub?.members?.find(m => m.userId === member.id);
+      // bookClub.members from API has: id (userId), role, joinedAt
+      // Match by: bookClub.members.userId (or .id) === bookClubMembers.id
+      const memberWithRole = bookClub?.members?.find(m => (m.userId || m.id) === member.id);
       const mappedMember = {
         ...member,
         id: member.id,
@@ -1032,6 +1033,7 @@ const BookClub = () => {
                     onRateBook={handleRateBook}
                     onRemoveRating={handleRemoveRating}
                     currentUserId={auth?.user?.id}
+                    userRole={userRole}
                   />
                 )}
               </div>
