@@ -79,7 +79,7 @@ const OtherMessage = ({
         >
           {msg.text && (
             <p className={`text-sm text-gray-200 break-words leading-relaxed ${msg.deletedAt ? 'italic text-gray-500' : ''}`}>
-              {renderMessageContent(msg.text, members, auth?.user?.id)}
+              {renderMessageContent(msg.text, members, auth?.user?.id, { friends, connectedUsers, onSendFriendRequest })}
               {msg.editedAt && <span className="text-xs text-gray-500 italic ml-1">(edited)</span>}
             </p>
           )}

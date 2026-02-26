@@ -1,4 +1,5 @@
 import React from 'react';
+import UserHoverCard from '../UserHoverCard';
 
 /**
  * Convert URLs in text to clickable links.
@@ -46,7 +47,7 @@ export const formatTimestamp = (timestamp) => {
 /**
  * Render text with @mention tokens and linkified URLs.
  */
-export const MentionRendererWithLinks = ({ content, members, currentUserId }) => {
+export const MentionRendererWithLinks = ({ content, members, currentUserId, hoverContext }) => {
   if (!content || typeof content !== 'string') return null;
 
   const mentionRegex = /(<@[a-zA-Z0-9_-]+>|<@everyone>)/g;
@@ -56,7 +57,7 @@ export const MentionRendererWithLinks = ({ content, members, currentUserId }) =>
 
   const memberMap = {};
   for (const m of members) {
-    if (m.id) memberMap[m.id] = m.username || m.name || 'Unknown';
+    if (m.id) memberMap[m.id] = m;
   }
 
   return (
@@ -75,9 +76,11 @@ export const MentionRendererWithLinks = ({ content, members, currentUserId }) =>
         const match = part.match(/^<@([a-zA-Z0-9_-]+)>$/);
         if (match) {
           const uid = match[1];
-          const name = memberMap[uid] || 'Unknown User';
+          const member = memberMap[uid];
+          const name = member?.username || member?.name || 'Unknown User';
           const isSelf = uid === currentUserId;
-          return (
+
+          const mentionEl = (
             <a
               key={index}
               href={`/profile/${uid}`}
@@ -91,6 +94,32 @@ export const MentionRendererWithLinks = ({ content, members, currentUserId }) =>
               @{name}
             </a>
           );
+
+          // Wrap non-self mentions in UserHoverCard if context provided
+          if (!isSelf && hoverContext && member) {
+            const { friends = [], connectedUsers = [], onSendFriendRequest } = hoverContext;
+            const isFriend = friends.some(f => f.friend?.id === uid);
+            const isOnline = connectedUsers.some(cu => cu.userId === uid);
+            return (
+              <UserHoverCard
+                key={index}
+                user={{
+                  id: uid,
+                  username: name,
+                  profileImage: member.profileImage,
+                  status: member.status,
+                }}
+                currentUserId={currentUserId}
+                isFriend={isFriend}
+                isOnline={isOnline}
+                onSendFriendRequest={onSendFriendRequest}
+              >
+                {mentionEl}
+              </UserHoverCard>
+            );
+          }
+
+          return mentionEl;
         }
         return <React.Fragment key={index}>{linkifyText(part)}</React.Fragment>;
       })}
@@ -136,11 +165,11 @@ export const shouldGroupMessages = (currentMsg, previousMsg, nextMsg) => {
 /**
  * Render message content with mentions + links.
  */
-export const renderMessageContent = (text, members, currentUserId) => {
+export const renderMessageContent = (text, members, currentUserId, hoverContext) => {
   if (!text) return '';
   const hasMentions = /<@[a-zA-Z0-9_-]+>/.test(text) || text.includes('<@everyone>');
   if (hasMentions) {
-    return <MentionRendererWithLinks content={text} members={members} currentUserId={currentUserId} />;
+    return <MentionRendererWithLinks content={text} members={members} currentUserId={currentUserId} hoverContext={hoverContext} />;
   }
   return linkifyText(text);
 };
