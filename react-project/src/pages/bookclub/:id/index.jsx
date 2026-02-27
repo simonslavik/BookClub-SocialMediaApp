@@ -349,9 +349,10 @@ const BookClub = () => {
         setBookClub(data);
         setRooms(data.rooms || []);
         
-        // Select first room by default
+        // Select first accessible room by default (skip locked private rooms)
         if (data.rooms && data.rooms.length > 0) {
-          setCurrentRoom(data.rooms[0]);
+          const accessibleRoom = data.rooms.find(r => r.type !== 'PRIVATE' || r.isMember !== false);
+          setCurrentRoom(accessibleRoom || data.rooms[0]);
         }
       } catch (err) {
         logger.error('Error fetching book club:', err);

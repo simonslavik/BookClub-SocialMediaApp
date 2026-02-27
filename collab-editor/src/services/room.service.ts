@@ -97,7 +97,7 @@ export class RoomService {
       updatedAt: room.updatedAt,
       bookClubId: room.bookClubId,
       memberCount: room._count.members,
-      isMember: room.members.length > 0,
+      isMember: room.type !== 'PRIVATE' || room.members.length > 0,
     }));
   }
 

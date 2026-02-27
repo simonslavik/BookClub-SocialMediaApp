@@ -108,7 +108,7 @@ const DMSidebar = ({ conversations, friends = [], currentConversation, onSelectC
             <div className="text-center text-gray-500 py-3 text-xs">No users found</div>
           )}
           {!searching && displayResults.length === 0 && !searchQuery.trim() && flatFriends.length === 0 && (
-            <div className="text-center text-gray-500 py-3 text-xs">No friends yet</div>
+            <div className="text-center text-gray-500 py-3 text-xs">Type to search for users</div>
           )}
           {!searching && displayResults.map(user => (
             <button

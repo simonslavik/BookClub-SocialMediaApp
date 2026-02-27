@@ -41,7 +41,7 @@ export const userAPI = {
 
   // Search users
   searchUsers: async (query) => {
-    const response = await apiClient.get('/users/search', {
+    const response = await apiClient.get('/v1/users/search', {
       params: { q: query },
     });
     return response.data;

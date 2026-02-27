@@ -126,6 +126,30 @@ export const listUsers = async (req: Request, res: Response) => {
 };
 
 /**
+ * Search users by name/username
+ */
+export const searchUsers = async (req: Request, res: Response) => {
+    const query = (req.query.q as string || '').trim();
+    if (!query) {
+        return res.status(200).json({ success: true, data: [] });
+    }
+
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+    const users = await UserService.searchUsers(query, limit);
+
+    return res.status(200).json({
+        success: true,
+        data: users.map(user => ({
+            id: user.id,
+            name: user.name,
+            username: user.name,
+            profileImage: user.profileImage,
+            status: user.status
+        }))
+    });
+};
+
+/**
  * Get multiple users by IDs (batch endpoint)
  * No authentication required - used by other services
  */

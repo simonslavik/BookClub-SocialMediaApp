@@ -6,7 +6,7 @@ import logger from '@utils/logger';
 
 const ROOM_TYPES = [
   { value: 'PUBLIC', label: 'Public', icon: FiHash, description: 'Anyone in the book club can see and send messages', color: 'text-gray-400' },
-  { value: 'PRIVATE', label: 'Private', icon: FiLock, description: 'Only invited members can see and access this room', color: 'text-yellow-400' },
+  { value: 'PRIVATE', label: 'Private', icon: FiLock, description: 'Everyone can see this room, but only invited members can access it', color: 'text-yellow-400' },
   { value: 'ANNOUNCEMENT', label: 'Announcement', icon: FiVolume2, description: 'Everyone can read, only moderators+ can post', color: 'text-blue-400' },
 ];
 

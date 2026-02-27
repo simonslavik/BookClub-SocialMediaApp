@@ -48,15 +48,10 @@ export class RoomRepository {
       });
     }
 
+    // Return ALL rooms (including private ones the user isn't a member of)
+    // The isMember check is done at the service layer using the members relation
     return prisma.room.findMany({
-      where: {
-        bookClubId,
-        OR: [
-          { type: 'PUBLIC' },
-          { type: 'ANNOUNCEMENT' },
-          { type: 'PRIVATE', members: { some: { userId } } }
-        ]
-      },
+      where: { bookClubId },
       include: {
         _count: { select: { members: true } },
         members: { where: { userId }, select: { id: true } }

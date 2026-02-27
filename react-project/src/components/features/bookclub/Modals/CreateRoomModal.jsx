@@ -15,7 +15,7 @@ const ROOM_TYPES = [
     value: 'PRIVATE',
     label: 'Private',
     icon: FiLock,
-    description: 'Only invited members can see and access this room',
+    description: 'Everyone can see this room, but only invited members can access it',
     color: 'text-yellow-400'
   },
   {

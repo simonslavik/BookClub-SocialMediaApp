@@ -379,7 +379,8 @@ export class BookClubService {
             type: true,
             isDefault: true,
             createdAt: true,
-            _count: { select: { members: true } }
+            _count: { select: { members: true } },
+            members: { where: { userId }, select: { id: true } }
           }
         },
         events: {
@@ -394,7 +395,18 @@ export class BookClubService {
 
     if (!club) throw new Error('CLUB_NOT_FOUND');
 
-    return club;
+    // Check if the user has a moderator+ role
+    const userMembership = club.members.find(m => m.userId === userId);
+    const canSeeAll = userMembership ? hasMinRole(userMembership.role, BookClubRole.MODERATOR) : false;
+
+    // Add isMember flag to rooms
+    const roomsWithAccess = club.rooms.map(room => ({
+      ...room,
+      isMember: (room as any).type !== 'PRIVATE' || canSeeAll || ((room as any).members?.length > 0),
+      members: undefined // Remove raw members relation from response
+    }));
+
+    return { ...club, rooms: roomsWithAccess };
   }
 
   /**

@@ -105,16 +105,12 @@ export const handleJoin = (
       // Track if this is a new member (for WebSocket purposes, this is always false since they must already be a member)
       const wasNewMember = false;
 
-      // Filter rooms by visibility based on user's role
+      // Return ALL rooms (including private ones) — access control is enforced on switch-room
       const canSeeAll = hasMinRole(membership.role, BookClubRole.MODERATOR);
-      const visibleRooms = bookClub.rooms.filter((room: any) => {
-        if (room.type === RoomType.PUBLIC || room.type === RoomType.ANNOUNCEMENT) return true;
-        if (canSeeAll) return true;
-        // For private rooms, we need to check membership — we'll do this async below
-        return false;
-      });
+      const visibleRooms = [...bookClub.rooms];
 
-      // For non-moderator users, also check private room memberships
+      // For non-moderator users, determine private room membership for isMember flag
+      let memberRoomIds = new Set<string>();
       if (!canSeeAll) {
         const privateRooms = bookClub.rooms.filter((room: any) => room.type === RoomType.PRIVATE);
         if (privateRooms.length > 0) {
@@ -125,20 +121,19 @@ export const handleJoin = (
             },
             select: { roomId: true }
           });
-          const memberRoomIds = new Set(privateRoomMemberships.map(m => m.roomId));
-          for (const room of privateRooms) {
-            if (memberRoomIds.has(room.id)) {
-              visibleRooms.push(room);
-            }
-          }
+          memberRoomIds = new Set(privateRoomMemberships.map(m => m.roomId));
         }
       }
 
       // Sort visible rooms by createdAt
       visibleRooms.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-      // If no roomId provided, use first visible room (general)
-      const targetRoomId = roomId || visibleRooms[0]?.id;
+      // If no roomId provided, use first accessible room (general)
+      // Skip private rooms the user isn't a member of
+      const accessibleRooms = visibleRooms.filter((r: any) => 
+        r.type !== RoomType.PRIVATE || canSeeAll || memberRoomIds.has(r.id)
+      );
+      const targetRoomId = roomId || accessibleRooms[0]?.id;
       
       if (!targetRoomId) {
         ws.send(JSON.stringify({
@@ -272,7 +267,8 @@ export const handleJoin = (
             type: r.type,
             isDefault: r.isDefault,
             createdAt: r.createdAt,
-            _count: r._count
+            _count: r._count,
+            isMember: r.type !== RoomType.PRIVATE || canSeeAll || memberRoomIds.has(r.id)
           }))
         },
         currentRoomId: targetRoomId,

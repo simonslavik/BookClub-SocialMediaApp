@@ -204,21 +204,26 @@ const SideBarRooms = ({
                   const Icon = getRoomIcon(room);
                   const isActive = currentRoom?.id === room.id && !showBooksHistory && !showCalendar && !showSuggestions && !showMeetings;
                   const iconColor = getRoomIconColor(room, isActive);
+                  const isLocked = room.type === 'PRIVATE' && room.isMember === false;
                   return (
                     <div
                       key={room.id}
                       className="group relative"
-                      onContextMenu={(e) => handleContextMenu(e, room)}
+                      onContextMenu={(e) => !isLocked && handleContextMenu(e, room)}
                     >
                       <button
-                        onClick={() => switchRoom(room)}
+                        onClick={() => !isLocked && switchRoom(room)}
+                        disabled={isLocked}
+                        title={isLocked ? 'You do not have access to this private room' : room.name}
                         className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors ${
-                          isActive
-                            ? 'bg-gray-700 text-white'
-                            : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                          isLocked
+                            ? 'text-gray-600 cursor-not-allowed opacity-60'
+                            : isActive
+                              ? 'bg-gray-700 text-white'
+                              : 'text-gray-400 hover:bg-gray-700 hover:text-white'
                         }`}
                       >
-                        <Icon size={16} className={`flex-shrink-0 ${iconColor}`} />
+                        <Icon size={16} className={`flex-shrink-0 ${isLocked ? 'text-gray-600' : iconColor}`} />
                         <span className="truncate flex-1">{room.name}</span>
                         {room.type === 'PRIVATE' && room._count?.members > 0 && (
                           <span className="text-[10px] text-gray-500 flex items-center gap-0.5">
