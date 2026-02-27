@@ -161,6 +161,9 @@ const BookClub = () => {
     setBookClubMembers,
     unreadRooms,
     setUnreadRooms,
+    unreadSections,
+    viewSection,
+    notifySectionActivity,
     lastReadAt
   } = useBookclubWebSocket(bookClub, currentRoom, auth, bookClubId, { onInit: handleWsInit });
 
@@ -274,6 +277,7 @@ const BookClub = () => {
     setShowSuggestions(false);
     setShowMeetings(false);
     setShowSettings(false);
+    viewSection('books');
     fetchBookclubBooks();
   };
 
@@ -665,6 +669,7 @@ const BookClub = () => {
     setShowAddEventModal(false);
     setEventToEdit(null);
     setSelectedEventDate(null);
+    notifySectionActivity('calendar');
   };
 
   const handleCalendarRefreshCallback = (refreshFn) => {
@@ -794,6 +799,7 @@ const BookClub = () => {
               setShowMeetings(false);
               setShowSettings(false);
               setCurrentRoom(null);
+              viewSection('calendar');
             }}
             showCalendar={showCalendar}
             onShowSuggestions={() => {
@@ -803,6 +809,7 @@ const BookClub = () => {
               setShowMeetings(false);
               setShowSettings(false);
               setCurrentRoom(null);
+              viewSection('suggestions');
             }}
             showSuggestions={showSuggestions}
             onShowMeetings={() => {
@@ -812,9 +819,11 @@ const BookClub = () => {
               setShowSuggestions(false);
               setShowSettings(false);
               setCurrentRoom(null);
+              viewSection('meetings');
             }}
             showMeetings={showMeetings}
             unreadRooms={unreadRooms}
+            unreadSections={unreadSections}
           />
         </div>
         
@@ -1089,6 +1098,7 @@ const BookClub = () => {
                 <BookSuggestionsView
                   bookClubId={bookClubId}
                   auth={auth}
+                  onSuggestionAdded={() => notifySectionActivity('suggestions')}
                 />
               </div>
             ) : showMeetings ? (
@@ -1232,6 +1242,7 @@ const BookClub = () => {
               setShowAddBookModal(false);
               // Refresh the books list
               fetchBookclubBooks();
+              notifySectionActivity('books');
             }}
           />
         )}
@@ -1295,6 +1306,7 @@ const BookClub = () => {
           onMeetingSaved={() => {
             // Refresh meetings list
             if (window.__meetingsRefresh) window.__meetingsRefresh();
+            notifySectionActivity('meetings');
           }}
         />
     </div>

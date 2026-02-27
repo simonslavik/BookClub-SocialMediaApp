@@ -85,7 +85,8 @@ const SideBarRooms = ({
     showSuggestions,
     onShowMeetings,
     showMeetings,
-    unreadRooms = new Set()
+    unreadRooms = new Set(),
+    unreadSections = new Set()
 }) => {
     const navigate = useNavigate();
     const [contextMenu, setContextMenu] = useState(null);
@@ -139,44 +140,64 @@ const SideBarRooms = ({
                 className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors text-sm ${
                   showSuggestions 
                     ? 'bg-gray-700 text-white' 
-                    : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                    : !showSuggestions && unreadSections.has('suggestions')
+                      ? 'text-white font-semibold hover:bg-gray-700'
+                      : 'text-gray-400 hover:bg-gray-700 hover:text-white'
                 }`}
               >
                 <FiMessageSquare size={16} className="flex-shrink-0 text-green-400" />
                 <span className="truncate flex-1">Book Suggestions</span>
+                {!showSuggestions && unreadSections.has('suggestions') && (
+                  <span className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                )}
               </button>
               <button
                 onClick={() => onShowBooksHistory && onShowBooksHistory()}
                 className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors text-sm ${
                   showBooksHistory 
                     ? 'bg-gray-700 text-white' 
-                    : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                    : !showBooksHistory && unreadSections.has('books')
+                      ? 'text-white font-semibold hover:bg-gray-700'
+                      : 'text-gray-400 hover:bg-gray-700 hover:text-white'
                 }`}
               >
                 <FiBook size={16} className="flex-shrink-0 text-orange-400" />
                 <span className="truncate flex-1">BookClub Books</span>
+                {!showBooksHistory && unreadSections.has('books') && (
+                  <span className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                )}
               </button>
               <button
                 onClick={() => onShowCalendar && onShowCalendar()}
                 className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors text-sm ${
                   showCalendar 
                     ? 'bg-gray-700 text-white' 
-                    : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                    : !showCalendar && unreadSections.has('calendar')
+                      ? 'text-white font-semibold hover:bg-gray-700'
+                      : 'text-gray-400 hover:bg-gray-700 hover:text-white'
                 }`}
               >
                 <FiCalendar size={16} className="flex-shrink-0 text-cyan-400" />
                 <span className="truncate flex-1">BookClub Calendar</span>
+                {!showCalendar && unreadSections.has('calendar') && (
+                  <span className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                )}
               </button>
               <button
                 onClick={() => onShowMeetings && onShowMeetings()}
                 className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors text-sm ${
                   showMeetings 
                     ? 'bg-gray-700 text-white' 
-                    : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+                    : !showMeetings && unreadSections.has('meetings')
+                      ? 'text-white font-semibold hover:bg-gray-700'
+                      : 'text-gray-400 hover:bg-gray-700 hover:text-white'
                 }`}
               >
                 <FiVideo size={16} className="flex-shrink-0 text-pink-400" />
                 <span className="truncate flex-1">Meetings</span>
+                {!showMeetings && unreadSections.has('meetings') && (
+                  <span className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                )}
               </button>
             </div>
 

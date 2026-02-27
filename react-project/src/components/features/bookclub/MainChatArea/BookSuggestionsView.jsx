@@ -5,7 +5,7 @@ import BookSuggestionDetailsModal from '../Modals/BookSuggestionDetailsModal';
 import apiClient from '@api/axios';
 import logger from '@utils/logger';
 
-const BookSuggestionsView = ({ bookClubId, auth }) => {
+const BookSuggestionsView = ({ bookClubId, auth, onSuggestionAdded }) => {
   const [bookSuggestions, setBookSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSuggestBook, setShowSuggestBook] = useState(false);
@@ -54,6 +54,7 @@ const BookSuggestionsView = ({ bookClubId, auth }) => {
   const handleBookSuggested = () => {
     fetchBookSuggestions();
     setShowSuggestBook(false);
+    if (onSuggestionAdded) onSuggestionAdded();
   };
 
   if (loading) {

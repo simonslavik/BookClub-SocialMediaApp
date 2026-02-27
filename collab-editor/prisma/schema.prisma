@@ -162,6 +162,32 @@ model RoomRead {
   @@map("room_reads")
 }
 
+// SectionRead model - tracks when each user last viewed each navigation section
+model SectionRead {
+  id           String   @id @default(uuid())
+  userId       String
+  clubId       String
+  section      String   // 'suggestions' | 'books' | 'calendar' | 'meetings'
+  lastViewedAt DateTime @default(now())
+
+  @@unique([userId, clubId, section])
+  @@index([userId, clubId])
+  @@map("section_reads")
+}
+
+// SectionActivity model - tracks the latest activity per section per club
+model SectionActivity {
+  id             String   @id @default(uuid())
+  clubId         String
+  section        String   // 'suggestions' | 'books' | 'calendar' | 'meetings'
+  lastActivityAt DateTime @default(now())
+  lastActivityBy String   // userId who triggered the activity
+
+  @@unique([clubId, section])
+  @@index([clubId])
+  @@map("section_activities")
+}
+
 // Message model - stores chat messages in rooms (like Discord messages)
 model Message {
   id           String     @id @default(uuid())

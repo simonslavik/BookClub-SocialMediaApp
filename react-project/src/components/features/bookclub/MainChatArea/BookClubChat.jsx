@@ -175,18 +175,15 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws, 
   // ── Compute the index where the NEW divider should appear ──
   const newDividerIndex = React.useMemo(() => {
     if (!lastReadAt || !currentUserId) {
-      console.log('📌 NEW divider: skipped (lastReadAt=%s, currentUserId=%s)', lastReadAt, currentUserId);
       return -1;
     }
     const cutoff = new Date(lastReadAt);
-    console.log('📌 NEW divider: lastReadAt=%s, cutoff=%s, msgs=%d', lastReadAt, cutoff.toISOString(), messages.length);
 
     // Check if there are ANY messages from other users after lastReadAt
     const hasOtherUnread = messages.some(
       msg => msg.type !== 'system' && msg.userId !== currentUserId && new Date(msg.timestamp) > cutoff
     );
     if (!hasOtherUnread) {
-      console.log('📌 NEW divider: no unread from other users');
       return -1;
     }
 
@@ -196,7 +193,6 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws, 
       if (msg.type === 'system') continue;
       if (msg.userId === currentUserId) continue;
       if (new Date(msg.timestamp) > cutoff) {
-        console.log('📌 NEW divider: showing at index %d (msg=%s, ts=%s)', i, msg.text?.substring(0, 30), msg.timestamp);
         return i;
       }
     }

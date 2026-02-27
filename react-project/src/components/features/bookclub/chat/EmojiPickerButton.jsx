@@ -40,7 +40,7 @@ const EmojiPickerButton = ({ onEmojiSelect }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute bottom-full mb-2 right-0 z-[70]">
+        <div className="absolute bottom-full mb-2 left-0 z-[70]">
           <Picker
             data={data}
             onEmojiSelect={handleSelect}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { WS_URL } from '@config/constants';
 import logger from '@utils/logger';
 
@@ -8,6 +8,7 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [bookClubMembers, setBookClubMembers] = useState([]);
   const [unreadRooms, setUnreadRooms] = useState(new Set());
+  const [unreadSections, setUnreadSections] = useState(new Set());
   const [lastReadAt, setLastReadAt] = useState(null);
   const reconnectTimeoutRef = useRef(null);
   const isIntentionalCloseRef = useRef(false);
@@ -109,13 +110,18 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
               }
               // Populate unread rooms from server
               if (data.unreadRoomIds && data.unreadRoomIds.length > 0) {
-                console.log('🔔 Init: unread rooms from server:', data.unreadRoomIds);
                 setUnreadRooms(new Set(data.unreadRoomIds));
               } else {
                 setUnreadRooms(new Set());
               }
               // Set lastReadAt for the current room
               setLastReadAt(data.lastReadAt || null);
+              // Populate unread sections from server
+              if (data.unreadSections && data.unreadSections.length > 0) {
+                setUnreadSections(new Set(data.unreadSections));
+              } else {
+                setUnreadSections(new Set());
+              }
               // Notify parent about init data (rooms with types, user role)
               if (onInitRef.current) {
                 onInitRef.current({
@@ -220,13 +226,18 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
 
             case 'room-activity':
               // A message was posted in another room — mark it as unread
-              console.log('🔔 room-activity received:', data.roomId, 'current:', currentRoomIdRef.current);
               if (data.roomId && data.roomId !== currentRoomIdRef.current) {
                 setUnreadRooms(prev => {
                   const next = new Set(prev).add(data.roomId);
-                  console.log('🔔 unreadRooms updated:', [...next]);
                   return next;
                 });
+              }
+              break;
+
+            case 'section-activity':
+              // Something was added to a navigation section by another user
+              if (data.section) {
+                setUnreadSections(prev => new Set([...prev, data.section]));
               }
               break;
           }
@@ -285,6 +296,25 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
     };
   }, [bookClubId, currentRoom?.id, auth?.token]); // Reconnect when bookclub, room, or auth changes
 
+  // Mark a section as viewed — clears the unread indicator and tells the server
+  const viewSection = useCallback((section) => {
+    setUnreadSections(prev => {
+      const next = new Set(prev);
+      next.delete(section);
+      return next;
+    });
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({ type: 'view-section', section }));
+    }
+  }, []);
+
+  // Notify other users that content was added to a section
+  const notifySectionActivity = useCallback((section) => {
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({ type: 'section-activity', section }));
+    }
+  }, []);
+
   return { 
     ws, 
     messages, 
@@ -295,6 +325,9 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
     setBookClubMembers,
     unreadRooms,
     setUnreadRooms,
+    unreadSections,
+    viewSection,
+    notifySectionActivity,
     lastReadAt
   };
 };

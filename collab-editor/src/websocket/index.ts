@@ -13,7 +13,9 @@ import {
   handleDMAddReaction,
   handleDMRemoveReaction,
   handleDisconnect,
-  handleStatusUpdate
+  handleStatusUpdate,
+  handleViewSection,
+  handleSectionActivity
 } from './handlers.js';
 import { handleAddReaction, handleRemoveReaction } from './reactionHandler.js';
 
@@ -127,6 +129,14 @@ export const setupWebSocket = (wss: WebSocketServer) => {
           
           case 'status-update':
             handleStatusUpdate(message, currentClient);
+            break;
+          
+          case 'view-section':
+            handleViewSection(message, currentClient);
+            break;
+          
+          case 'section-activity':
+            handleSectionActivity(message, currentClient);
             break;
           
           default:

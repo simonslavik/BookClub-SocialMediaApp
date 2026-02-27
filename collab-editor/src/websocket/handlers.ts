@@ -292,10 +292,31 @@ export const handleJoin = (
         const lastMsg = lm._max.createdAt;
         if (!lastMsg) continue;
         const lastRead = readMap.get(lm.roomId);
-        console.log(`📊 Room ${lm.roomId}: lastMsg=${lastMsg?.toISOString()}, lastRead=${lastRead?.toISOString() || 'never'}, isTarget=${lm.roomId === targetRoomId}`);
         // Unread if: never read, or last message is newer than last read, and not the current room
         if (lm.roomId !== targetRoomId && (!lastRead || lastMsg > lastRead)) {
           unreadRoomIds.push(lm.roomId);
+        }
+      }
+
+      // ── Compute unread navigation sections ──
+      const sectionReads = await prisma.sectionRead.findMany({
+        where: { userId, clubId: bookClubId },
+      });
+      const sectionReadMap: Record<string, Date> = {};
+      for (const sr of sectionReads) {
+        sectionReadMap[sr.section] = sr.lastViewedAt;
+      }
+
+      const sectionActivities = await prisma.sectionActivity.findMany({
+        where: { clubId: bookClubId },
+      });
+
+      const unreadSections: string[] = [];
+      for (const sa of sectionActivities) {
+        const lastViewed = sectionReadMap[sa.section];
+        // Unread if: user never viewed, or activity is newer than last view, and not by the user themselves
+        if (sa.lastActivityBy !== userId && (!lastViewed || sa.lastActivityAt > lastViewed)) {
+          unreadSections.push(sa.section);
         }
       }
 
@@ -320,6 +341,7 @@ export const handleJoin = (
         members: memberDetails,
         userRole: membership.role,
         unreadRoomIds,
+        unreadSections,
         lastReadAt: roomLastReadAt ? roomLastReadAt.toISOString() : null,
         users: Array.from(activeClub.clients.values()).map(c => ({
           id: c.id,
@@ -328,7 +350,6 @@ export const handleJoin = (
           roomId: c.roomId
         }))
       };
-      console.log('📤 Sending init with', unreadRoomIds.length, 'unread rooms');
       ws.send(JSON.stringify(initPayload));
 
       // Notify others that someone joined (including updated members if new)
@@ -895,7 +916,7 @@ export const handlePinMessage = async (message: any, currentClient: Client | nul
       }
     });
 
-    console.log(`📌 Message ${messageId} ${isPinned ? 'pinned' : 'unpinned'} by ${currentClient.username}`);
+    console.log(`Message ${messageId} ${isPinned ? 'pinned' : 'unpinned'} by ${currentClient.username}`);
   } catch (error) {
     console.error('Error pinning message:', error);
     currentClient.ws.send(JSON.stringify({
@@ -1136,4 +1157,79 @@ export const handleStatusUpdate = (message: any, currentClient: Client | null) =
   });
 
   console.log(`🔄 Status update: ${currentClient.username} → ${status}`);
+};
+
+/**
+ * Handle view-section — user opened a navigation section, mark it as viewed
+ */
+export const handleViewSection = async (message: any, currentClient: Client | null) => {
+  if (!currentClient || !currentClient.bookClubId) return;
+
+  const { section } = message;
+  const validSections = ['suggestions', 'books', 'calendar', 'meetings'];
+  if (!validSections.includes(section)) return;
+
+  try {
+    await prisma.sectionRead.upsert({
+      where: {
+        userId_clubId_section: {
+          userId: currentClient.userId,
+          clubId: currentClient.bookClubId,
+          section,
+        },
+      },
+      update: { lastViewedAt: new Date() },
+      create: {
+        userId: currentClient.userId,
+        clubId: currentClient.bookClubId,
+        section,
+        lastViewedAt: new Date(),
+      },
+    });
+    console.log(`${currentClient.username} viewed section '${section}' in club ${currentClient.bookClubId}`);
+  } catch (err) {
+    console.error('Error updating section read:', err);
+  }
+};
+
+/**
+ * Handle section-activity — user added content to a section, broadcast to others
+ */
+export const handleSectionActivity = async (message: any, currentClient: Client | null) => {
+  if (!currentClient || !currentClient.bookClubId) return;
+
+  const { section } = message;
+  const validSections = ['suggestions', 'books', 'calendar', 'meetings'];
+  if (!validSections.includes(section)) return;
+
+  const clubId = currentClient.bookClubId;
+
+  try {
+    // Record the activity timestamp
+    await prisma.sectionActivity.upsert({
+      where: {
+        clubId_section: { clubId, section },
+      },
+      update: { lastActivityAt: new Date(), lastActivityBy: currentClient.userId },
+      create: { clubId, section, lastActivityAt: new Date(), lastActivityBy: currentClient.userId },
+    });
+
+    // Broadcast to all other members in this bookclub
+    const activeClub = activeBookClubs.get(clubId);
+    if (activeClub) {
+      const payload = JSON.stringify({
+        type: 'section-activity',
+        section,
+      });
+      activeClub.clients.forEach((client) => {
+        if (client.userId !== currentClient.userId && client.ws.readyState === WebSocket.OPEN) {
+          client.ws.send(payload);
+        }
+      });
+    }
+
+    console.log(`📢 Section activity: ${currentClient.username} added to '${section}' in club ${clubId}`);
+  } catch (err) {
+    console.error('Error handling section activity:', err);
+  }
 };
