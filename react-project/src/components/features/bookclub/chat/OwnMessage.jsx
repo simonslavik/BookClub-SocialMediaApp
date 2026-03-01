@@ -71,6 +71,23 @@ const OwnMessage = ({
                 Copied!
               </div>
             )}
+            {/* Floating actions (reaction picker + menu) */}
+            <MessageActions
+              msg={msg}
+              isOwn
+              canModerate={canModerate}
+              currentUserEmoji={getUserReactionEmoji(msg.reactions)}
+              isMenuOpen={isMenuOpen}
+              menuRef={menuRef}
+              onToggleReaction={onToggleReaction}
+              onToggleMenu={onToggleMenu}
+              onPin={onPin}
+              onEdit={onEdit}
+              onCopy={onCopy}
+              onReply={onReply}
+              onDelete={onDelete}
+              position="left"
+            />
           </div>
         )}
 
@@ -82,24 +99,6 @@ const OwnMessage = ({
             ))}
           </div>
         )}
-
-        {/* Floating actions (reaction picker + menu) */}
-        <MessageActions
-          msg={msg}
-          isOwn
-          canModerate={canModerate}
-          currentUserEmoji={getUserReactionEmoji(msg.reactions)}
-          isMenuOpen={isMenuOpen}
-          menuRef={menuRef}
-          onToggleReaction={onToggleReaction}
-          onToggleMenu={onToggleMenu}
-          onPin={onPin}
-          onEdit={onEdit}
-          onCopy={onCopy}
-          onReply={onReply}
-          onDelete={onDelete}
-          position="left"
-        />
         </div>
 
         {/* Reactions */}

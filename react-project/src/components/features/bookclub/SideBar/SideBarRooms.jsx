@@ -248,11 +248,6 @@ const SideBarRooms = ({
                         {hasUnread && (
                           <span className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
                         )}
-                        {room.type === 'PRIVATE' && room._count?.members > 0 && (
-                          <span className="text-[10px] text-gray-500 flex items-center gap-0.5">
-                            <FiUsers size={10} /> {room._count.members}
-                          </span>
-                        )}
                       </button>
                       {/* Three-dot menu on hover (for mods+) */}
                       {['OWNER', 'ADMIN', 'MODERATOR'].includes(userRole) && (

@@ -125,6 +125,15 @@ const SERVICES: ServiceConfig[] = [
     requireAuth: true, 
     pathTransform: (path: string) => path,
   },
+
+  // Notification Service routes
+  { 
+    envVar: 'NOTIFICATION_SERVICE_URL', 
+    route: '/v1/notifications', 
+    name: 'Notification Service', 
+    requireAuth: true, 
+    pathTransform: (path: string) => path.replace(/^\/v1\/notifications/, '/notifications'),
+  },
 ];
 
 /**

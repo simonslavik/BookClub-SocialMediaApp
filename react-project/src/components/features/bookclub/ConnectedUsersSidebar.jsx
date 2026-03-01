@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUsers, FiStar, FiShield, FiAward, FiHeart, FiSearch, FiX } from 'react-icons/fi';
 import { getProfileImageUrl } from '@config/constants';
@@ -42,6 +42,19 @@ const ConnectedUsersSidebar = ({
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const [searchQuery, setSearchQuery] = useState('');
   const [showMembersModal, setShowMembersModal] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    if (!selectedUserId) return;
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setSelectedUserId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [selectedUserId]);
 
   // Debug logging
   logger.debug('ConnectedUsersSidebar - bookClubMembers:', bookClubMembers);
@@ -175,7 +188,7 @@ const ConnectedUsersSidebar = ({
           });
           
           return (
-            <div key={user.id} className="relative">
+            <div key={user.id} className="relative" ref={selectedUserId === user.id ? menuRef : null}>
               <div 
                 onClick={(e) => {
                   e.stopPropagation();

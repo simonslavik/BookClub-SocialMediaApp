@@ -5,6 +5,7 @@ import { MeetingStatus, RSVPStatus, MembershipStatus } from '@prisma/client';
 import { hasMinRole } from '../utils/roles.js';
 import { BookClubRole } from '@prisma/client';
 import logger from '../utils/logger.js';
+import { notifyMeetingEvent } from '../utils/notificationClient.js';
 
 // Auto-detect platform from meeting URL
 function detectPlatform(url: string): string {
@@ -71,6 +72,16 @@ export class MeetingService {
 
     logger.info('MEETING_CREATED', { bookClubId, title: meeting.title, platform });
 
+    // Notify all club members about the new meeting
+    notifyMeetingEvent({
+      type: 'meeting_created',
+      clubId: bookClubId,
+      meetingId: meeting.id,
+      meetingTitle: meeting.title,
+      scheduledAt: meeting.scheduledAt.toISOString(),
+      excludeUserId: userId,
+    }).catch(err => logger.warn('Failed to send meeting notification', err));
+
     // Re-fetch to include the host RSVP
     return MeetingRepository.findById(meeting.id);
   }
@@ -119,6 +130,16 @@ export class MeetingService {
 
     logger.info('MEETING_UPDATED', { meetingId, title: updated.title });
 
+    // Notify club members about the update
+    notifyMeetingEvent({
+      type: 'meeting_updated',
+      clubId: bookClubId,
+      meetingId,
+      meetingTitle: updated.title,
+      scheduledAt: updated.scheduledAt.toISOString(),
+      excludeUserId: userId,
+    }).catch(err => logger.warn('Failed to send meeting update notification', err));
+
     return updated;
   }
 
@@ -139,6 +160,15 @@ export class MeetingService {
         throw new Error('Only the meeting host or admins can delete meetings');
       }
     }
+
+    // Notify club members about the cancellation before deleting
+    notifyMeetingEvent({
+      type: 'meeting_cancelled',
+      clubId: bookClubId,
+      meetingId,
+      meetingTitle: meeting.title,
+      excludeUserId: userId,
+    }).catch(err => logger.warn('Failed to send meeting delete notification', err));
 
     await MeetingRepository.delete(meetingId);
 

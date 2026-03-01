@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiPlus, FiThumbsUp, FiThumbsDown, FiStar, FiTrash2 } from 'react-icons/fi';
 import SuggestBookModal from '../Modals/SuggestBookModal';
 import BookSuggestionDetailsModal from '../Modals/BookSuggestionDetailsModal';
 import apiClient from '@api/axios';
 import logger from '@utils/logger';
+import { getProfileImageUrl } from '@config/constants';
 
-const BookSuggestionsView = ({ bookClubId, auth, onSuggestionAdded }) => {
+const BookSuggestionsView = ({ bookClubId, auth, members = [], onSuggestionAdded }) => {
+  const navigate = useNavigate();
   const [bookSuggestions, setBookSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSuggestBook, setShowSuggestBook] = useState(false);
@@ -157,8 +160,16 @@ const BookSuggestionsView = ({ bookClubId, auth, onSuggestionAdded }) => {
                       <span className="font-semibold">{suggestion.downvotes || 0}</span>
                     </button>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-500 text-xs">
-                    <span>by {suggestion.suggestedBy?.name}</span>
+                  <div
+                    className="flex items-center gap-2 text-gray-400 text-xs cursor-pointer hover:text-purple-400 transition-colors"
+                    onClick={(e) => { e.stopPropagation(); navigate(`/profile/${suggestion.suggestedById || suggestion.suggestedBy?.id}`); }}
+                  >
+                    <img
+                      src={getProfileImageUrl(members.find(m => m.id === (suggestion.suggestedById || suggestion.suggestedBy?.id))?.profileImage) || '/images/default-avatar.png'}
+                      alt=""
+                      className="w-5 h-5 rounded-full object-cover"
+                    />
+                    <span className="hover:underline">{members.find(m => m.id === (suggestion.suggestedById || suggestion.suggestedBy?.id))?.username || suggestion.suggestedBy?.name || 'Unknown'}</span>
                   </div>
                 </div>
 
@@ -209,6 +220,7 @@ const BookSuggestionsView = ({ bookClubId, auth, onSuggestionAdded }) => {
           suggestion={selectedSuggestion}
           bookClubId={bookClubId}
           auth={auth}
+          members={members}
           onClose={() => setSelectedSuggestion(null)}
           onDeleted={fetchBookSuggestions}
         />

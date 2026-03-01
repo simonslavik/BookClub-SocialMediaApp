@@ -95,24 +95,23 @@ const OtherMessage = ({
               Copied!
             </div>
           )}
+          {/* Floating actions (reaction picker + menu) */}
+          <MessageActions
+            msg={msg}
+            isOwn={false}
+            canModerate={canModerate}
+            currentUserEmoji={getUserReactionEmoji(msg.reactions)}
+            isMenuOpen={isMenuOpen}
+            menuRef={menuRef}
+            onToggleReaction={onToggleReaction}
+            onToggleMenu={onToggleMenu}
+            onPin={onPin}
+            onCopy={onCopy}
+            onReply={onReply}
+            onDelete={onDelete}
+            position="right"
+          />
         </div>
-
-        {/* Floating actions (reaction picker + menu) */}
-        <MessageActions
-          msg={msg}
-          isOwn={false}
-          canModerate={canModerate}
-          currentUserEmoji={getUserReactionEmoji(msg.reactions)}
-          isMenuOpen={isMenuOpen}
-          menuRef={menuRef}
-          onToggleReaction={onToggleReaction}
-          onToggleMenu={onToggleMenu}
-          onPin={onPin}
-          onCopy={onCopy}
-          onReply={onReply}
-          onDelete={onDelete}
-          position="right"
-        />
         </div>
 
         {/* Reactions */}

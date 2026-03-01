@@ -7,6 +7,7 @@ import RegisterModule from '@components/common/modals/registerModule';
 import { getProfileImageUrl } from '@config/constants';
 import apiClient from '@api/axios';
 import logger from '@utils/logger';
+import NotificationBell from '@components/features/notifications/NotificationBell';
 
 const DEFAULT_AVATAR = '/images/default.webp';
 
@@ -92,6 +93,7 @@ const HomePageHeader = () => {
             <>
             {/* Desktop Navigation */}
             <div className='hidden md:flex md:flex-1 md:items-center md:justify-end'>
+                <NotificationBell />
                 <div ref={newsDropdownRef} className="relative">
                     <button 
                         onClick={() => { setNewsShowDropdown(!newsShowDropdown); if (showDropdown) { setShowDropdown(false); } }} 

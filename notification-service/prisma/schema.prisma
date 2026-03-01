@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  clubId    String
+  type      String   // meeting_created, meeting_updated, meeting_cancelled, meeting_reminder_24h, meeting_reminder_1h, meeting_starting
+  title     String
+  message   String
+  meetingId String?
+  read      Boolean  @default(false)
+  dismissed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, read])
+  @@index([userId, clubId])
+  @@index([userId, dismissed, createdAt])
+}
+
+model ScheduledNotification {
+  id          String   @id @default(uuid())
+  meetingId   String
+  clubId      String
+  type        String   // reminder_24h, reminder_1h, meeting_starting
+  scheduledAt DateTime
+  sent        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([scheduledAt, sent])
+  @@index([meetingId])
+}

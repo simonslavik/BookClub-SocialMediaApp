@@ -1098,6 +1098,7 @@ const BookClub = () => {
                 <BookSuggestionsView
                   bookClubId={bookClubId}
                   auth={auth}
+                  members={bookClubMembers}
                   onSuggestionAdded={() => notifySectionActivity('suggestions')}
                 />
               </div>

@@ -1,8 +1,17 @@
-import { FiX, FiTrash2, FiUser } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { FiX, FiTrash2 } from 'react-icons/fi';
 import apiClient from '@api/axios';
 import logger from '@utils/logger';
+import { getProfileImageUrl } from '@config/constants';
 
-const BookSuggestionDetailsModal = ({ suggestion, bookClubId, auth, onClose, onDeleted }) => {
+const BookSuggestionDetailsModal = ({ suggestion, bookClubId, auth, members = [], onClose, onDeleted }) => {
+  const navigate = useNavigate();
+
+  const suggesterId = suggestion.suggestedById || suggestion.suggestedBy?.id;
+  const suggesterMember = members.find(m => m.id === suggesterId);
+  const suggesterName = suggesterMember?.username || suggestion.suggestedBy?.name || 'Unknown';
+  const suggesterImage = getProfileImageUrl(suggesterMember?.profileImage);
+
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this book suggestion?')) return;
 
@@ -87,9 +96,21 @@ const BookSuggestionDetailsModal = ({ suggestion, bookClubId, auth, onClose, onD
               )}
 
               {/* Suggested By */}
-              <div className="flex items-center gap-2 text-gray-400 mb-6">
-                <FiUser size={16} />
-                <span>Suggested by {suggestion.suggestedBy?.name}</span>
+              <div
+                className="flex items-center gap-3 mb-6 cursor-pointer group"
+                onClick={() => navigate(`/profile/${suggesterId}`)}
+              >
+                <span className="text-gray-400">
+                  Suggested by 
+                </span>
+                <span className="text-gray-400 group-hover:text-purple-400 transition-colors flex items-center gap-2">
+                  <img
+                  src={suggesterImage || '/images/default-avatar.png'}
+                  alt={suggesterName}
+                  className="w-8 h-8 rounded-full object-cover group-hover:ring-2 group-hover:ring-purple-400 transition-all"
+                  />
+                  <span className="font-medium text-gray-300 group-hover:underline">{suggesterName}</span>
+                </span>
               </div>
 
               {/* Book Description */}
