@@ -7,14 +7,14 @@ export class BookClubBookRatingService {
   /**
    * Rate a bookclub book (upsert — create or update existing rating)
    */
-  static async rateBook(bookClubBookId: string, userId: string, rating: number) {
+  static async rateBook(bookClubBookId: string, userId: string, rating: number, reviewText?: string | null) {
     // Verify the bookclub book exists
     const bookClubBook = await BookClubBooksRepository.findById(bookClubBookId);
     if (!bookClubBook) {
       throw new NotFoundError('Book club book', bookClubBookId);
     }
 
-    const result = await BookClubBookRatingRepository.upsert(bookClubBookId, userId, rating);
+    const result = await BookClubBookRatingRepository.upsert(bookClubBookId, userId, rating, reviewText);
     const summary = await BookClubBookRatingRepository.getSummary(bookClubBookId);
 
     logger.info('Book rated:', { bookClubBookId, userId, rating });
@@ -58,6 +58,24 @@ export class BookClubBookRatingService {
     return {
       ...summary,
       userRating,
+    };
+  }
+
+  /**
+   * Get all ratings for a bookclub book (for reviews list)
+   */
+  static async getAllRatings(bookClubBookId: string) {
+    const bookClubBook = await BookClubBooksRepository.findById(bookClubBookId);
+    if (!bookClubBook) {
+      throw new NotFoundError('Book club book', bookClubBookId);
+    }
+
+    const ratings = await BookClubBookRatingRepository.findByBookClubBook(bookClubBookId);
+    const summary = await BookClubBookRatingRepository.getSummary(bookClubBookId);
+
+    return {
+      ratings,
+      ...summary,
     };
   }
 }

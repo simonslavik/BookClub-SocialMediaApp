@@ -1,11 +1,14 @@
 import { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '@context/index';
 import { FiX, FiCalendar, FiClock, FiEdit2, FiTrash2, FiBook, FiBarChart2, FiStar } from 'react-icons/fi';
 import apiClient from '@api/axios';
 import logger from '@utils/logger';
+import { getProfileImageUrl } from '@config/constants';
 
-const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookUpdated, onBookRemoved }) => {
+const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], onClose, onBookUpdated, onBookRemoved }) => {
   const { auth } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('details'); // 'details', 'schedule'
   
   // Schedule editing state
@@ -113,45 +116,45 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
     }
   };
 
-  // Fetch reviews
+  // Fetch ratings/reviews
   useEffect(() => {
-    const fetchReviews = async () => {
-      if (!currentBookData?.id) return;
+    const fetchRatings = async () => {
+      if (!currentBookData?.id || !currentBookData?.bookClubId) return;
       
       setLoadingReviews(true);
       try {
         const { data } = await apiClient.get(
-          `/v1/bookclub-books/${currentBookData.id}/reviews`
+          `/v1/bookclub/${currentBookData.bookClubId}/books/${currentBookData.id}/ratings`
         );
         
         if (data.success) {
-          setReviews(data.data.reviews || []);
+          setReviews(data.data.ratings || []);
           setAverageRating(data.data.averageRating || 0);
           
-          // Find user's review
+          // Find user's rating
           if (auth?.user) {
-            const userReview = data.data.reviews.find(r => r.userId === auth.user.id);
-            if (userReview) {
-              setMyReview(userReview);
-              setRating(userReview.rating);
-              setReviewText(userReview.reviewText || '');
+            const userRating = data.data.ratings.find(r => r.userId === auth.user.id);
+            if (userRating) {
+              setMyReview(userRating);
+              setRating(userRating.rating);
+              setReviewText(userRating.reviewText || '');
             }
           }
         }
       } catch (err) {
-        logger.error('Error fetching reviews:', err);
+        logger.error('Error fetching ratings:', err);
       } finally {
         setLoadingReviews(false);
       }
     };
 
     if (activeTab === 'reviews') {
-      fetchReviews();
+      fetchRatings();
     }
   }, [activeTab, currentBookData, auth]);
 
   const handleSaveReview = async () => {
-    if (!currentBookData?.id || !auth?.token || rating === 0) {
+    if (!currentBookData?.id || !currentBookData?.bookClubId || !auth?.token || rating === 0) {
       alert('Please select a rating');
       return;
     }
@@ -159,63 +162,57 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
     setSavingReview(true);
     try {
       const { data } = await apiClient.post(
-        `/v1/bookclub-books/${currentBookData.id}/review`,
+        `/v1/bookclub/${currentBookData.bookClubId}/books/${currentBookData.id}/rate`,
         {
           rating,
-          reviewText
+          reviewText: reviewText || null
         }
       );
 
       if (data.success) {
-        setMyReview(data.data);
-        // Refresh reviews
-        const { data: reviewsData } = await apiClient.get(
-          `/v1/bookclub-books/${currentBookData.id}/reviews`
+        setMyReview(data.data.userRating);
+        // Refresh ratings
+        const { data: ratingsData } = await apiClient.get(
+          `/v1/bookclub/${currentBookData.bookClubId}/books/${currentBookData.id}/ratings`
         );
-        if (reviewsData.success) {
-          setReviews(reviewsData.data.reviews || []);
-          setAverageRating(reviewsData.data.averageRating || 0);
+        if (ratingsData.success) {
+          setReviews(ratingsData.data.ratings || []);
+          setAverageRating(ratingsData.data.averageRating || 0);
         }
-        alert('Review saved successfully!');
-      } else {
-        alert(data.error || 'Failed to save review');
       }
     } catch (err) {
-      logger.error('Error saving review:', err);
-      alert('Failed to save review');
+      logger.error('Error saving rating:', err);
+      alert('Failed to save rating');
     } finally {
       setSavingReview(false);
     }
   };
 
   const handleDeleteReview = async () => {
-    if (!currentBookData?.id || !auth?.token) return;
-    if (!confirm('Are you sure you want to delete your review?')) return;
+    if (!currentBookData?.id || !currentBookData?.bookClubId || !auth?.token) return;
+    if (!confirm('Are you sure you want to delete your rating?')) return;
     
     try {
       const { data } = await apiClient.delete(
-        `/v1/bookclub-books/${currentBookData.id}/review`
+        `/v1/bookclub/${currentBookData.bookClubId}/books/${currentBookData.id}/rate`
       );
 
       if (data.success) {
         setMyReview(null);
         setRating(0);
         setReviewText('');
-        // Refresh reviews
-        const { data: reviewsData } = await apiClient.get(
-          `/v1/bookclub-books/${currentBookData.id}/reviews`
+        // Refresh ratings
+        const { data: ratingsData } = await apiClient.get(
+          `/v1/bookclub/${currentBookData.bookClubId}/books/${currentBookData.id}/ratings`
         );
-        if (reviewsData.success) {
-          setReviews(reviewsData.data.reviews || []);
-          setAverageRating(reviewsData.data.averageRating || 0);
+        if (ratingsData.success) {
+          setReviews(ratingsData.data.ratings || []);
+          setAverageRating(ratingsData.data.averageRating || 0);
         }
-        alert('Review deleted successfully');
-      } else {
-        alert(data.error || 'Failed to delete review');
       }
     } catch (err) {
-      logger.error('Error deleting review:', err);
-      alert('Failed to delete review');
+      logger.error('Error deleting rating:', err);
+      alert('Failed to delete rating');
     }
   };
 
@@ -336,6 +333,28 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
           >
             <FiCalendar className="inline mr-2" size={18} />
             Schedule
+          </button>
+          <button
+            onClick={() => setActiveTab('progress')}
+            className={`flex-1 px-6 py-3 font-medium transition-colors ${
+              activeTab === 'progress'
+                ? 'bg-white text-purple-600 border-b-2 border-purple-600'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <FiBarChart2 className="inline mr-2" size={18} />
+            Progress
+          </button>
+          <button
+            onClick={() => setActiveTab('reviews')}
+            className={`flex-1 px-6 py-3 font-medium transition-colors ${
+              activeTab === 'reviews'
+                ? 'bg-white text-purple-600 border-b-2 border-purple-600'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <FiStar className="inline mr-2" size={18} />
+            Reviews
           </button>
         </div>
 
@@ -697,36 +716,20 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
           {/* REVIEWS TAB */}
           {activeTab === 'reviews' && (
             <div className="max-w-3xl mx-auto">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Book Reviews</h3>
-              
               {loadingReviews ? (
                 <div className="text-center py-8">
                   <p className="text-gray-600">Loading reviews...</p>
                 </div>
               ) : (
                 <>
-                  {/* Average Rating */}
-                  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-6 mb-6 text-center">
-                    <p className="text-sm text-gray-600 mb-2">Average Rating</p>
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <span className="text-5xl font-bold text-yellow-600">{averageRating.toFixed(1)}</span>
-                      <FiStar className="text-yellow-500 fill-yellow-500" size={32} />
-                    </div>
-                    <p className="text-sm text-gray-600">Based on {reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
-                  </div>
-
-                  {/* My Review Form */}
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                      {myReview ? 'Your Review' : 'Write a Review'}
+                  {/* Your Rating Section */}
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-5 mb-6">
+                    <h4 className="text-base font-semibold text-gray-900 mb-3">
+                      {myReview ? 'Your Rating' : 'Rate this Book'}
                     </h4>
                     
-                    {/* Star Rating */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Rating
-                      </label>
-                      <div className="flex gap-2">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="flex gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button
                             key={star}
@@ -737,7 +740,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
                             className="transition-transform hover:scale-110"
                           >
                             <FiStar
-                              size={32}
+                              size={24}
                               className={
                                 star <= (hoverRating || rating)
                                   ? 'text-yellow-500 fill-yellow-500'
@@ -746,100 +749,109 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, onClose, onBookU
                             />
                           </button>
                         ))}
-                        {rating > 0 && (
-                          <span className="ml-2 text-gray-600 self-center">
-                            {rating} star{rating !== 1 ? 's' : ''}
-                          </span>
-                        )}
                       </div>
+                      {rating > 0 && (
+                        <span className="text-sm text-gray-600">
+                          {rating}/5
+                        </span>
+                      )}
                     </div>
 
-                    {/* Review Text */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Review (Optional)
-                      </label>
-                      <textarea
-                        value={reviewText}
-                        onChange={(e) => setReviewText(e.target.value)}
-                        rows={4}
-                        maxLength={2000}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Share your thoughts about this book..."
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        {reviewText.length}/2000 characters
-                      </p>
-                    </div>
+                    <textarea
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                      rows={2}
+                      maxLength={2000}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm mb-3"
+                      placeholder="Write a review (optional)..."
+                    />
 
-                    {/* Action Buttons */}
-                    <div className="flex gap-3">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={handleSaveReview}
                         disabled={savingReview || rating === 0}
-                        className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium transition-colors"
                       >
-                        {savingReview ? 'Saving...' : myReview ? 'Update Review' : 'Submit Review'}
+                        {savingReview ? 'Saving...' : myReview ? 'Update' : 'Submit'}
                       </button>
                       {myReview && (
                         <button
                           onClick={handleDeleteReview}
-                          className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                          className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm transition-colors"
                         >
-                          <FiTrash2 className="inline" />
+                          <FiTrash2 size={14} />
                         </button>
                       )}
                     </div>
                   </div>
 
-                  {/* All Reviews */}
+                  {/* All Ratings */}
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                      All Reviews ({reviews.length})
-                    </h4>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-base font-semibold text-gray-900">
+                        All Ratings ({reviews.length})
+                      </h4>
+                      {reviews.length > 0 && (
+                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                          <FiStar className="text-yellow-500 fill-yellow-500" size={14} />
+                          <span className="font-semibold">{averageRating.toFixed(1)}</span>
+                          <span>avg</span>
+                        </div>
+                      )}
+                    </div>
                     
                     {reviews.length === 0 ? (
                       <div className="text-center py-8 bg-gray-50 rounded-lg">
-                        <FiStar className="mx-auto text-4xl text-gray-300 mb-2" />
-                        <p className="text-gray-600">No reviews yet. Be the first to review!</p>
+                        <FiStar className="mx-auto text-3xl text-gray-300 mb-2" />
+                        <p className="text-gray-500 text-sm">No ratings yet. Be the first!</p>
                       </div>
                     ) : (
-                      <div className="space-y-4">
-                        {reviews.map((review) => (
-                          <div
-                            key={review.id}
-                            className={`bg-white border rounded-lg p-4 ${
-                              review.userId === auth?.user?.id ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
-                            }`}
-                          >
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <p className="font-semibold text-gray-900">
-                                  {review.userId === auth?.user?.id ? 'You' : `User ${review.userId.slice(0, 8)}`}
-                                </p>
-                                <div className="flex gap-1 mt-1">
-                                  {[1, 2, 3, 4, 5].map((star) => (
-                                    <FiStar
-                                      key={star}
-                                      size={16}
-                                      className={
-                                        star <= review.rating
-                                          ? 'text-yellow-500 fill-yellow-500'
-                                          : 'text-gray-300'
-                                      }
-                                    />
-                                  ))}
+                      <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
+                        {reviews.map((review) => {
+                          const isMe = review.userId === auth?.user?.id;
+                          const member = members.find(m => m.id === review.userId);
+                          const memberName = isMe ? 'You' : (member?.username || `User ${review.userId.slice(0, 8)}`);
+                          const profileImg = getProfileImageUrl(member?.profileImage);
+                          return (
+                            <div key={review.id} className={`flex items-start gap-3 px-4 py-3 ${isMe ? 'bg-purple-50' : ''}`}>
+                              <img
+                                src={profileImg || '/images/default-avatar.png'}
+                                alt={memberName}
+                                className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-purple-400 transition-all"
+                                onClick={() => navigate(`/profile/${review.userId}`)}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className={`text-sm font-medium cursor-pointer hover:underline ${isMe ? 'text-purple-700' : 'text-gray-900'}`}
+                                    onClick={() => navigate(`/profile/${review.userId}`)}
+                                  >
+                                    {memberName}
+                                  </span>
+                                  <div className="flex gap-0.5">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <FiStar
+                                        key={star}
+                                        size={12}
+                                        className={
+                                          star <= review.rating
+                                            ? 'text-yellow-500 fill-yellow-500'
+                                            : 'text-gray-300'
+                                        }
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-xs text-gray-400">
+                                    {new Date(review.createdAt).toLocaleDateString()}
+                                  </span>
                                 </div>
+                                {review.reviewText && (
+                                  <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">{review.reviewText}</p>
+                                )}
                               </div>
-                              <p className="text-xs text-gray-500">
-                                {new Date(review.createdAt).toLocaleDateString()}
-                              </p>
                             </div>
-                            {review.reviewText && (
-                              <p className="text-gray-700 whitespace-pre-line">{review.reviewText}</p>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>

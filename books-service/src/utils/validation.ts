@@ -152,6 +152,7 @@ export const rateBookClubBookSchema = joi.object({
     'number.min': 'Rating must be at least 1',
     'number.max': 'Rating cannot exceed 5',
   }),
+  reviewText: joi.string().max(2000).allow('', null).optional(),
 });
 
 // ========================

@@ -79,10 +79,11 @@ model BookClubBook {
 }
 
 model BookClubBookRating {
-  id             String @id @default(uuid())
+  id             String  @id @default(uuid())
   bookClubBookId String
   userId         String
   rating         Int // 1-5 stars
+  reviewText     String?
 
   bookClubBook BookClubBook @relation(fields: [bookClubBookId], references: [id], onDelete: Cascade)
 

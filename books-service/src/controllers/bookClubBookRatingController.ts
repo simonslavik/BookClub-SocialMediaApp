@@ -8,10 +8,10 @@ import { BookClubBookRatingService } from '../services/bookClubBookRating.servic
 export const rateBookClubBook = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const bookClubBookId = req.params.bookClubBookId as string;
-    const { rating } = req.body;
+    const { rating, reviewText } = req.body;
     const userId = req.user!.userId;
 
-    const result = await BookClubBookRatingService.rateBook(bookClubBookId, userId, rating);
+    const result = await BookClubBookRatingService.rateBook(bookClubBookId, userId, rating, reviewText);
 
     res.json({ success: true, data: result });
   } catch (error) {
@@ -44,6 +44,21 @@ export const getBookClubBookRating = async (req: AuthRequest, res: Response, nex
     const userId = req.user?.userId;
 
     const result = await BookClubBookRatingService.getRatingInfo(bookClubBookId, userId);
+
+    res.json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get all ratings for a bookclub book (GET /:bookClubId/books/:bookClubBookId/ratings)
+ */
+export const getAllBookClubBookRatings = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const bookClubBookId = req.params.bookClubBookId as string;
+
+    const result = await BookClubBookRatingService.getAllRatings(bookClubBookId);
 
     res.json({ success: true, data: result });
   } catch (error) {

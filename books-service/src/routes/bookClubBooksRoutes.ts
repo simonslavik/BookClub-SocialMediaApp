@@ -81,4 +81,12 @@ router.get(
   bookClubBookRatingController.getBookClubBookRating
 );
 
+// Get all ratings for a bookclub book
+router.get(
+  '/:bookClubId/books/:bookClubBookId/ratings',
+  authMiddleware,
+  validate({ params: bookClubBookIdParamSchema }),
+  bookClubBookRatingController.getAllBookClubBookRatings
+);
+
 export default router;

@@ -61,7 +61,7 @@ const OwnMessage = ({
             </div>
           </div>
         ) : msg.text && (
-          <div className={`relative bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl px-2 py-3 shadow-lg mb-1 ${msg.deletedAt ? 'opacity-60 italic' : ''}`}>
+          <div className={`relative w-fit bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl px-2 py-3 shadow-lg mb-1 ml-auto ${msg.deletedAt ? 'opacity-60 italic' : ''}`}>
             <p className="text-sm text-white break-words font-medium">
               {renderMessageContent(msg.text, members, auth?.user?.id, { friends, connectedUsers, onSendFriendRequest })}
               {msg.editedAt && <span className="text-xs text-purple-200 italic ml-1">(edited)</span>}

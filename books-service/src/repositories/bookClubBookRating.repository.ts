@@ -5,13 +5,13 @@ export class BookClubBookRatingRepository {
    * Upsert a rating (create or update)
    * One rating per user per bookclub book
    */
-  static async upsert(bookClubBookId: string, userId: string, rating: number) {
+  static async upsert(bookClubBookId: string, userId: string, rating: number, reviewText?: string | null) {
     return await prisma.bookClubBookRating.upsert({
       where: {
         bookClubBookId_userId: { bookClubBookId, userId },
       },
-      update: { rating },
-      create: { bookClubBookId, userId, rating },
+      update: { rating, reviewText: reviewText ?? null },
+      create: { bookClubBookId, userId, rating, reviewText: reviewText ?? null },
     });
   }
 

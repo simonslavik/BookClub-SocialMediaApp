@@ -1094,7 +1094,7 @@ const BookClub = () => {
                 />
               </div>
             ) : showSuggestions ? (
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 flex flex-col overflow-hidden">
                 <BookSuggestionsView
                   bookClubId={bookClubId}
                   auth={auth}
@@ -1218,6 +1218,7 @@ const BookClub = () => {
           <CurrentBookDetailsModal
             bookClubId={bookClubId}
             currentBookData={currentBookData}
+            members={bookClubMembers}
             onClose={() => setCurrentBookDetailsOpen(false)}
             onBookUpdated={(updatedBook) => {
               setCurrentBookData(updatedBook);

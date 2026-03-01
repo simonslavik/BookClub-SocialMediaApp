@@ -75,7 +75,7 @@ const OtherMessage = ({
         <div className="relative">
         <div
           onClick={() => setShowFullDate((v) => !v)}
-          className="relative bg-gray-800 rounded-2xl px-2 py-3 shadow-md cursor-pointer hover:bg-gray-750 transition-colors"
+          className="relative w-fit bg-gray-800 rounded-2xl px-2 py-3 shadow-md cursor-pointer hover:bg-gray-750 transition-colors"
         >
           {msg.text && (
             <p className={`text-sm text-gray-200 break-words leading-relaxed ${msg.deletedAt ? 'italic text-gray-500' : ''}`}>

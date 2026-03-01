@@ -226,7 +226,7 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws, 
               )}
               <div
                 id={`msg-${msg.id}`}
-                className={`flex flex-col ${groupWithPrevious ? 'mt-1' : 'mt-1'} transition-all duration-300 rounded-lg`}
+                className={`flex flex-col ${msg.userId === currentUserId ? 'items-end' : 'items-start'} ${groupWithPrevious ? 'mt-1' : 'mt-1'} transition-all duration-300 rounded-lg`}
               >
               {msg.type === 'system' ? (
                 <div className="text-center">
