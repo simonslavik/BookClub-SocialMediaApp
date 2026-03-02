@@ -54,7 +54,7 @@ export const getProfileById = async (req: Request, res: Response) => {
  */
 export const updateMyProfile = async (req: Request, res: Response) => {
     const userId = req.user?.userId;
-    const { name } = req.body;
+    const { name, bio } = req.body;
 
     if (!userId) {
         throw new UnauthorizedError('User not authenticated');
@@ -64,7 +64,12 @@ export const updateMyProfile = async (req: Request, res: Response) => {
         throw new BadRequestError('Name is required');
     }
 
-    const updatedUser = await UserService.updateProfile(userId, { name: name.trim() });
+    const updateData: { name: string; bio?: string | null } = { name: name.trim() };
+    if (bio !== undefined) {
+        updateData.bio = bio ? bio.trim() : null;
+    }
+
+    const updatedUser = await UserService.updateProfile(userId, updateData);
 
     return res.status(200).json({
         success: true,

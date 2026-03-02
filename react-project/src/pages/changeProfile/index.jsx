@@ -13,7 +13,8 @@ const ChangeProfilePage = () => {
     const fileInputRef = useRef(null);
 
     const [form, setForm] = useState({
-        name: ''
+        name: '',
+        bio: ''
     });
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
@@ -40,7 +41,7 @@ const ChangeProfilePage = () => {
                 }
 
                 const userData = data.data;
-                setForm({ name: userData.name });
+                setForm({ name: userData.name, bio: userData.bio || '' });
                 if (userData.profileImage) {
                     setCurrentProfileImage(userData.profileImage); // Store just the path
                     setImagePreview(getProfileImageUrl(userData.profileImage)); // Display with full URL
@@ -104,10 +105,10 @@ const ChangeProfilePage = () => {
         setError('');
 
         try {
-            // Update user name
+            // Update user name and bio
             const profileResponse = await apiClient.put(
                 `/v1/profile`,
-                { name: form.name.trim() }
+                { name: form.name.trim(), bio: form.bio.trim() || null }
             );
 
             let updatedImageUrl = currentProfileImage;
@@ -249,7 +250,25 @@ const ChangeProfilePage = () => {
                         />
                     </div>
 
-                    
+                    {/* Bio */}
+                    <div>
+                        <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
+                            Bio
+                        </label>
+                        <textarea
+                            id="bio"
+                            name="bio"
+                            value={form.bio}
+                            onChange={handleChange}
+                            placeholder="Tell us about yourself..."
+                            rows={3}
+                            maxLength={300}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                        />
+                        <div className="text-xs text-gray-400 text-right mt-1">
+                            {form.bio.length}/300
+                        </div>
+                    </div>
 
                     {/* Change Password Button - Only show for non-OAuth users */}
                     {auth?.user?.authProvider !== 'google' ? (

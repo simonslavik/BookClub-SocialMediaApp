@@ -5,7 +5,7 @@ import logger from '../utils/logger';
 export class BookSearchService {
   /**
    * Format search query for Google Books API
-   * Automatically adds intitle: prefix if no special operators are present
+   * Only adds a prefix for explicit patterns like ISBN
    */
   private static formatSearchQuery(query: string): string {
     const trimmedQuery = query.trim();
@@ -23,8 +23,8 @@ export class BookSearchService {
       return `isbn:${trimmedQuery.replace(/[-\s]/g, '')}`;
     }
 
-    // Default: treat as title search
-    return `intitle:${trimmedQuery}`;
+    // Default: general search (searches title, author, description, etc.)
+    return trimmedQuery;
   }
 
   /**

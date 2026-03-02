@@ -90,8 +90,37 @@ export class GoogleBooksService {
 
       return books;
     } catch (error: any) {
-      logger.error('Google Books API search error:', { error: error.message, query });
-      throw new Error('Failed to search books');
+      const status = error.response?.status;
+      // Retry once on 503 (Service Unavailable) — Google Books transient error
+      if (status === 503) {
+        logger.warn('Google Books API returned 503, retrying in 1s...', { query });
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+          const params2: any = { q: query, maxResults, printType: 'books' };
+          if (API_KEY) params2.key = API_KEY;
+          const retryResponse = await axios.get(GOOGLE_BOOKS_API, { params: params2 });
+          const retryBooks = retryResponse.data.items?.map((item: GoogleBook) => ({
+            googleBooksId: item.id,
+            title: item.volumeInfo.title,
+            author: item.volumeInfo.authors?.join(', ') || 'Unknown Author',
+            coverUrl: item.volumeInfo.imageLinks?.thumbnail || null,
+            description: item.volumeInfo.description || null,
+            pageCount: item.volumeInfo.pageCount || null,
+            isbn: item.volumeInfo.industryIdentifiers?.find(
+              (id) => id.type === 'ISBN_13' || id.type === 'ISBN_10'
+            )?.identifier || null,
+            publishedDate: item.volumeInfo.publishedDate || null,
+          })) || [];
+          if (redis && redis.isOpen && retryBooks.length > 0) {
+            await redis.setEx(cacheKey, CACHE_TTL, JSON.stringify(retryBooks));
+          }
+          return retryBooks;
+        } catch (retryError: any) {
+          logger.error('Google Books API retry also failed:', { error: retryError.message, query });
+        }
+      }
+      logger.error('Google Books API search error:', { error: error.message, status, query });
+      throw new Error(status === 503 ? 'Google Books service is temporarily unavailable. Please try again.' : 'Failed to search books');
     }
   }
 

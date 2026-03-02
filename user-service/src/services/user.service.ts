@@ -21,7 +21,7 @@ export class UserService {
   /**
    * Update user profile
    */
-  static async updateProfile(userId: string, data: { name?: string; profileImage?: string }) {
+  static async updateProfile(userId: string, data: { name?: string; profileImage?: string; bio?: string | null }) {
     const updatedUser = await UserRepository.update(userId, data);
 
     logger.info({

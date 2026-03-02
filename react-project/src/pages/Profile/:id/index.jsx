@@ -332,6 +332,9 @@ const ProfilePage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">{profile.name}</h1>
+                  {profile.bio && (
+                    <p className="mt-2 text-gray-600 text-sm max-w-lg">{profile.bio}</p>
+                  )}
                 </div>
                 
                 {isOwnProfile && (
@@ -428,7 +431,7 @@ const ProfilePage = () => {
         {/* Created Book Clubs Section */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {isOwnProfile ? 'My Created Book Clubs' : `Book Clubs by ${profile.name}`}
+            {isOwnProfile ? 'My Book Clubs' : `Book Clubs by ${profile.name}`}
           </h2>
           
           {createdBookClubs.length === 0 ? (

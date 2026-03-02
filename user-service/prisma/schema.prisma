@@ -26,6 +26,7 @@ model User {
   createdAt                DateTime       @default(now())
   updatedAt                DateTime       @updatedAt
   profileImage             String? // Optional profile image URL
+  bio                      String?        @db.VarChar(300) // Short user bio
   status                   UserStatus @default(ONLINE)
   refreshTokens            RefreshToken[]
 

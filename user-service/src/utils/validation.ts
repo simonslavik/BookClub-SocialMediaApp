@@ -105,6 +105,9 @@ export const updateProfileSchema = joi.object({
     name: joi.string().min(3).max(50).trim().messages({
         'string.min': 'Name must be at least 3 characters long',
         'string.max': 'Name cannot exceed 50 characters'
+    }),
+    bio: joi.string().allow('', null).max(300).trim().messages({
+        'string.max': 'Bio cannot exceed 300 characters'
     })
 });
 

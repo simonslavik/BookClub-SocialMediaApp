@@ -17,6 +17,7 @@ export const USER_PUBLIC_FIELDS = {
     name: true,
     email: true,
     profileImage: true,
+    bio: true,
     emailVerified: true,
     status: true,
     createdAt: true
