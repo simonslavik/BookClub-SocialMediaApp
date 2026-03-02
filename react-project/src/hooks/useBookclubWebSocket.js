@@ -104,9 +104,10 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
             case 'init':
               setMessages(data.messages.map(msg => ({
                 id: msg.id,
+                ...(msg.isSystem ? { type: 'system' } : {}),
                 username: msg.username,
                 profileImage: msg.profileImage,
-                text: msg.content,
+                text: msg.isSystem ? `${msg.username} ${msg.content}` : msg.content,
                 timestamp: msg.createdAt,
                 userId: msg.userId,
                 isPinned: msg.isPinned,
@@ -149,9 +150,10 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
             case 'chat-message':
               setMessages(prev => [...prev, {
                 id: data.message.id,
+                ...(data.message.isSystem ? { type: 'system' } : {}),
                 username: data.message.username,
                 profileImage: data.message.profileImage,
-                text: data.message.content,
+                text: data.message.isSystem ? `${data.message.username} ${data.message.content}` : data.message.content,
                 timestamp: data.message.createdAt,
                 userId: data.message.userId,
                 isPinned: data.message.isPinned || false,
@@ -203,9 +205,10 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
               setHasMoreMessages(data.hasMore || false);
               setMessages(data.messages.map(msg => ({
                 id: msg.id,
+                ...(msg.isSystem ? { type: 'system' } : {}),
                 username: msg.username,
                 profileImage: msg.profileImage,
-                text: msg.content,
+                text: msg.isSystem ? `${msg.username} ${msg.content}` : msg.content,
                 timestamp: msg.createdAt,
                 userId: msg.userId,
                 isPinned: msg.isPinned,
@@ -233,9 +236,10 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
               if (data.messages && data.messages.length > 0) {
                 const olderMsgs = data.messages.map(msg => ({
                   id: msg.id,
+                  ...(msg.isSystem ? { type: 'system' } : {}),
                   username: msg.username,
                   profileImage: msg.profileImage,
-                  text: msg.content,
+                  text: msg.isSystem ? `${msg.username} ${msg.content}` : msg.content,
                   timestamp: msg.createdAt,
                   userId: msg.userId,
                   isPinned: msg.isPinned,

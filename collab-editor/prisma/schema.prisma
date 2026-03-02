@@ -197,6 +197,7 @@ model Message {
   username     String // Cached username for display
   profileImage String? // Cached profile image path for display
   content      String?
+  isSystem     Boolean    @default(false) // System messages (e.g. "user joined the bookclub")
   isPinned     Boolean    @default(false)
   deletedAt    DateTime?
   deletedBy    String? // User ID who deleted the message

@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiBell, FiMail, FiMenu, FiX, FiUser, FiSettings, FiLogOut, FiPlusCircle } from 'react-icons/fi';
+import { FiBell, FiMail, FiMenu, FiX, FiUser, FiSettings, FiLogOut, FiPlusCircle, FiUsers } from 'react-icons/fi';
 import AuthContext from '@context/index';
 import LoginModule from '@components/common/modals/loginModule';
 import RegisterModule from '@components/common/modals/registerModule';
@@ -99,7 +99,7 @@ const HomePageHeader = () => {
                         onClick={() => { setNewsShowDropdown(!newsShowDropdown); if (showDropdown) { setShowDropdown(false); } }} 
                         className="relative px-2 py-2 text-black rounded hover:bg-gray-100 transition cursor-pointer"
                     >
-                    <FiBell size={22} />
+                    <FiUsers size={22} />
                     {friendRequests.length > 0 && (
                         <span className="absolute top-1 right-3 flex h-5 w-5 items-center justify-center">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
@@ -116,7 +116,7 @@ const HomePageHeader = () => {
                             </div>
                             {friendRequests.length === 0 ? (
                                 <div className="px-4 py-8 text-center">
-                                    <FiBell className="mx-auto h-12 w-12 text-gray-300 mb-2" />
+                                    <FiUsers className="mx-auto h-12 w-12 text-gray-300 mb-2" />
                                     <p className="text-sm text-gray-500">No new friend requests</p>
                                 </div>
                             ) : (

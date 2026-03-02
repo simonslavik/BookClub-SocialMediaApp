@@ -100,7 +100,6 @@ const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, onSelectBookClub, on
           {showStatusPopup && (
             <StatusPopup
               user={auth.user}
-              onClose={() => setShowStatusPopup(false)}
               onStatusChange={handleStatusChange}
               wsRef={wsRef}
               onLogout={onLogout}

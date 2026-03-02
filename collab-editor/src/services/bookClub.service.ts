@@ -3,6 +3,7 @@ import { BookClubRole, MembershipStatus, ClubVisibility, RequestStatus } from '@
 import crypto from 'crypto';
 import logger from '../utils/logger.js';
 import { hasMinRole } from '../utils/roles.js';
+import { createSystemMessage } from '../utils/systemMessage.js';
 
 export class BookClubService {
   /**
@@ -505,6 +506,9 @@ export class BookClubService {
 
     logger.info('BOOKCLUB_JOINED', { clubId, userId });
 
+    // Send system message to general room
+    createSystemMessage(clubId, `joined the bookclub`, userId);
+
     return member;
   }
 
@@ -656,6 +660,9 @@ export class BookClubService {
     });
 
     logger.info('REQUEST_APPROVED', { clubId, requestId, userId: request.userId, reviewerId });
+
+    // Send system message to general room
+    createSystemMessage(clubId, `joined the bookclub`, request.userId);
 
     return { member, request: updatedRequest };
   }
@@ -822,6 +829,9 @@ export class BookClubService {
     });
 
     logger.info('JOINED_BY_INVITE', { clubId: invite.bookClubId, userId, code });
+
+    // Send system message to general room
+    createSystemMessage(invite.bookClubId, `joined the bookclub`, userId);
 
     return { member, club: invite.bookClub };
   }

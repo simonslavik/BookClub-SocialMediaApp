@@ -270,8 +270,12 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws, 
                 className={`flex flex-col ${msg.userId === currentUserId ? 'items-end' : 'items-start'} ${groupWithPrevious ? 'mt-1' : 'mt-1'} transition-all duration-300 rounded-lg`}
               >
               {msg.type === 'system' ? (
-                <div className="text-center">
-                  <span className="text-xs text-gray-500 italic">{msg.text}</span>
+                <div className="flex items-center justify-center gap-2 py-1 w-full">
+                  <div className="flex-1 h-px bg-gray-700/30" />
+                  <span className="text-xs text-gray-400 italic whitespace-nowrap">
+                    {msg.text}
+                  </span>
+                  <div className="flex-1 h-px bg-gray-700/30" />
                 </div>
               ) : msg.userId === currentUserId ? (
                 <OwnMessage

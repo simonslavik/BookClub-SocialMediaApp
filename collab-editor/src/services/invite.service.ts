@@ -2,6 +2,7 @@ import { InviteRepository } from '../repositories/invite.repository.js';
 import { generateInviteCode } from '../utils/inviteCodeGenerator.js';
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
+import { createSystemMessage } from '../utils/systemMessage.js';
 
 export class InviteService {
   /**
@@ -115,6 +116,9 @@ export class InviteService {
     await InviteRepository.incrementUses(invite.id);
 
     logger.info('USER_JOINED_VIA_INVITE', { userId, bookClubName: invite.bookClub.name, code });
+
+    // Send system message to general room
+    createSystemMessage(invite.bookClubId, `joined the bookclub`, userId);
 
     return invite.bookClub;
   }
