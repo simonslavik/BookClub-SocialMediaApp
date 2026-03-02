@@ -43,6 +43,18 @@ export class BookSuggestionsRepository {
   }
 
   /**
+   * Count pending suggestions for a bookclub
+   */
+  static async countPendingByBookClubId(bookClubId: string): Promise<number> {
+    return prisma.bookSuggestion.count({
+      where: {
+        bookClubId,
+        status: SuggestionStatus.pending,
+      },
+    });
+  }
+
+  /**
    * Find a suggestion by ID
    */
   static async findById(suggestionId: string) {

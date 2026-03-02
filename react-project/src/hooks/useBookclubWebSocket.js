@@ -177,20 +177,10 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
               if (data.members) {
                 setBookClubMembers(data.members);
               }
-              setMessages(prev => [...prev, {
-                type: 'system',
-                text: `${data.user.username} joined the room`,
-                timestamp: new Date().toISOString()
-              }]);
               break;
             
             case 'user-left':
               setConnectedUsers(prev => prev.filter(u => u.id !== data.userId));
-              setMessages(prev => [...prev, {
-                type: 'system',
-                text: `${data.username} left the room`,
-                timestamp: new Date().toISOString()
-              }]);
               break;
             
             case 'room-switched':

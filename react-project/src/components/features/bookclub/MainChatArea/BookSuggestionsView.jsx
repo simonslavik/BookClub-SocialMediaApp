@@ -13,6 +13,8 @@ const BookSuggestionsView = ({ bookClubId, auth, members = [], onSuggestionAdded
   const [loading, setLoading] = useState(true);
   const [showSuggestBook, setShowSuggestBook] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState(null);
+  const [suggestionLimit, setSuggestionLimit] = useState(null);
+  const [suggestionsRemaining, setSuggestionsRemaining] = useState(null);
 
   useEffect(() => {
     fetchBookSuggestions();
@@ -26,6 +28,8 @@ const BookSuggestionsView = ({ bookClubId, auth, members = [], onSuggestionAdded
       const { data } = await apiClient.get(`/v1/bookclub/${bookClubId}/suggestions`);
       if (data.success) {
         setBookSuggestions(data.data || []);
+        if (data.limit != null) setSuggestionLimit(data.limit);
+        if (data.remaining != null) setSuggestionsRemaining(data.remaining);
       }
     } catch (err) {
       logger.error('Error fetching book suggestions:', err);
@@ -80,12 +84,23 @@ const BookSuggestionsView = ({ bookClubId, auth, members = [], onSuggestionAdded
             </h1>
             <p className="text-gray-400 text-sm mt-1">
               Vote for the books you'd like to read next
+              {suggestionLimit != null && (
+                <span className="ml-2 text-gray-500">
+                  ({bookSuggestions.length}/{suggestionLimit})
+                </span>
+              )}
             </p>
           </div>
           {auth?.user && (
             <button
               onClick={() => setShowSuggestBook(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 font-medium"
+              disabled={suggestionsRemaining != null && suggestionsRemaining <= 0}
+              className={`px-4 py-2 text-white rounded-lg transition-colors flex items-center gap-2 font-medium ${
+                suggestionsRemaining != null && suggestionsRemaining <= 0
+                  ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+              title={suggestionsRemaining != null && suggestionsRemaining <= 0 ? 'Suggestion limit reached' : ''}
             >
               <FiPlus size={18} />
               Suggest a Book

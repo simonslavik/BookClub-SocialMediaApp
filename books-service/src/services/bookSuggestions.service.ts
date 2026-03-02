@@ -5,6 +5,8 @@ import { VoteType } from '@prisma/client';
 import { NotFoundError, ConflictError, ForbiddenError } from '../utils/errors';
 import logger from '../utils/logger';
 
+const MAX_PENDING_SUGGESTIONS = 10;
+
 export class BookSuggestionsService {
   /**
    * Get pending suggestions for a bookclub with user vote info
@@ -53,6 +55,8 @@ export class BookSuggestionsService {
       total: result.total,
       page: result.page,
       totalPages: result.totalPages,
+      limit: MAX_PENDING_SUGGESTIONS,
+      remaining: Math.max(0, MAX_PENDING_SUGGESTIONS - result.total),
     };
   }
 
@@ -65,6 +69,14 @@ export class BookSuggestionsService {
     googleBooksId: string,
     reason?: string
   ) {
+    // Check suggestion limit
+    const currentCount = await BookSuggestionsRepository.countPendingByBookClubId(bookClubId);
+    if (currentCount >= MAX_PENDING_SUGGESTIONS) {
+      throw new ConflictError(
+        `This bookclub has reached the maximum of ${MAX_PENDING_SUGGESTIONS} pending suggestions. Vote on or remove existing suggestions first.`
+      );
+    }
+
     // Check for duplicate suggestion
     const existingBook = await BooksRepository.findByGoogleBooksId(googleBooksId);
     if (existingBook) {

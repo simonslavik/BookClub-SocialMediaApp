@@ -44,6 +44,7 @@ const ProfilePage = () => {
   const [showAddBookModal, setShowAddBookModal] = useState(false);
   const [showBookDetails, setShowBookDetails] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
+  const [bookFilter, setBookFilter] = useState('all');
 
 
   const onCloseBookDetails = () => {
@@ -588,7 +589,7 @@ const ProfilePage = () => {
         {/* Books Section */}
         {(favoriteBooks.length > 0 || booksImReading.length > 0 || booksToRead.length > 0 || booksRead.length > 0 || isOwnProfile) && (
           <div className="bg-white rounded-lg shadow-md p-6 mt-6">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900">
                 {isOwnProfile ? 'My Library' : `${profile.name}'s Library`}
               </h2>
@@ -602,13 +603,69 @@ const ProfilePage = () => {
                 </button>
               )}
             </div>
-            
-            {/* Favorite Books */}
-            {favoriteBooks.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-red-600 mb-3">Favorites</h3>
+
+            {/* Filter Tabs */}
+            <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-3">
+              {[
+                { key: 'all', label: 'All', count: favoriteBooks.length + booksImReading.length + booksToRead.length + booksRead.length },
+                { key: 'reading', label: 'Currently Reading', count: booksImReading.length },
+                { key: 'want_to_read', label: 'Want to Read', count: booksToRead.length },
+                { key: 'completed', label: 'Read', count: booksRead.length },
+                { key: 'favorite', label: 'Favorites', count: favoriteBooks.length },
+              ].map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setBookFilter(tab.key)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    bookFilter === tab.key
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {tab.label}
+                  <span className={`ml-1.5 text-xs ${
+                    bookFilter === tab.key ? 'text-purple-200' : 'text-gray-400'
+                  }`}>
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Filtered Book Grid */}
+            {(() => {
+              const filteredBooks = bookFilter === 'all'
+                ? [
+                    ...booksImReading.map(b => ({ ...b, _shelf: 'reading' })),
+                    ...booksToRead.map(b => ({ ...b, _shelf: 'want_to_read' })),
+                    ...booksRead.map(b => ({ ...b, _shelf: 'completed' })),
+                    ...favoriteBooks.map(b => ({ ...b, _shelf: 'favorite' })),
+                  ]
+                : bookFilter === 'favorite' ? favoriteBooks.map(b => ({ ...b, _shelf: 'favorite' }))
+                : bookFilter === 'reading' ? booksImReading.map(b => ({ ...b, _shelf: 'reading' }))
+                : bookFilter === 'want_to_read' ? booksToRead.map(b => ({ ...b, _shelf: 'want_to_read' }))
+                : booksRead.map(b => ({ ...b, _shelf: 'completed' }));
+
+              const shelfLabel = { favorite: 'Favorite', reading: 'Reading', want_to_read: 'Want to Read', completed: 'Read' };
+              const shelfColor = { favorite: 'text-red-500', reading: 'text-green-500', want_to_read: 'text-blue-500', completed: 'text-purple-500' };
+
+              if (filteredBooks.length === 0) {
+                return (
+                  <div className="text-center py-8 text-gray-400">
+                    <p>
+                      {isOwnProfile
+                        ? bookFilter === 'all'
+                          ? 'No books in your library yet. Click "Add Books" to get started!'
+                          : 'No books on this shelf yet.'
+                        : 'No books in library yet.'}
+                    </p>
+                  </div>
+                );
+              }
+
+              return (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                  {favoriteBooks.map(userBook => (
+                  {filteredBooks.map(userBook => (
                     <div key={userBook.id} className="group relative">
                       <img
                         src={userBook.book.coverUrl || '/images/default.webp'}
@@ -643,163 +700,19 @@ const ProfilePage = () => {
                       </div>
                       <h4 className="mt-2 text-sm font-medium line-clamp-2">{userBook.book.title}</h4>
                       <p className="text-xs text-gray-600">{userBook.book.author}</p>
+                      {bookFilter === 'all' && (
+                        <p className={`text-xs font-medium mt-0.5 ${shelfColor[userBook._shelf]}`}>
+                          {shelfLabel[userBook._shelf]}
+                        </p>
+                      )}
                       {userBook.rating && (
                         <p className="text-xs text-yellow-600">{'⭐'.repeat(userBook.rating)}</p>
                       )}
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Currently Reading */}
-            {booksImReading.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-green-600 mb-3">Currently Reading</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                  {booksImReading.map(userBook => (
-                    <div key={userBook.id} className="group relative">
-                      <img
-                        src={userBook.book.coverUrl || '/images/default.webp'}
-                        alt={userBook.book.title}
-                        className="w-full h-48 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow"
-                        onError={(e) => { e.target.src = '/images/default.webp'; }}
-                      />
-                      {/* Action Overlay */}
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all rounded-lg flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
-                        {isOwnProfile && (
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const ok = await confirm('Remove this book from your library?', { title: 'Remove Book', variant: 'danger', confirmLabel: 'Remove' });
-                              if (ok) DeleteUserBook(userBook.id);
-                            }}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors shadow-lg"
-                          >
-                            Remove
-                          </button>
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedBook(userBook.book);
-                            setShowBookDetails(true);
-                          }}
-                          className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-lg"
-                        >
-                          <FiInfo size={24} />
-                        </button>
-                      </div>
-                      <h4 className="mt-2 text-sm font-medium line-clamp-2">{userBook.book.title}</h4>
-                      <p className="text-xs text-gray-600">{userBook.book.author}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Want to Read */}
-            {booksToRead.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-blue-600 mb-3">Want to Read</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                  {booksToRead.map(userBook => (
-                    <div key={userBook.id} className="group relative">
-                      <img
-                        src={userBook.book.coverUrl || '/images/default.webp'}
-                        alt={userBook.book.title}
-                        className="w-full h-48 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow"
-                        onError={(e) => { e.target.src = '/images/default.webp'; }}
-                      />
-                      {/* Action Overlay */}
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all rounded-lg flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
-                        {isOwnProfile && (
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const ok = await confirm('Remove this book from your library?', { title: 'Remove Book', variant: 'danger', confirmLabel: 'Remove' });
-                              if (ok) DeleteUserBook(userBook.id);
-                            }}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors shadow-lg"
-                          >
-                            Remove
-                          </button>
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedBook(userBook.book);
-                            setShowBookDetails(true);
-                          }}
-                          className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-lg"
-                        >
-                          <FiInfo size={24} />
-                        </button>
-                      </div>
-                      <h4 className="mt-2 text-sm font-medium line-clamp-2">{userBook.book.title}</h4>
-                      <p className="text-xs text-gray-600">{userBook.book.author}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Completed Books */}
-            {booksRead.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-purple-600 mb-3">✅ Completed</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                  {booksRead.map(userBook => (
-                    <div key={userBook.id} className="group relative">
-                      <img
-                        src={userBook.book.coverUrl || '/images/default.webp'}
-                        alt={userBook.book.title}
-                        className="w-full h-48 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow"
-                        onError={(e) => { e.target.src = '/images/default.webp'; }}
-                      />
-                      {/* Action Overlay */}
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all rounded-lg flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
-                        {isOwnProfile && (
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const ok = await confirm('Remove this book from your library?', { title: 'Remove Book', variant: 'danger', confirmLabel: 'Remove' });
-                              if (ok) DeleteUserBook(userBook.id);
-                            }}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors shadow-lg"
-                          >
-                            Remove
-                          </button>
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedBook(userBook.book);
-                            setShowBookDetails(true);
-                          }}
-                          className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-lg"
-                        >
-                          <FiInfo size={24} />
-                        </button>
-                      </div>
-                      <h4 className="mt-2 text-sm font-medium line-clamp-2">{userBook.book.title}</h4>
-                      <p className="text-xs text-gray-600">{userBook.book.author}</p>
-                      {userBook.rating && (
-                        <p className="text-xs text-yellow-600">{'⭐'.repeat(userBook.rating)}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {favoriteBooks.length === 0 && booksImReading.length === 0 && 
-             booksToRead.length === 0 && booksRead.length === 0 && (
-              <div className="text-center py-8 text-gray-400">
-                <p>{isOwnProfile ? 'No books in your library yet. Click "Add Books" to get started!' : 'No books in library yet.'}</p>
-              </div>
-            )}
+              );
+            })()}
           </div>
         )}
 
