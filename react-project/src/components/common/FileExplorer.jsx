@@ -75,7 +75,7 @@ export default function FileExplorer({ files, currentFile, onFileSelect, onCreat
               }}
               onBlur={handleCreateFile}
               placeholder="filename.js"
-              className="w-full px-2 py-1 bg-gray-700 border border-purple-500 text-white text-sm rounded focus:outline-none"
+              className="w-full px-2 py-1 bg-gray-700 border border-stone-500 text-white text-sm rounded focus:outline-none"
               autoFocus
             />
           </div>
@@ -95,7 +95,7 @@ export default function FileExplorer({ files, currentFile, onFileSelect, onCreat
                 onClick={() => onFileSelect(file)}
                 className={`flex items-center justify-between gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors group ${
                   currentFile?.id === file.id
-                    ? 'bg-purple-600 text-white'
+                    ? 'bg-stone-700 text-white'
                     : 'text-gray-300 hover:bg-gray-800'
                 }`}
               >

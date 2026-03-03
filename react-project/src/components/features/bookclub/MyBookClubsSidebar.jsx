@@ -27,7 +27,7 @@ const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, onSelectBookClub, on
           {/* Home Button */}
           <button
             onClick={() => navigate('/')}
-            className="w-12 h-12 rounded-full bg-gray-700 hover:bg-purple-600 flex items-center justify-center text-white transition-colors flex-shrink-0"
+            className="w-12 h-12 rounded-full bg-gray-700 hover:bg-stone-700 flex items-center justify-center text-white transition-colors flex-shrink-0"
             title="Home"
           >
             <FiHome size={20} />
@@ -37,8 +37,8 @@ const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, onSelectBookClub, on
               onClick={onOpenDM}
               className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors flex-shrink-0 ${
                 isOnDMPage
-                  ? 'bg-purple-600 ring-2 ring-purple-400'
-                  : 'bg-gray-700 hover:bg-purple-600'
+                  ? 'bg-stone-700 ring-2 ring-stone-500'
+                  : 'bg-gray-700 hover:bg-stone-700'
               }`}
               title="Direct Messages"
             >
@@ -56,8 +56,8 @@ const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, onSelectBookClub, on
               onClick={() => onSelectBookClub(club.id)}
               className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all flex-shrink-0 ${
                 !isOnDMPage && club.id === currentBookClubId
-                  ? 'bg-purple-600 ring-2 ring-purple-400'
-                  : 'bg-gray-700 hover:bg-purple-600 hover:rounded-2xl'
+                  ? 'bg-stone-700 ring-2 ring-stone-500'
+                  : 'bg-gray-700 hover:bg-stone-700 hover:rounded-2xl'
               }`}
               title={club.name}
             >

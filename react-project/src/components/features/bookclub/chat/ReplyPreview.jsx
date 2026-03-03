@@ -18,10 +18,10 @@ const ReplyPreview = ({ replyTo, onScrollTo, alignRight = false }) => {
     >
       <div className={`${
         alignRight
-          ? 'bg-purple-900/40 border-l-2 border-purple-400 rounded-r-lg'
-          : 'bg-gray-700/50 border-l-2 border-purple-400 rounded-r-lg'
-      } px-3 py-1.5 max-w-[280px] hover:bg-purple-900/60 transition-colors`}>
-        <span className="text-xs text-purple-300 font-medium block">{replyTo.username}</span>
+          ? 'bg-stone-950/40 border-l-2 border-stone-500 rounded-r-lg'
+          : 'bg-gray-700/50 border-l-2 border-stone-500 rounded-r-lg'
+      } px-3 py-1.5 max-w-[280px] hover:bg-stone-950/60 transition-colors`}>
+        <span className="text-xs text-stone-300 font-medium block">{replyTo.username}</span>
         <span className="text-xs text-gray-400 truncate block">{replyTo.content || '[attachment]'}</span>
       </div>
     </div>

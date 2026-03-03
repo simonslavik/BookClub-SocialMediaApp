@@ -141,12 +141,12 @@ const SuggestBookModal = ({ isOpen, onClose, bookClubId, auth, onBookSuggested }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Enter book title or author..."
-                  className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-stone-500"
                 />
                 <button
                   type="submit"
                   disabled={searching || !searchQuery.trim()}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-stone-700 hover:bg-stone-800 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
                 >
                   <FiSearch size={16} />
                   {searching ? 'Searching...' : 'Search'}
@@ -200,7 +200,7 @@ const SuggestBookModal = ({ isOpen, onClose, bookClubId, auth, onBookSuggested }
             maxLength={200}
             placeholder="e.g., Great characters, fits our theme, highly recommended..."
             rows={3}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-stone-500 resize-none"
           />
           <p className="text-xs text-gray-500 text-right mt-1">{reason.length}/200</p>
         </div>
@@ -217,7 +217,7 @@ const SuggestBookModal = ({ isOpen, onClose, bookClubId, auth, onBookSuggested }
           <button
             onClick={handleSubmit}
             disabled={loading || !selectedBook}
-            className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
+            className="flex-1 px-4 py-2 bg-stone-700 hover:bg-stone-800 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
           >
             {loading ? 'Suggesting...' : 'Suggest Book'}
           </button>

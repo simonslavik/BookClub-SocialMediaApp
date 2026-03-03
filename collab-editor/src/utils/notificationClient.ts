@@ -20,14 +20,20 @@ interface MeetingEventPayload {
  */
 export async function notifyMeetingEvent(payload: MeetingEventPayload) {
   try {
-    // Fetch all active members of the club
-    const members = await prisma.bookClubMember.findMany({
-      where: {
-        bookClubId: payload.clubId,
-        status: 'ACTIVE',
-      },
-      select: { userId: true },
-    });
+    // Fetch all active members of the club and club name
+    const [members, club] = await Promise.all([
+      prisma.bookClubMember.findMany({
+        where: {
+          bookClubId: payload.clubId,
+          status: 'ACTIVE',
+        },
+        select: { userId: true },
+      }),
+      prisma.bookClub.findUnique({
+        where: { id: payload.clubId },
+        select: { name: true },
+      }),
+    ]);
 
     const userIds = members.map(m => m.userId);
 
@@ -42,6 +48,7 @@ export async function notifyMeetingEvent(payload: MeetingEventPayload) {
       body: JSON.stringify({
         ...payload,
         userIds,
+        clubName: club?.name || undefined,
       }),
     });
 

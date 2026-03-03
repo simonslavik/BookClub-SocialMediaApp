@@ -18,7 +18,7 @@ const getRoomIconColor = (room, isActive) => {
   if (isActive) return 'text-white';
   switch (room.type) {
     case 'PRIVATE': return 'text-yellow-400';
-    case 'ANNOUNCEMENT': return 'text-blue-400';
+    case 'ANNOUNCEMENT': return 'text-stone-400';
     default: return '';
   }
 };
@@ -123,7 +123,7 @@ const SideBarRooms = ({
               />
               
               <h2 
-                className="text-white font-bold text-lg truncate cursor-pointer hover:text-purple-400"
+                className="text-white font-bold text-lg truncate cursor-pointer hover:text-stone-500"
                 onClick={() => navigate(`/bookclubpage/${bookClub?.id}`)}
               >
                 {bookClub?.name}
@@ -148,7 +148,7 @@ const SideBarRooms = ({
                 <FiMessageSquare size={16} className="flex-shrink-0 text-green-400" />
                 <span className="truncate flex-1">Book Suggestions</span>
                 {!showSuggestions && unreadSections.has('suggestions') && (
-                  <span className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-stone-500 flex-shrink-0" />
                 )}
               </button>
               <button
@@ -164,7 +164,7 @@ const SideBarRooms = ({
                 <FiBook size={16} className="flex-shrink-0 text-orange-400" />
                 <span className="truncate flex-1">BookClub Books</span>
                 {!showBooksHistory && unreadSections.has('books') && (
-                  <span className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-stone-500 flex-shrink-0" />
                 )}
               </button>
               <button
@@ -177,10 +177,10 @@ const SideBarRooms = ({
                       : 'text-gray-400 hover:bg-gray-700 hover:text-white'
                 }`}
               >
-                <FiCalendar size={16} className="flex-shrink-0 text-cyan-400" />
+                <FiCalendar size={16} className="flex-shrink-0 text-stone-500" />
                 <span className="truncate flex-1">BookClub Calendar</span>
                 {!showCalendar && unreadSections.has('calendar') && (
-                  <span className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-stone-500 flex-shrink-0" />
                 )}
               </button>
               <button
@@ -196,7 +196,7 @@ const SideBarRooms = ({
                 <FiVideo size={16} className="flex-shrink-0 text-pink-400" />
                 <span className="truncate flex-1">Meetings</span>
                 {!showMeetings && unreadSections.has('meetings') && (
-                  <span className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-stone-500 flex-shrink-0" />
                 )}
               </button>
             </div>
@@ -246,7 +246,7 @@ const SideBarRooms = ({
                         <Icon size={16} className={`flex-shrink-0 ${isLocked ? 'text-gray-600' : iconColor}`} />
                         <span className="truncate flex-1">{room.name}</span>
                         {hasUnread && (
-                          <span className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                          <span className="w-2 h-2 rounded-full bg-stone-500 flex-shrink-0" />
                         )}
                       </button>
                       {/* Three-dot menu on hover (for mods+) */}

@@ -66,7 +66,7 @@ const JoinBookclubModal = ({ isOpen, onClose, bookclub, onJoinSuccess }) => {
   const getIcon = () => {
     if (isPublic) return <FiUnlock className="w-16 h-16 text-green-500" />;
     if (isPrivate) return <FiLock className="w-16 h-16 text-yellow-500" />;
-    if (isInviteOnly) return <FiEyeOff className="w-16 h-16 text-purple-500" />;
+    if (isInviteOnly) return <FiEyeOff className="w-16 h-16 text-stone-500" />;
   };
 
   const getTitle = () => {
@@ -85,7 +85,7 @@ const JoinBookclubModal = ({ isOpen, onClose, bookclub, onJoinSuccess }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-fadeIn">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-white">
+        <div className="bg-stone-700 p-6 text-white">
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-2xl font-display font-bold">{getTitle()}</h2>
@@ -148,7 +148,7 @@ const JoinBookclubModal = ({ isOpen, onClose, bookclub, onJoinSuccess }) => {
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Tell the admins why you'd like to join..."
                     rows="3"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none font-outfit resize-none"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-stone-500 focus:outline-none font-outfit resize-none"
                     maxLength={500}
                   />
                   <p className="text-xs text-gray-500 mt-1 font-outfit">
@@ -180,7 +180,7 @@ const JoinBookclubModal = ({ isOpen, onClose, bookclub, onJoinSuccess }) => {
                     className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-colors font-outfit flex items-center justify-center gap-2 ${
                       loading
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                        : 'bg-stone-700 text-white hover:bg-stone-800'
                     }`}
                   >
                     {loading ? (

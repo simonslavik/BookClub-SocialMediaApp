@@ -179,7 +179,7 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
                             value={form.name} 
                             onChange={handleChange} 
                             placeholder="Enter your username" 
-                            className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none'
+                            className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-transparent transition-all outline-none'
                         />
                     </div>
 
@@ -194,7 +194,7 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
                             value={form.email} 
                             onChange={handleChange} 
                             placeholder="email@example.com" 
-                            className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none'
+                            className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-transparent transition-all outline-none'
                         />
                     </div>
 
@@ -209,7 +209,7 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
                             value={form.password} 
                             onChange={handleChange} 
                             placeholder="Choose a strong password" 
-                            className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none'
+                            className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-transparent transition-all outline-none'
                         />
                         
                         {/* Password Requirements */}
@@ -251,7 +251,7 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
                     <button 
                         type="submit" 
                         disabled={loading} 
-                        className='w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg mt-6'
+                        className='w-full bg-stone-700 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg mt-6'
                     >
                         {loading ? (
                             <span className="flex items-center justify-center">
@@ -303,7 +303,7 @@ const RegisterModule = ({ onClose, onSwitchToLogin }) => {
                 {/* Login Link */}
                 <button 
                     onClick={onSwitchToLogin}
-                    className='w-full border-2 border-purple-600 text-purple-600 hover:bg-purple-50 font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-[1.02]'
+                    className='w-full border-2 border-stone-700 text-stone-700 hover:bg-stone-50 font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-[1.02]'
                 >
                     Sign In
                 </button>

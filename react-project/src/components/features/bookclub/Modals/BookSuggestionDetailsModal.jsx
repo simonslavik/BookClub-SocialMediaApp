@@ -93,7 +93,7 @@ const BookSuggestionDetailsModal = ({ suggestion, bookClubId, auth, members = []
               {suggestion.reason && (
                 <div className="mb-6">
                   <h4 className="text-white font-semibold mb-2">Why this book?</h4>
-                  <div className="bg-purple-900/30 border border-purple-700/50 rounded-lg p-4">
+                  <div className="bg-stone-950/30 border border-stone-800/50 rounded-lg p-4">
                     <p className="text-gray-200 italic">"{suggestion.reason}"</p>
                   </div>
                 </div>
@@ -107,11 +107,11 @@ const BookSuggestionDetailsModal = ({ suggestion, bookClubId, auth, members = []
                 <span className="text-gray-400">
                   Suggested by 
                 </span>
-                <span className="text-gray-400 group-hover:text-purple-400 transition-colors flex items-center gap-2">
+                <span className="text-gray-400 group-hover:text-stone-500 transition-colors flex items-center gap-2">
                   <img
                   src={suggesterImage || '/images/default-avatar.png'}
                   alt={suggesterName}
-                  className="w-8 h-8 rounded-full object-cover group-hover:ring-2 group-hover:ring-purple-400 transition-all"
+                  className="w-8 h-8 rounded-full object-cover group-hover:ring-2 group-hover:ring-stone-500 transition-all"
                   />
                   <span className="font-medium text-gray-300 group-hover:underline">{suggesterName}</span>
                 </span>

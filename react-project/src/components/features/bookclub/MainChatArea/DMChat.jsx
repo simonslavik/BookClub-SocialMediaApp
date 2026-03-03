@@ -133,8 +133,8 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs, r
     const el = document.getElementById(`dm-msg-${messageId}`);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('ring-2', 'ring-purple-500', 'ring-opacity-75');
-      setTimeout(() => el.classList.remove('ring-2', 'ring-purple-500', 'ring-opacity-75'), 2000);
+      el.classList.add('ring-2', 'ring-stone-500', 'ring-opacity-75');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-stone-500', 'ring-opacity-75'), 2000);
     }
   }, []);
 
@@ -278,7 +278,7 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs, r
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-900">
         {loadingOlder && (
           <div className="flex justify-center py-3">
-            <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-stone-500 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
         {messages.length === 0 ? (
@@ -310,8 +310,8 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs, r
                     onClick={() => scrollToMessage(msg.replyTo.id)}
                     className={`flex items-center ${isOwn ? 'justify-end' : 'justify-start'} gap-1 mb-0 cursor-pointer`}
                   >
-                    <div className={`${isOwn ? 'bg-purple-900/40 border-purple-400' : 'bg-gray-700/50 border-purple-400'} border-l-2 rounded-r-lg px-3 py-1.5 max-w-[280px] hover:bg-purple-900/60 transition-colors`}>
-                      <span className="text-xs text-purple-300 font-medium block">
+                    <div className={`${isOwn ? 'bg-stone-950/40 border-stone-500' : 'bg-gray-700/50 border-stone-500'} border-l-2 rounded-r-lg px-3 py-1.5 max-w-[280px] hover:bg-stone-950/60 transition-colors`}>
+                      <span className="text-xs text-stone-300 font-medium block">
                         {msg.replyTo.sender?.name || (msg.replyTo.senderId === currentUserId ? 'You' : otherUser?.name || 'Unknown')}
                       </span>
                       <span className="text-xs text-gray-400 truncate block">{msg.replyTo.content || '[attachment]'}</span>
@@ -323,7 +323,7 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs, r
                 <div className="relative">
                   {msg.content && (
                     <div className={`relative px-4 py-2 rounded-2xl break-words ${msg.deletedAt ? 'opacity-60' : ''} ${
-                        isOwn ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-200'
+                        isOwn ? 'bg-stone-700 text-white' : 'bg-gray-700 text-gray-200'
                     }`}>
                       <p className={`text-sm ${msg.deletedAt ? 'italic text-gray-300' : ''}`}>{linkifyText(msg.content)}</p>
                       {isLastInGroup && (
@@ -385,10 +385,10 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs, r
       <form onSubmit={handleSubmit} className="bg-gray-800 border-t border-gray-700 p-4">
         {/* Reply preview bar */}
         {replyingTo && (
-          <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-gray-700/60 border-l-2 border-purple-400 rounded-r-lg">
-            <FiCornerUpLeft className="w-4 h-4 text-purple-400 flex-shrink-0" />
+          <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-gray-700/60 border-l-2 border-stone-500 rounded-r-lg">
+            <FiCornerUpLeft className="w-4 h-4 text-stone-500 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <span className="text-xs text-purple-300 font-medium">{replyingTo.senderName}</span>
+              <span className="text-xs text-stone-300 font-medium">{replyingTo.senderName}</span>
               <p className="text-xs text-gray-400 truncate">{replyingTo.content || '[attachment]'}</p>
             </div>
             <button
@@ -413,12 +413,12 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs, r
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder={`Message ${otherUser.name}`}
-            className="flex-1 px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="flex-1 px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-stone-500"
           />
           <button
             type="submit"
             disabled={(!newMessage.trim() && selectedFiles.length === 0) || uploadingFiles}
-            className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium flex items-center gap-2"
+            className="px-6 py-2 bg-stone-700 hover:bg-stone-800 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium flex items-center gap-2"
           >
             <FiSend /> {uploadingFiles ? 'Uploading...' : 'Send'}
           </button>

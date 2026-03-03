@@ -91,8 +91,8 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws, 
     const el = document.getElementById(`msg-${messageId}`);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('ring-2', 'ring-purple-500', 'ring-opacity-75');
-      setTimeout(() => el.classList.remove('ring-2', 'ring-purple-500', 'ring-opacity-75'), 2000);
+      el.classList.add('ring-2', 'ring-stone-500', 'ring-opacity-75');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-stone-500', 'ring-opacity-75'), 2000);
     }
   }, []);
 
@@ -240,7 +240,7 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws, 
     <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-1 space-y-1">
       {loadingOlder && (
         <div className="flex justify-center py-3">
-          <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-stone-500 border-t-transparent rounded-full animate-spin" />
         </div>
       )}
       {messages.length === 0 ? (

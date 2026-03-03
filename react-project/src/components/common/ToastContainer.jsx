@@ -16,15 +16,15 @@ const toastConfig = {
   },
   warning: {
     icon: FiAlertTriangle,
-    color: 'text-amber-400',
-    border: 'border-amber-500/30',
-    bg: 'bg-amber-500/10',
+    color: 'text-stone-400',
+    border: 'border-stone-500/30',
+    bg: 'bg-stone-500/10',
   },
   info: {
     icon: FiInfo,
-    color: 'text-blue-400',
-    border: 'border-blue-500/30',
-    bg: 'bg-blue-500/10',
+    color: 'text-stone-400',
+    border: 'border-stone-500/30',
+    bg: 'bg-stone-500/10',
   },
 };
 

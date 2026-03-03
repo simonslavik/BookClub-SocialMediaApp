@@ -7,6 +7,8 @@ const router = Router();
 // User-facing endpoints (require auth via gateway headers)
 router.get('/', authMiddleware, NotificationController.getNotifications);
 router.get('/unread-count', authMiddleware, NotificationController.getUnreadCount);
+router.get('/preferences', authMiddleware, NotificationController.getPreferences);
+router.put('/preferences', authMiddleware, NotificationController.updatePreferences);
 router.patch('/read-all', authMiddleware, NotificationController.markAllRead);
 router.patch('/:id/read', authMiddleware, NotificationController.markRead);
 router.delete('/:id', authMiddleware, NotificationController.dismiss);

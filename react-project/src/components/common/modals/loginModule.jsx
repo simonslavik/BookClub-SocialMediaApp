@@ -142,7 +142,7 @@ const Login = ({ onClose, onSwitchToRegister }) => {
 
                 {/* Header */}
                 <div className="mb-8 text-center">
-                    <div className="inline-block p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full mb-4">
+                    <div className="inline-block p-3 bg-stone-700 rounded-full mb-4">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
@@ -182,7 +182,7 @@ const Login = ({ onClose, onSwitchToRegister }) => {
                             value={formData.email} 
                             onChange={handleChange}
                             placeholder="email@example.com"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-transparent transition-all outline-none"
                         />
                     </div>
 
@@ -197,13 +197,13 @@ const Login = ({ onClose, onSwitchToRegister }) => {
                             value={formData.password} 
                             onChange={handleChange}
                             placeholder="Enter your password"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-transparent transition-all outline-none"
                         />
                         <div className="text-right mt-1">
                             <button
                                 type="button"
                                 onClick={() => setShowForgotPassword(true)}
-                                className="text-sm text-purple-600 hover:text-purple-700"
+                                className="text-sm text-stone-700 hover:text-stone-800"
                             >
                                 Forgot password?
                             </button>
@@ -213,7 +213,7 @@ const Login = ({ onClose, onSwitchToRegister }) => {
                     <button 
                         type="submit" 
                         disabled={loading}
-                        className='w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg mt-6'
+                        className='w-full bg-stone-700 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg mt-6'
                     >
                         {loading ? (
                             <span className="flex items-center justify-center">
@@ -271,7 +271,7 @@ const Login = ({ onClose, onSwitchToRegister }) => {
                 {/* Register Link */}
                 <button 
                     onClick={onSwitchToRegister}
-                    className='w-full border-2 border-purple-600 text-purple-600 hover:bg-purple-50 font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-[1.02]'
+                    className='w-full border-2 border-stone-700 text-stone-700 hover:bg-stone-50 font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-[1.02]'
                 >
                     Create Account
                 </button>

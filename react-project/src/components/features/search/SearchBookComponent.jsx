@@ -90,11 +90,11 @@ const BookSearch = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search for books by title, author, or ISBN..."
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 outline-none"
           />
           {loading && (
             <div className="flex items-center px-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-stone-600"></div>
             </div>
           )}
         </div>
@@ -175,7 +175,7 @@ const BookSearch = () => {
                 <button
                   onClick={() => addToLibrary(book.googleBooksId, 'want_to_read')}
                   disabled={addingBookId === book.googleBooksId}
-                  className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  className="w-full px-3 py-2 text-sm bg-stone-700 text-white rounded-md hover:bg-stone-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   {addingBookId === book.googleBooksId ? 'Adding...' : 'Want to Read'}
                 </button>
@@ -191,7 +191,7 @@ const BookSearch = () => {
                   <button
                     onClick={() => addToLibrary(book.googleBooksId, 'completed')}
                     disabled={addingBookId === book.googleBooksId}
-                    className="px-2 py-1.5 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-gray-400 transition-colors"
+                    className="px-2 py-1.5 text-xs bg-stone-700 text-white rounded hover:bg-stone-800 disabled:bg-gray-400 transition-colors"
                   >
                     Read
                   </button>

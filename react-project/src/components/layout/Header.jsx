@@ -85,9 +85,9 @@ const HomePageHeader = () => {
     };
   }, []);
     return (
-        <div className="w-full h-12 bg-white border-b border-gray-300 flex items-center px-4 md:px-10 relative">
+        <div className="w-full h-13 bg-warmgray-50 border-b border-warmgray-200 flex items-center px-4 md:px-10 relative">
             <button onClick={() => navigate('/')} className={`cursor-pointer md:ml-40 mr-20 md:mr-0 flex-1 flex ${showMobileMenu ? 'justify-start' : 'justify-end'} items-center gap-2`}>
-                <h2 className=" font-light">YourBookClubs.com</h2>
+                <h2 className=" text-lg font-semibold text-stone-800 tracking-tight">YourBookClubs</h2>
             </button>
             {auth?.user && (
             <>
@@ -139,7 +139,7 @@ const HomePageHeader = () => {
                                                     <div className="mt-3 flex space-x-2">
                                                         <button 
                                                             onClick={() => handleFriendAction(request.friendshipId, 'accept')}
-                                                            className="flex-1 px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition text-xs font-medium"
+                                                            className="flex-1 px-3 py-1.5 bg-stone-600 text-white rounded-md hover:bg-stone-700 transition text-xs font-medium"
                                                         >
                                                             Accept
                                                         </button>
@@ -162,9 +162,9 @@ const HomePageHeader = () => {
                 </div>
                 <button 
                     onClick={() => navigate('/dm')}
-                    className="flex items-center ml-2 border-1 border-gray-200 rounded-full cursor-pointer p-1 hover:bg-gray-100 border-t-indigo-400 "
+                    className="flex items-center ml-2 border border-warmgray-200 rounded-full cursor-pointer px-3 py-1 hover:bg-warmgray-100 transition-colors"
                 >
-                    <span className="font-medium text-sm">OpenBookClubs</span>
+                    <span className="font-medium text-sm text-stone-700">OpenBookClubs</span>
                 </button>
                 <div className="ml-2 relative p-1" ref={profileDropdownRef}>
                     <button onClick={handleProfileClick}>
@@ -221,12 +221,12 @@ const HomePageHeader = () => {
                         </button>
                     </div>
                     {/* Profile Section */}
-                    <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
+                    <div className="p-6 border-b border-warmgray-200 bg-warmgray-50">
                         <div className="flex items-center gap-3">
                             <img 
                                 src={getProfileImageUrl(auth.user.profileImage) || DEFAULT_AVATAR}
                                 alt="Profile" 
-                                className="h-14 w-14 rounded-full object-cover border-2 border-purple-300"
+                                className="h-14 w-14 rounded-full object-cover border-2 border-warmgray-300"
                                 onError={(e) => { e.target.src = DEFAULT_AVATAR; }}
                             />
                             <div>
@@ -270,7 +270,7 @@ const HomePageHeader = () => {
                                                 <div className="mt-2 flex gap-2">
                                                     <button 
                                                         onClick={() => handleFriendAction(request.id, 'accept')}
-                                                        className="flex-1 px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition text-xs font-medium"
+                                                        className="flex-1 px-3 py-1.5 bg-stone-600 text-white rounded-md hover:bg-stone-700 transition text-xs font-medium"
                                                     >
                                                         Accept
                                                     </button>
@@ -298,7 +298,7 @@ const HomePageHeader = () => {
                             }}
                             className="w-full px-4 py-3 text-left hover:bg-gray-50 transition flex items-center gap-3 border-b border-gray-100"
                         >
-                            <FiMail className="text-purple-600" size={20} />
+                            <FiMail className="text-stone-600" size={20} />
                             <span className="font-medium">Messages</span>
                         </button>
                         
@@ -309,7 +309,7 @@ const HomePageHeader = () => {
                             }} 
                             className="w-full px-4 py-3 text-left hover:bg-gray-50 transition flex items-center gap-3 border-b border-gray-100"
                         >
-                            <FiUser className="text-blue-600" size={20} />
+                            <FiUser className="text-stone-600" size={20} />
                             <span className="font-medium">View Profile</span>
                         </button>
                         
@@ -355,13 +355,13 @@ const HomePageHeader = () => {
             <div className='ml-auto flex gap-2 flex-1 justify-end'>
                 <button 
                     onClick={() => setOpenLogin(true)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition mr-1"
+                    className="px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 transition mr-1 text-sm font-medium"
                 >
                     Login
                 </button>
                 <button 
                     onClick={() => setOpenRegister(true)}
-                    className="px-4 py-2 bg-blue-950 text-white rounded hover:bg-blue-700 transition"
+                    className="px-4 py-2 bg-stone-700 text-white rounded-lg hover:bg-stone-600 transition text-sm font-medium"
                 >
                     Register
                 </button>

@@ -8,7 +8,7 @@ const BookDetailsModal = ({ onClose, book }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-lg">
+        <div className="flex items-center justify-between p-6 border-b bg-stone-700 text-white rounded-t-lg">
           <h2 className="text-2xl font-bold">Book Details</h2>
           <button
             onClick={onClose}

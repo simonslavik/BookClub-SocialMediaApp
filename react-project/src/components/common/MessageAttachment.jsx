@@ -46,7 +46,7 @@ const MessageAttachment = ({ attachment, canDelete, onDelete, auth }) => {
           <img
             src={`${COLLAB_EDITOR_URL}${attachment.url}`}
             alt={attachment.filename}
-            className="max-w-sm max-h-64 rounded-lg cursor-pointer hover:brightness-110 transition-all duration-200 border border-gray-600/30 hover:border-purple-500/50 shadow-lg"
+            className="max-w-sm max-h-64 rounded-lg cursor-pointer hover:brightness-110 transition-all duration-200 border border-gray-600/30 hover:border-stone-500/50 shadow-lg"
             onClick={() => setImageExpanded(true)}
             onError={(e) => { e.target.src = '/images/default.webp'; }}
           />
@@ -106,9 +106,9 @@ const MessageAttachment = ({ attachment, canDelete, onDelete, auth }) => {
   }
 
   return (
-    <div className="flex items-center gap-3 bg-gradient-to-r from-gray-700 to-gray-750 rounded-lg p-3 mt-2 max-w-xs hover:from-gray-650 hover:to-gray-700 transition-all duration-200 border border-gray-600/50 hover:border-purple-500/50 shadow-md hover:shadow-lg group">
-      <div className="bg-purple-600/20 p-2 rounded-lg group-hover:bg-purple-600/30 transition-colors">
-        <FiFile className="text-purple-400 flex-shrink-0" size={24} />
+    <div className="flex items-center gap-3 bg-gradient-to-r from-gray-700 to-gray-750 rounded-lg p-3 mt-2 max-w-xs hover:from-gray-650 hover:to-gray-700 transition-all duration-200 border border-gray-600/50 hover:border-stone-500/50 shadow-md hover:shadow-lg group">
+      <div className="bg-stone-700/20 p-2 rounded-lg group-hover:bg-stone-700/30 transition-colors">
+        <FiFile className="text-stone-500 flex-shrink-0" size={24} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-white text-sm font-medium truncate" title={attachment.filename}>{attachment.filename}</p>
@@ -118,7 +118,7 @@ const MessageAttachment = ({ attachment, canDelete, onDelete, auth }) => {
       </div>
       <button
         onClick={handleDownload}
-        className="text-blue-400 hover:text-blue-300 flex-shrink-0 p-1.5 hover:bg-blue-400/10 rounded-lg transition-all duration-200 hover:scale-110"
+        className="text-stone-400 hover:text-stone-300 flex-shrink-0 p-1.5 hover:bg-stone-400/10 rounded-lg transition-all duration-200 hover:scale-110"
         title="Download"
       >
         <FiDownload size={18} />

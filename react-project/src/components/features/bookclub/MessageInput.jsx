@@ -213,9 +213,9 @@ const MessageInput = ({
       {/* Reply Preview Bar */}
       {replyingTo && (
         <div className="flex items-center gap-2 px-4 pt-3 pb-1">
-          <FiCornerUpLeft className="w-4 h-4 text-purple-400 flex-shrink-0" />
-          <div className="flex-1 bg-gray-700/50 border-l-2 border-purple-400 rounded-r-lg px-3 py-1.5 min-w-0">
-            <span className="text-xs text-purple-300 font-medium block">Replying to {replyingTo.username}</span>
+          <FiCornerUpLeft className="w-4 h-4 text-stone-500 flex-shrink-0" />
+          <div className="flex-1 bg-gray-700/50 border-l-2 border-stone-500 rounded-r-lg px-3 py-1.5 min-w-0">
+            <span className="text-xs text-stone-300 font-medium block">Replying to {replyingTo.username}</span>
             <span className="text-xs text-gray-400 truncate block">{replyingTo.text || '[attachment]'}</span>
           </div>
           <button
@@ -255,13 +255,13 @@ const MessageInput = ({
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             placeholder={`Message #${currentRoom?.name} — type @ to mention`}
-            className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-stone-500"
           />
         </div>
         <button
           type="submit"
           disabled={(!newMessage.trim() && selectedFiles.length === 0) || uploadingFiles}
-          className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
+          className="px-6 py-2 bg-stone-700 hover:bg-stone-800 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
         >
           {uploadingFiles ? 'Sending...' : 'Send'}
         </button>

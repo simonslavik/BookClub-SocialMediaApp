@@ -76,7 +76,7 @@ const AddBookToLibraryModal = ({ onClose, onBookAdded }) => {
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-stone-700 px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
             <FiBook />
             Add Books to Your Library
@@ -100,14 +100,14 @@ const AddBookToLibraryModal = ({ onClose, onBookAdded }) => {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search for books by title, author, or ISBN..."
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 outline-none"
                   autoFocus
                 />
               </div>
               <button
                 type="submit"
                 disabled={loading || !query.trim()}
-                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-semibold"
+                className="px-6 py-3 bg-stone-700 hover:bg-stone-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-semibold"
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ const AddBookToLibraryModal = ({ onClose, onBookAdded }) => {
                         <button
                           onClick={() => addToLibrary(book.googleBooksId, 'want_to_read')}
                           disabled={addingBookId === book.googleBooksId}
-                          className="w-full px-3 py-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                          className="w-full px-3 py-2 text-xs font-semibold bg-stone-700 text-white rounded-lg hover:bg-stone-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                         >
                           {addingBookId === book.googleBooksId ? 'Adding...' : '📚 Want to Read'}
                         </button>
@@ -219,7 +219,7 @@ const AddBookToLibraryModal = ({ onClose, onBookAdded }) => {
                           <button
                             onClick={() => addToLibrary(book.googleBooksId, 'completed')}
                             disabled={addingBookId === book.googleBooksId}
-                            className="px-2 py-1.5 text-xs font-semibold bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-gray-400 transition-colors"
+                            className="px-2 py-1.5 text-xs font-semibold bg-stone-700 text-white rounded hover:bg-stone-800 disabled:bg-gray-400 transition-colors"
                           >
                             ✅ Read
                           </button>

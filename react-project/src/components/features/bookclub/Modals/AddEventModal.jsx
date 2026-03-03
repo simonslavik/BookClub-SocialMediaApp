@@ -136,7 +136,7 @@ const AddEventModal = ({ isOpen, onClose, bookClubId, auth, eventToEdit, onEvent
               value={formData.title}
               onChange={handleChange}
               placeholder="e.g., Book Discussion Meeting"
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-stone-500"
               required
             />
           </div>
@@ -151,7 +151,7 @@ const AddEventModal = ({ isOpen, onClose, bookClubId, auth, eventToEdit, onEvent
               name="eventType"
               value={formData.eventType}
               onChange={handleChange}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-stone-500"
             >
               <option value="meeting">Meeting</option>
               <option value="book_deadline">Book Deadline</option>
@@ -171,7 +171,7 @@ const AddEventModal = ({ isOpen, onClose, bookClubId, auth, eventToEdit, onEvent
               type="date"
               value={formData.eventDate}
               onChange={handleChange}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-stone-500"
               required
             />
           </div>
@@ -188,7 +188,7 @@ const AddEventModal = ({ isOpen, onClose, bookClubId, auth, eventToEdit, onEvent
               onChange={handleChange}
               placeholder="Add any additional details about this event..."
               rows={3}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-stone-500 resize-none"
             />
           </div>
 
@@ -204,7 +204,7 @@ const AddEventModal = ({ isOpen, onClose, bookClubId, auth, eventToEdit, onEvent
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
+              className="flex-1 px-4 py-2 bg-stone-700 hover:bg-stone-800 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
             >
               {loading ? 'Saving...' : eventToEdit ? 'Update Event' : 'Create Event'}
             </button>
