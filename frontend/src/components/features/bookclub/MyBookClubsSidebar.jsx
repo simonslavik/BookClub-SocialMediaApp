@@ -1,0 +1,115 @@
+import React, { useState, useCallback } from 'react';
+import { FiHome, FiSend } from 'react-icons/fi';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { COLLAB_EDITOR_URL, getProfileImageUrl } from '@config/constants';
+import StatusPopup from './StatusPopup';
+import { getStatusColor } from './statusUtils';
+
+const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, onSelectBookClub, onOpenDM, auth, setAuth, wsRef, onLogout }) => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [showStatusPopup, setShowStatusPopup] = useState(false);
+    
+    // Check if we're on the DM page
+    const isOnDMPage = location.pathname.startsWith('/dm');
+
+    const handleStatusChange = useCallback((status) => {
+      if (auth?.user) {
+        setAuth({
+          ...auth,
+          user: { ...auth.user, status },
+        });
+      }
+    }, [auth, setAuth]);
+
+    return (
+        <div className="w-20 bg-gray-900 border-r border-gray-700 flex flex-col items-center py-4 gap-3 overflow-y-auto">
+          {/* Home Button */}
+          <button
+            onClick={() => navigate('/')}
+            className="w-12 h-12 rounded-full bg-gray-700 hover:bg-stone-700 flex items-center justify-center text-white transition-colors flex-shrink-0"
+            title="Home"
+          >
+            <FiHome size={20} />
+          </button>
+          {onOpenDM && (
+            <button 
+              onClick={onOpenDM}
+              className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors flex-shrink-0 ${
+                isOnDMPage
+                  ? 'bg-stone-700 ring-2 ring-stone-500'
+                  : 'bg-gray-700 hover:bg-stone-700'
+              }`}
+              title="Direct Messages"
+            >
+              <FiSend size={20}/>
+            </button>
+          )}
+          
+          {/* Separator */}
+          <div className="w-10 h-px bg-gray-700"></div>
+          
+          {/* My Bookclubs */}
+          {bookClubs.map((club) => (
+            <button
+              key={club.id}
+              onClick={() => onSelectBookClub(club.id)}
+              className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${
+                !isOnDMPage && club.id === currentBookClubId
+                  ? 'bg-stone-700 ring-2 ring-stone-500'
+                  : 'bg-gray-700 hover:bg-stone-700'
+              }`}
+              title={club.name}
+            >
+              {club.imageUrl ? (
+                <img
+                  src={`${COLLAB_EDITOR_URL}${club.imageUrl}`}
+                  alt={club.name}
+                  className="w-full h-full rounded-full object-cover"
+                  onError={(e) => { 
+                    e.target.style.display = 'none';
+                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <span className={club.imageUrl ? 'hidden' : ''}>
+                {club.name.substring(0, 2).toUpperCase()}
+              </span>
+            </button>
+          ))}
+          
+          {/* Add Bookclub Button */}
+          <button
+            onClick={() => navigate('/create-bookclub')}
+            className="w-12 h-12 rounded-full bg-gray-700 hover:bg-green-600 flex items-center justify-center text-white text-2xl transition-colors flex-shrink-0"
+            title="Create Bookclub"
+          >
+            +
+          </button>
+          <button className='cursor-pointer absolute bottom-4' onClick={() => setShowStatusPopup(prev => !prev)}>
+            <div className="relative">
+              <img
+                src={getProfileImageUrl(auth.user.profileImage) || '/images/default.webp'} 
+                alt={auth.user.name}
+                className="w-10 h-10 rounded-full object-cover hover:bg-gray-50 cursor-pointer"
+                onError={(e) => { e.target.src = '/images/default.webp'; }}
+              />
+              <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-gray-900 ${getStatusColor(auth.user.status || 'ONLINE')}`}></div>
+            </div>
+          </button>
+          {showStatusPopup && (
+            <StatusPopup
+              user={auth.user}
+              onStatusChange={handleStatusChange}
+              wsRef={wsRef}
+              onLogout={onLogout}
+            />
+          )}
+          
+        </div>
+    );
+};
+
+
+
+export default MyBookClubsSidebar;

@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './react-project/src/**/*.{js,jsx,ts,tsx}',
-    './react-project/public/index.html',
+    './frontend/src/**/*.{js,jsx,ts,tsx}',
+    './frontend/public/index.html',
   ],
   theme: {
     extend: {

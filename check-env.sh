@@ -69,30 +69,30 @@ echo ""
 
 # Check user-service .env
 echo "User Service (.env):"
-check_file "user-service/.env"
-if [ -f "user-service/.env" ]; then
-    check_env_var "user-service/.env" "DATABASE_URL"
-    check_env_var "user-service/.env" "JWT_SECRET"
-    check_env_var "user-service/.env" "JWT_REFRESH_SECRET"
-    check_env_var "user-service/.env" "GOOGLE_CLIENT_ID"
-    check_env_var "user-service/.env" "GOOGLE_CLIENT_SECRET"
-    check_env_var "user-service/.env" "PORT" "optional"
+check_file "backend/user-service/.env"
+if [ -f "backend/user-service/.env" ]; then
+    check_env_var "backend/user-service/.env" "DATABASE_URL"
+    check_env_var "backend/user-service/.env" "JWT_SECRET"
+    check_env_var "backend/user-service/.env" "JWT_REFRESH_SECRET"
+    check_env_var "backend/user-service/.env" "GOOGLE_CLIENT_ID"
+    check_env_var "backend/user-service/.env" "GOOGLE_CLIENT_SECRET"
+    check_env_var "backend/user-service/.env" "PORT" "optional"
 fi
 echo ""
 
-# Check react-project .env
-echo "React Project (.env):"
-check_file "react-project/.env"
-if [ -f "react-project/.env" ]; then
-    check_env_var "react-project/.env" "VITE_GOOGLE_CLIENT_ID"
+# Check frontend .env
+echo "Frontend (.env):"
+check_file "frontend/.env"
+if [ -f "frontend/.env" ]; then
+    check_env_var "frontend/.env" "VITE_GOOGLE_CLIENT_ID"
 fi
 echo ""
 
 # Check if Google Client IDs match
 echo -e "${BLUE}🔐 Checking Google OAuth Configuration...${NC}"
-if [ -f "user-service/.env" ] && [ -f "react-project/.env" ]; then
-    backend_client_id=$(grep "^GOOGLE_CLIENT_ID=" "user-service/.env" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
-    frontend_client_id=$(grep "^VITE_GOOGLE_CLIENT_ID=" "react-project/.env" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+if [ -f "backend/user-service/.env" ] && [ -f "frontend/.env" ]; then
+    backend_client_id=$(grep "^GOOGLE_CLIENT_ID=" "backend/user-service/.env" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+    frontend_client_id=$(grep "^VITE_GOOGLE_CLIENT_ID=" "frontend/.env" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
     
     if [ "$backend_client_id" = "$frontend_client_id" ]; then
         echo -e "${GREEN}✓${NC} Google Client IDs match between frontend and backend"
@@ -110,17 +110,17 @@ echo ""
 
 # Check if node_modules exist
 echo -e "${BLUE}📦 Checking Dependencies...${NC}"
-if [ -d "user-service/node_modules" ]; then
+if [ -d "backend/user-service/node_modules" ]; then
     echo -e "${GREEN}✓${NC} user-service dependencies installed"
 else
-    echo -e "${YELLOW}⚠${NC}  user-service dependencies not installed (run: cd user-service && npm install)"
+    echo -e "${YELLOW}⚠${NC}  user-service dependencies not installed (run: cd backend/user-service && npm install)"
     ((WARNINGS++))
 fi
 
-if [ -d "react-project/node_modules" ]; then
-    echo -e "${GREEN}✓${NC} react-project dependencies installed"
+if [ -d "frontend/node_modules" ]; then
+    echo -e "${GREEN}✓${NC} frontend dependencies installed"
 else
-    echo -e "${YELLOW}⚠${NC}  react-project dependencies not installed (run: cd react-project && npm install)"
+    echo -e "${YELLOW}⚠${NC}  frontend dependencies not installed (run: cd frontend && npm install)"
     ((WARNINGS++))
 fi
 echo ""
@@ -148,8 +148,8 @@ else
     echo -e "  Please fix the errors above before starting the application."
     echo ""
     echo -e "${BLUE}Quick fixes:${NC}"
-    echo -e "  1. Copy example files: ${GREEN}cp user-service/.env.example user-service/.env${NC}"
-    echo -e "  2. Copy example files: ${GREEN}cp react-project/.env.example react-project/.env${NC}"
+    echo -e "  1. Copy example files: ${GREEN}cp backend/user-service/.env.example backend/user-service/.env${NC}"
+    echo -e "  2. Copy example files: ${GREEN}cp frontend/.env.example frontend/.env${NC}"
     echo -e "  3. Update Google OAuth credentials in both .env files"
     echo -e "  4. See ${GREEN}GOOGLE_OAUTH_SETUP.md${NC} for detailed setup instructions"
     echo ""

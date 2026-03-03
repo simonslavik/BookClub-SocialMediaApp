@@ -35,7 +35,7 @@ services:
 
   user-service:
     build:
-      context: ./user-service
+      context: ./backend/user-service
       dockerfile: Dockerfile
     container_name: user-service
     expose:
@@ -58,12 +58,12 @@ services:
     networks:
       - microservices-network
     volumes:
-      - ./user-service:/app
+      - ./backend/user-service:/app
       - /app/node_modules
 
   gateway:
     build:
-      context: ./gateway
+      context: ./backend/gateway
       dockerfile: Dockerfile
     container_name: api-gateway
     ports:
@@ -88,12 +88,12 @@ services:
     networks:
       - microservices-network
     volumes:
-      - ./gateway:/app
+      - ./backend/gateway:/app
       - /app/node_modules
 
   collab-editor:
     build:
-      context: ./collab-editor
+      context: ./backend/collab-editor
       dockerfile: Dockerfile
     container_name: collab-editor
     ports:
@@ -113,12 +113,12 @@ services:
     networks:
       - microservices-network
     volumes:
-      - ./collab-editor:/app
+      - ./backend/collab-editor:/app
       - /app/node_modules
 
   books-service:
     build:
-      context: ./books-service
+      context: ./backend/books-service
       dockerfile: Dockerfile
     container_name: books-service
     expose:
@@ -139,7 +139,7 @@ services:
     networks:
       - microservices-network
     volumes:
-      - ./books-service:/app
+      - ./backend/books-service:/app
       - /app/node_modules
     labels:
       logging: "promtail"
@@ -147,7 +147,7 @@ services:
 
   notification-service:
     build:
-      context: ./notification-service
+      context: ./backend/notification-service
       dockerfile: Dockerfile
     container_name: notification-service
     ports:
@@ -174,7 +174,7 @@ services:
     networks:
       - microservices-network
     volumes:
-      - ./notification-service:/app
+      - ./backend/notification-service:/app
       - /app/node_modules
     labels:
       logging: "promtail"
