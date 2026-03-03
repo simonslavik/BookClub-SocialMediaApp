@@ -85,9 +85,9 @@ const HomePageHeader = () => {
     };
   }, []);
     return (
-        <div className="w-full h-16 bg-white border-b border-gray-300 flex items-center px-4 md:px-10 relative">
+        <div className="w-full h-12 bg-white border-b border-gray-300 flex items-center px-4 md:px-10 relative">
             <button onClick={() => navigate('/')} className={`cursor-pointer md:ml-40 mr-20 md:mr-0 flex-1 flex ${showMobileMenu ? 'justify-start' : 'justify-end'} items-center gap-2`}>
-                <h1 className="text-lg md:text-xl font-bold">YourBookClub.com</h1>
+                <h2 className=" font-light">YourBookClubs.com</h2>
             </button>
             {auth?.user && (
             <>
@@ -99,7 +99,7 @@ const HomePageHeader = () => {
                         onClick={() => { setNewsShowDropdown(!newsShowDropdown); if (showDropdown) { setShowDropdown(false); } }} 
                         className="relative px-2 py-2 text-black rounded hover:bg-gray-100 transition cursor-pointer"
                     >
-                    <FiUsers size={22} />
+                    <FiUsers size={15} />
                     {friendRequests.length > 0 && (
                         <span className="absolute top-1 right-3 flex h-5 w-5 items-center justify-center">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
@@ -162,16 +162,16 @@ const HomePageHeader = () => {
                 </div>
                 <button 
                     onClick={() => navigate('/dm')}
-                    className="flex items-center ml-4 border-2 border-gray-200 rounded-full cursor-pointer p-2 hover:bg-gray-100 border-t-indigo-400 "
+                    className="flex items-center ml-2 border-1 border-gray-200 rounded-full cursor-pointer p-1 hover:bg-gray-100 border-t-indigo-400 "
                 >
-                    <span className="ml-2 font-medium">OpenBookClubs</span>
+                    <span className="font-medium text-sm">OpenBookClubs</span>
                 </button>
-                <div className="ml-4 relative" ref={profileDropdownRef}>
+                <div className="ml-2 relative p-1" ref={profileDropdownRef}>
                     <button onClick={handleProfileClick}>
                         <div>
                             <img src={getProfileImageUrl(auth.user.profileImage) || DEFAULT_AVATAR}
                                 alt="Profile" 
-                                className="h-11 w-11 rounded-full object-cover border-2 border-gray-200 cursor-pointer"
+                                className="h-8 w-8 rounded-full object-cover border-2 border-gray-200 cursor-pointer"
                                 onError={(e) => { e.target.src = DEFAULT_AVATAR; }}
                             />
                         </div>
