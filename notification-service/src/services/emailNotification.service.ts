@@ -28,7 +28,7 @@ async function fetchUsersByIds(userIds: string[]): Promise<UserInfo[]> {
   if (userIds.length === 0) return [];
 
   try {
-    const res = await fetch(`${USER_SERVICE_URL}/users/batch`, {
+    const res = await fetch(`${USER_SERVICE_URL}/api/users/batch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userIds }),
