@@ -240,8 +240,8 @@ const NotificationBell = () => {
       {showDropdown && (
         <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-[500px] overflow-hidden flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-            <div>
+          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+            <div className="flex justify-center">
               <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
               {unreadCount > 0 && (
                 <p className="text-xs text-gray-500">{unreadCount} unread</p>
@@ -278,9 +278,6 @@ const NotificationBell = () => {
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <span className="text-lg flex-shrink-0 mt-0.5">
-                    {NOTIFICATION_ICONS[n.type] || '🔔'}
-                  </span>
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm ${!n.read ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
                       {n.title}

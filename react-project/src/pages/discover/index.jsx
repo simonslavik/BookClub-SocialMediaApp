@@ -154,10 +154,10 @@ const DiscoverBookClubs = () => {
             
             <div className="pb-12">
                 {/* Hero Section */}
-                <div className="bg-stone-700 text-white py-16">
+                <div className="text-white py-16">
                     <div className="max-w-7xl mx-auto px-6">
-                        <h1 className="text-5xl font-display font-bold mb-4">Discover Book Clubs</h1>
-                        <p className="text-xl text-white/90 font-outfit">Find your perfect reading community</p>
+                        <h1 className="text-5xl font-display font-bold mb-4 text-black">Discover Book Clubs</h1>
+                        <p className="text-xl text-black/90 font-outfit">Find your perfect reading community</p>
                     </div>
                 </div>
 

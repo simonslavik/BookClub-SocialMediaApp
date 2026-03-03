@@ -53,9 +53,10 @@ const ProfilePage = () => {
   };
 
   // Fetch books function that can be reused
-  const fetchBooks = async () => {
+  const fetchBooks = async (userId) => {
+    const uid = userId || id;
     try {
-      const { data: data2 } = await apiClient.get('/v1/user-books?status=favorite');
+      const { data: data2 } = await apiClient.get(`/v1/user-books?status=favorite&userId=${uid}`);
       if (data2.success) {
         setFavoriteBooks(data2.data || []);
       }
@@ -64,7 +65,7 @@ const ProfilePage = () => {
     }
 
     try {
-      const { data: data3 } = await apiClient.get('/v1/user-books?status=reading');
+      const { data: data3 } = await apiClient.get(`/v1/user-books?status=reading&userId=${uid}`);
       if (data3.success) {
         setBooksImReading(data3.data || []);
       }
@@ -73,7 +74,7 @@ const ProfilePage = () => {
     }
 
     try {
-      const { data: data4 } = await apiClient.get('/v1/user-books?status=want_to_read');
+      const { data: data4 } = await apiClient.get(`/v1/user-books?status=want_to_read&userId=${uid}`);
       if (data4.success) {
         setBooksToRead(data4.data || []);
       }
@@ -82,7 +83,7 @@ const ProfilePage = () => {
     }
 
     try {
-      const { data: data5 } = await apiClient.get('/v1/user-books?status=completed');
+      const { data: data5 } = await apiClient.get(`/v1/user-books?status=completed&userId=${uid}`);
       if (data5.success) {
         setBooksRead(data5.data || []);
       }
@@ -134,7 +135,7 @@ const ProfilePage = () => {
         }
 
         // Fetch books
-        await fetchBooks(); 
+        await fetchBooks(id); 
         
         // Fetch current user's bookclubs for messaging functionality
         if (auth?.user?.id && !isOwnProfile) {
@@ -297,21 +298,20 @@ const ProfilePage = () => {
       <HomePageHeader />
       
       {/* Hero Banner */}
-      <div className="relative h-44 md:h-52 bg-gradient-to-r from-stone-700 via-stone-600 to-stone-800 overflow-hidden">
+      <div className="relative h-44 md:h-52 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-4 left-1/4 w-32 h-32 bg-stone-200 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-1/3 w-48 h-48 bg-stone-300 rounded-full blur-3xl"></div>
+          
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Profile Card — overlaps the banner */}
         <div className="relative -mt-24 mb-8">
-          <div className="bg-white rounded-2xl shadow-sm border border-warmgray-200 p-6 md:p-8">
+          <div className="bg-white rounded-2xl shadow-sm  p-6 md:p-8">
             <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
               {/* Avatar */}
               <div className="relative -mt-20 md:-mt-24 flex-shrink-0">
-                <div className="w-36 h-36 md:w-40 md:h-40 rounded-2xl overflow-hidden border-4 border-white shadow-lg bg-white">
+                <div className="w-36 h-36 md:w-40 md:h-40 rounded-2xl overflow-hidden border-1 border-white shadow-lg bg-white">
                   <img 
                     src={imagePreview || getProfileImageUrl(profile.profileImage) || '/images/default.webp'}
                     alt={profile.name}
@@ -428,8 +428,8 @@ const ProfilePage = () => {
             </div>
 
             {/* Stats Row */}
-            <div className="mt-6 pt-6 border-t border-warmgray-200 flex items-center justify-center md:justify-start gap-8 md:gap-12">
-              <div className="flex items-center gap-2.5">
+            <div className="mt-6 pt-6 border-warmgray-200 flex items-center justify-center md:justify-start gap-4 md:gap-12">
+              <div className="flex items-center">
                 <div className="w-10 h-10 rounded-xl bg-stone-50 flex items-center justify-center">
                   <FiBook className="text-stone-600" size={18} />
                 </div>
@@ -438,22 +438,13 @@ const ProfilePage = () => {
                   <div className="text-xs text-stone-500">Book Clubs</div>
                 </div>
               </div>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center">
                 <div className="w-10 h-10 rounded-xl bg-warmgray-100 flex items-center justify-center">
                   <FiUsers className="text-stone-600" size={18} />
                 </div>
                 <div>
                   <div className="text-lg font-bold text-stone-800">{profile.numberOfFriends || 0}</div>
                   <div className="text-xs text-stone-500">Friends</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-warmgray-100 flex items-center justify-center">
-                  <FiCalendar className="text-stone-600" size={18} />
-                </div>
-                <div>
-                  <div className="text-lg font-bold text-stone-800">{joinDate}</div>
-                  <div className="text-xs text-stone-500">Joined</div>
                 </div>
               </div>
             </div>
@@ -732,7 +723,7 @@ const ProfilePage = () => {
             onClose={() => setShowAddBookModal(false)}
             onBookAdded={async () => {
               // Refetch books to show newly added books (modal stays open)
-              await fetchBooks();
+              await fetchBooks(id);
             }}
           />
         )}

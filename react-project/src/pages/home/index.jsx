@@ -267,7 +267,7 @@ const Home = () => {
                                                     ? '#faf9f7'
                                                     : '#f5f3f0',
                                                 border: '2px dashed',
-                                                borderColor: isCenter ? '#d97706' : '#d5cec4',
+                                                borderColor: isCenter ? '#1d1104' : '#d5cec4',
                                                 boxShadow: isCenter ? '0 12px 40px rgba(180, 160, 130, 0.15)' : 'none',
                                             }}
                                         >

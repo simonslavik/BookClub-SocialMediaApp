@@ -158,7 +158,7 @@ const HomePageHeader = () => {
                             )}
                         </div>
                     )}
-                </button>
+                    </button>
                 </div>
                 <button 
                     onClick={() => navigate('/dm')}
@@ -166,12 +166,12 @@ const HomePageHeader = () => {
                 >
                     <span className="font-medium text-sm text-stone-700">OpenBookClubs</span>
                 </button>
-                <div className="ml-2 relative p-1" ref={profileDropdownRef}>
+                <div className="ml-2 mt-2 relative" ref={profileDropdownRef}>
                     <button onClick={handleProfileClick}>
                         <div>
                             <img src={getProfileImageUrl(auth.user.profileImage) || DEFAULT_AVATAR}
                                 alt="Profile" 
-                                className="h-8 w-8 rounded-full object-cover border-2 border-gray-200 cursor-pointer"
+                                className="h-7.5 w-7.5 rounded-full object-cover border-1 border-gray-200 cursor-pointer"
                                 onError={(e) => { e.target.src = DEFAULT_AVATAR; }}
                             />
                         </div>

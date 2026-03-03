@@ -8,12 +8,15 @@ import { UserBookStatus } from '@prisma/client';
  */
 export const getUserBooks = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { status } = req.query;
+    const { status, userId: queryUserId } = req.query;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
 
+    // Allow viewing another user's library via ?userId=xxx
+    const targetUserId = (queryUserId as string) || req.user!.userId;
+
     const result = await UserBooksService.getUserBooks(
-      req.user!.userId,
+      targetUserId,
       status as UserBookStatus | undefined,
       page,
       limit
