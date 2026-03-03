@@ -3,7 +3,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AuthContext from '@context/index';
 import HomePageHeader from '@components/layout/Header';
-import { FiInfo, FiMail, FiMessageCircle, FiPlus } from 'react-icons/fi';
+import { FiInfo, FiMail, FiMessageCircle, FiPlus, FiEdit2, FiUserPlus, FiUserCheck, FiClock, FiBook, FiUsers, FiCalendar } from 'react-icons/fi';
 import AddBookToLibraryModal from '@components/common/modals/AddBookToLibraryModal';
 import BookDetailsModal from '@components/common/modals/BookDetails';
 import { COLLAB_EDITOR_URL, getProfileImageUrl } from '@config/constants';
@@ -278,7 +278,7 @@ const ProfilePage = () => {
           <div className="text-xl text-red-500 mb-4">{error || 'Profile not found'}</div>
           <button 
             onClick={() => navigate('/')}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="px-4 py-2 bg-stone-700 text-white rounded-lg hover:bg-stone-600"
           >
             Go Home
           </button>
@@ -293,91 +293,109 @@ const ProfilePage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-warmgray-50">
       <HomePageHeader />
       
-      <div className="max-w-6xl mx-auto p-8">
-        {/* Profile Header */}
-        <div className="bg-white rounded-lg shadow-md p-8 mb-6">
-          <div className="flex items-start gap-6">
-            {/* Profile Image */}
-            <div className="relative">
-              <img 
-                src={imagePreview || getProfileImageUrl(profile.profileImage) || '/images/default.webp'}
-                alt={profile.name}
-                className={`w-32 h-32 rounded-full object-cover border-4 border-purple-200 ${
-                  isOwnProfile ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
-                }`}
-                onClick={() => isOwnProfile && fileInputRef.current?.click()}
-                onError={(e) => { e.target.src = '/images/default.webp'; }}
-              />
-              {uploadingImage && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
-                  <div className="text-white text-sm">Uploading...</div>
-                </div>
-              )}
-              {isOwnProfile && (
-                <>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                    className="hidden"
+      {/* Hero Banner */}
+      <div className="relative h-44 md:h-52 bg-gradient-to-r from-stone-700 via-stone-600 to-stone-800 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-4 left-1/4 w-32 h-32 bg-stone-200 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/3 w-48 h-48 bg-stone-300 rounded-full blur-3xl"></div>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Profile Card — overlaps the banner */}
+        <div className="relative -mt-24 mb-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-warmgray-200 p-6 md:p-8">
+            <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
+              {/* Avatar */}
+              <div className="relative -mt-20 md:-mt-24 flex-shrink-0">
+                <div className="w-36 h-36 md:w-40 md:h-40 rounded-2xl overflow-hidden border-4 border-white shadow-lg bg-white">
+                  <img 
+                    src={imagePreview || getProfileImageUrl(profile.profileImage) || '/images/default.webp'}
+                    alt={profile.name}
+                    className={`w-full h-full object-cover ${
+                      isOwnProfile ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
+                    }`}
+                    onClick={() => isOwnProfile && fileInputRef.current?.click()}
+                    onError={(e) => { e.target.src = '/images/default.webp'; }}
                   />
-                </>
-              )}
-            </div>
-            {/* Profile Info */}
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">{profile.name}</h1>
-                  {profile.bio && (
-                    <p className="mt-2 text-gray-600 text-sm max-w-lg">{profile.bio}</p>
-                  )}
                 </div>
-                
+                {uploadingImage && (
+                  <div className="absolute inset-0 -mt-20 md:-mt-24 flex items-center justify-center bg-black/50 rounded-2xl">
+                    <div className="text-white text-sm font-medium">Uploading...</div>
+                  </div>
+                )}
                 {isOwnProfile && (
+                  <>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-1 right-1 w-8 h-8 bg-stone-600 hover:bg-stone-700 text-white rounded-lg flex items-center justify-center shadow-sm transition-colors"
+                    >
+                      <FiEdit2 size={14} />
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+                  </>
+                )}
+              </div>
+
+              {/* Name & Bio */}
+              <div className="flex-1 text-center md:text-left pb-1">
+                <h1 className="text-2xl md:text-3xl font-serif font-bold text-stone-800">{profile.name}</h1>
+                {profile.bio && (
+                  <p className="mt-1.5 text-gray-500 text-sm max-w-lg leading-relaxed">{profile.bio}</p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3 flex-shrink-0 pb-1">
+                {isOwnProfile ? (
                   <button
                     onClick={() => navigate('/change-profile')}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    className="px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors font-medium text-sm flex items-center gap-2"
                   >
+                    <FiEdit2 size={15} />
                     Edit Profile
                   </button>
-                )}
-                {!isOwnProfile && (
-                  <div className="flex items-center gap-3">
+                ) : (
+                  <>
                     <button
-                      onClick={() => {
-                        // Navigate directly to DM page with the user's ID
-                        navigate(`/dm/${id}`);
-                      }}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      onClick={() => navigate(`/dm/${id}`)}
+                      className="px-5 py-2.5 bg-stone-600 text-white rounded-xl hover:bg-stone-700 transition-colors font-medium text-sm flex items-center gap-2 shadow-sm"
                     >
+                      <FiMessageCircle size={15} />
                       Message
                     </button>
                     
                     {profile.friendshipStatus === 'friends' ? (
                       <button
-                        className="px-4 py-2 bg-gray-500 text-white rounded-lg cursor-not-allowed"
+                        className="px-5 py-2.5 bg-green-50 text-green-700 border border-green-200 rounded-xl font-medium text-sm flex items-center gap-2 cursor-default"
                         disabled
                       >
+                        <FiUserCheck size={15} />
                         Friends
                       </button>
                     ) : profile.friendshipStatus === 'request_sent' ? (
                       <button
-                        className="px-4 py-2 bg-yellow-500 text-white rounded-lg cursor-not-allowed"
+                        className="px-5 py-2.5 bg-stone-50 text-stone-700 border border-stone-200 rounded-xl font-medium text-sm flex items-center gap-2 cursor-default"
                         disabled
                       >
-                        Request Pending
+                        <FiClock size={15} />
+                        Pending
                       </button>
                     ) : profile.friendshipStatus === 'request_received' ? (
                       <button
                         onClick={() => navigate('/')}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                        className="px-5 py-2.5 bg-stone-600 text-white rounded-xl hover:bg-stone-700 transition-colors font-medium text-sm flex items-center gap-2"
                       >
-                        Respond to Request
+                        Respond
                       </button>
                     ) : (
                       <button
@@ -386,11 +404,9 @@ const ProfilePage = () => {
                             navigate('/login');
                             return;
                           }
-                          
                           setFriendRequestLoading(true);
                           try {
                             await apiClient.post('/v1/friends/request', { recipientId: id });
-                            
                             setProfile(prev => ({ ...prev, friendshipStatus: 'request_sent' }));
                           } catch (err) {
                             logger.error('Error sending friend request:', err);
@@ -400,215 +416,196 @@ const ProfilePage = () => {
                           }
                         }}
                         disabled={friendRequestLoading}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        className="px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors font-medium text-sm flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
                       >
+                        <FiUserPlus size={15} />
                         {friendRequestLoading ? 'Sending...' : 'Add Friend'}
                       </button>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
-              
-              <div className="mt-6 flex gap-8">
-                <div>
-                  <div className="text-2xl font-bold text-purple-600">{createdBookClubs.length + memberBookClubs.length}</div>
-                  <div className="text-sm text-gray-600">Book Clubs</div>
+            </div>
+
+            {/* Stats Row */}
+            <div className="mt-6 pt-6 border-t border-warmgray-200 flex items-center justify-center md:justify-start gap-8 md:gap-12">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-stone-50 flex items-center justify-center">
+                  <FiBook className="text-stone-600" size={18} />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {profile.numberOfFriends || 0}
-                  </div>
-                  <div className="text-sm text-gray-600">Friends</div>
+                  <div className="text-lg font-bold text-stone-800">{createdBookClubs.length + memberBookClubs.length}</div>
+                  <div className="text-xs text-stone-500">Book Clubs</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-warmgray-100 flex items-center justify-center">
+                  <FiUsers className="text-stone-600" size={18} />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-purple-600">{joinDate}</div>
-                  <div className="text-sm text-gray-600">Member Since</div>
+                  <div className="text-lg font-bold text-stone-800">{profile.numberOfFriends || 0}</div>
+                  <div className="text-xs text-stone-500">Friends</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-warmgray-100 flex items-center justify-center">
+                  <FiCalendar className="text-stone-600" size={18} />
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-stone-800">{joinDate}</div>
+                  <div className="text-xs text-stone-500">Joined</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Created Book Clubs Section */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {isOwnProfile ? 'My Book Clubs' : `Book Clubs by ${profile.name}`}
-          </h2>
-          
-          {createdBookClubs.length === 0 ? (
-            <div className="text-center py-12" >
-              <div className="text-gray-400 text-lg mb-4">
-                {isOwnProfile ? "You haven't created any book clubs yet" : "No book clubs created yet"}
+        {/* Book Clubs Sections */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-5">
+            <h2 className="text-xl font-serif font-bold text-stone-800">
+              {isOwnProfile ? 'My Book Clubs' : `${profile.name}'s Book Clubs`}
+            </h2>
+            <span className="text-xs font-semibold bg-stone-100 text-stone-700 px-2.5 py-0.5 rounded-full">
+              {createdBookClubs.length + memberBookClubs.length}
+            </span>
+          </div>
+
+          {createdBookClubs.length === 0 && memberBookClubs.length === 0 ? (
+            <div className="bg-white rounded-2xl shadow-sm border border-warmgray-200 p-12 text-center">
+              <div className="w-16 h-16 bg-stone-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <FiBook className="text-stone-400" size={28} />
               </div>
+              <p className="text-stone-500 mb-4">
+                {isOwnProfile ? "You haven't joined any book clubs yet" : "No book clubs yet"}
+              </p>
               {isOwnProfile && (
                 <button
                   onClick={() => navigate('/create-bookclub')}
-                  className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  className="px-5 py-2.5 bg-stone-600 text-white rounded-xl hover:bg-stone-700 transition-colors font-medium text-sm"
                 >
                   Create Your First Book Club
                 </button>
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {createdBookClubs.map(club => (
-                <div
-                  key={club.id}
-                  onClick={() => navigate(`/bookclubpage/${club.id}`)}
-                  className="border rounded-lg p-4 hover:shadow-lg cursor-pointer transition-shadow"
-                >
-                  <img 
-                    src={club.imageUrl 
-                      ? `${COLLAB_EDITOR_URL}${club.imageUrl}` 
-                      : '/images/default.webp'
-                    }
-                    alt={club.name}
-                    className="w-full h-40 object-cover rounded-lg mb-3"
-                    onError={(e) => { e.target.src = '/images/default.webp'; }}
-                  />
-                  <h3 className="font-semibold text-lg truncate mb-2">{club.name}</h3>
-                  
-                  {/* Current Book */}
-                  {club.currentBook && (
-                    <div className="mt-2 mb-2 p-2 bg-purple-50 rounded border border-purple-200">
-                      <p className="text-xs text-purple-600 font-semibold mb-1">📖 Currently Reading</p>
-                      <div className="flex gap-2">
-                        <img 
-                          src={club.currentBook.book?.coverUrl || '/images/default.webp'}
-                          alt={club.currentBook.book?.title}
-                          className="w-12 h-16 object-cover rounded"
-                          onError={(e) => { e.target.src = '/images/default.webp'; }}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-900 line-clamp-2">{club.currentBook.book?.title}</p>
-                          <p className="text-xs text-gray-600 truncate">{club.currentBook.book?.author}</p>
-                        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[...createdBookClubs, ...memberBookClubs].map(club => {
+                const isCreator = club.creatorId === id;
+                return (
+                  <div
+                    key={club.id}
+                    onClick={() => navigate(`/bookclub/${club.id}`)}
+                    className="group bg-white rounded-2xl shadow-sm border border-warmgray-200 overflow-hidden cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    {/* Club image */}
+                    <div className="relative h-40 overflow-hidden">
+                      <img 
+                        src={club.imageUrl ? `${COLLAB_EDITOR_URL}${club.imageUrl}` : '/images/default.webp'}
+                        alt={club.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => { e.target.src = '/images/default.webp'; }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                      
+                      {/* Badges */}
+                      <div className="absolute top-3 left-3 flex gap-2">
+                        {isCreator && (
+                          <span className="bg-white/90 text-stone-700 text-[11px] px-2 py-0.5 rounded-full font-semibold shadow-sm">
+                            ✦ Owner
+                          </span>
+                        )}
                       </div>
+
+                      {/* Online pill */}
+                      {(club.activeUsers || 0) > 0 && (
+                        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1">
+                          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                          <span className="text-white text-[11px] font-medium">{club.activeUsers} online</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>{club.memberCount || club.members?.length || 0} members</span>
-                    {club.activeUsers > 0 && (
-                      <span className="text-green-600">{club.activeUsers} online</span>
-                    )}
+                    
+                    {/* Card body */}
+                    <div className="p-4">
+                      <h3 className="font-semibold text-stone-800 truncate">{club.name}</h3>
+                      
+                      {/* Current Book */}
+                      {club.currentBook && (
+                        <div className="mt-2.5 p-2.5 bg-warmgray-50 rounded-lg border border-warmgray-200">
+                          <p className="text-[10px] uppercase tracking-wider text-stone-600 font-bold mb-1.5">Currently Reading</p>
+                          <div className="flex gap-2">
+                            <img 
+                              src={club.currentBook.book?.coverUrl || '/images/default.webp'}
+                              alt={club.currentBook.book?.title}
+                              className="w-9 h-12 object-cover rounded shadow-sm"
+                              onError={(e) => { e.target.src = '/images/default.webp'; }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-gray-800 line-clamp-2 leading-tight">{club.currentBook.book?.title}</p>
+                              <p className="text-[11px] text-gray-500 truncate mt-0.5">{club.currentBook.book?.author}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Members row */}
+                      {club.members && club.members.length > 0 && (
+                        <div className="mt-3 flex items-center justify-between">
+                          <div className="flex -space-x-2">
+                            {club.members.slice(0, 4).map((member, idx) => (
+                              <img 
+                                key={idx}
+                                src={getProfileImageUrl(member.profileImage) || '/images/default.webp'}
+                                alt=""
+                                className="w-6 h-6 rounded-full border-2 border-white object-cover"
+                                onError={(e) => { e.target.src = '/images/default.webp'; }}
+                              />
+                            ))}
+                            {club.members.length > 4 && (
+                              <div className="w-6 h-6 rounded-full border-2 border-white bg-stone-100 flex items-center justify-center text-[9px] font-bold text-stone-700">
+                                +{club.members.length - 4}
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-400">
+                            {club.memberCount || club.members?.length || 0} members
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
 
-        {/* Member Book Clubs Section */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {isOwnProfile ? 'Book Clubs I\'m In' : `${profile.name} is a member of`}
-          </h2>
-          
-          {memberBookClubs.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-400 text-lg mb-4">
-                {isOwnProfile ? "You haven't joined any book clubs yet" : "Not a member of any book clubs"}
+        {/* Books Library Section */}
+        {(favoriteBooks.length > 0 || booksImReading.length > 0 || booksToRead.length > 0 || booksRead.length > 0 || isOwnProfile) && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-serif font-bold text-stone-800">
+                  {isOwnProfile ? 'My Library' : `${profile.name}'s Library`}
+                </h2>
               </div>
               {isOwnProfile && (
                 <button
-                  onClick={() => navigate('/discover')}
-                  className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Browse Book Clubs
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {memberBookClubs.map(club => (
-                <div
-                  key={club.id}
-                  onClick={() => navigate(`/bookclub/${club.id}`)}
-                  className="border rounded-lg p-4 hover:shadow-lg cursor-pointer transition-shadow"
-                >
-                  <img 
-                    src={club.imageUrl 
-                      ? `${COLLAB_EDITOR_URL}${club.imageUrl}` 
-                      : '/images/default.webp'
-                    }
-                    alt={club.name}
-                    className="w-full h-40 object-cover rounded-lg mb-3"
-                    onError={(e) => { e.target.src = '/images/default.webp'; }}
-                  />
-                  <h3 className="font-semibold text-lg truncate mb-2">{club.name}</h3>
-                  
-                  {/* Current Book */}
-                  {club.currentBook && (
-                    <div className="mt-2 mb-2 p-2 bg-purple-50 rounded border border-purple-200">
-                      <p className="text-xs text-purple-600 font-semibold mb-1">📖 Currently Reading</p>
-                      <div className="flex gap-2">
-                        <img 
-                          src={club.currentBook.book?.coverUrl || '/images/default.webp'}
-                          alt={club.currentBook.book?.title}
-                          className="w-12 h-16 object-cover rounded"
-                          onError={(e) => { e.target.src = '/images/default.webp'; }}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-900 line-clamp-2">{club.currentBook.book?.title}</p>
-                          <p className="text-xs text-gray-600 truncate">{club.currentBook.book?.author}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {club.members && club.members.length > 0 && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex -space-x-2">
-                        {club.members.slice(0, 3).map((member, idx) => (
-                          <img 
-                            key={idx}
-                            src={getProfileImageUrl(member.profileImage) || '/images/default.webp'}
-                            alt=""
-                            className="w-6 h-6 rounded-full border-2 border-white object-cover"
-                            onError={(e) => { e.target.src = '/images/default.webp'; }}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-gray-600">
-                        {club.members.length} {club.members.length === 1 ? 'member' : 'members'}
-                      </span>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-                    {club.activeUsers || 0} online
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Books Section */}
-        {(favoriteBooks.length > 0 || booksImReading.length > 0 || booksToRead.length > 0 || booksRead.length > 0 || isOwnProfile) && (
-          <div className="bg-white rounded-lg shadow-md p-6 mt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {isOwnProfile ? 'My Library' : `${profile.name}'s Library`}
-              </h2>
-              {isOwnProfile && (
-                <button
                   onClick={() => setShowAddBookModal(true)}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-semibold shadow-lg transition-all transform hover:scale-105 flex items-center gap-2"
+                  className="px-5 py-2.5 bg-stone-600 hover:bg-stone-700 text-white rounded-xl font-medium text-sm shadow-sm transition-all flex items-center gap-2"
                 >
-                  <FiPlus size={20} />
+                  <FiPlus size={16} />
                   Add Books
                 </button>
               )}
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-3">
+            <div className="flex flex-wrap gap-2 mb-6">
               {[
                 { key: 'all', label: 'All', count: favoriteBooks.length + booksImReading.length + booksToRead.length + booksRead.length },
-                { key: 'reading', label: 'Currently Reading', count: booksImReading.length },
+                { key: 'reading', label: 'Reading', count: booksImReading.length },
                 { key: 'want_to_read', label: 'Want to Read', count: booksToRead.length },
                 { key: 'completed', label: 'Read', count: booksRead.length },
                 { key: 'favorite', label: 'Favorites', count: favoriteBooks.length },
@@ -616,15 +613,15 @@ const ProfilePage = () => {
                 <button
                   key={tab.key}
                   onClick={() => setBookFilter(tab.key)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                     bookFilter === tab.key
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-stone-800 text-white shadow-sm'
+                      : 'bg-white text-stone-600 hover:bg-warmgray-100 border border-warmgray-200'
                   }`}
                 >
                   {tab.label}
                   <span className={`ml-1.5 text-xs ${
-                    bookFilter === tab.key ? 'text-purple-200' : 'text-gray-400'
+                    bookFilter === tab.key ? 'text-gray-400' : 'text-gray-400'
                   }`}>
                     {tab.count}
                   </span>
@@ -632,7 +629,7 @@ const ProfilePage = () => {
               ))}
             </div>
 
-            {/* Filtered Book Grid */}
+            {/* Book Grid */}
             {(() => {
               const filteredBooks = bookFilter === 'all'
                 ? [
@@ -646,13 +643,16 @@ const ProfilePage = () => {
                 : bookFilter === 'want_to_read' ? booksToRead.map(b => ({ ...b, _shelf: 'want_to_read' }))
                 : booksRead.map(b => ({ ...b, _shelf: 'completed' }));
 
-              const shelfLabel = { favorite: 'Favorite', reading: 'Reading', want_to_read: 'Want to Read', completed: 'Read' };
-              const shelfColor = { favorite: 'text-red-500', reading: 'text-green-500', want_to_read: 'text-blue-500', completed: 'text-purple-500' };
+              const shelfLabel = { favorite: '♥ Favorite', reading: 'Reading', want_to_read: 'Want to Read', completed: 'Finished' };
+              const shelfBg = { favorite: 'bg-red-50 text-red-600', reading: 'bg-green-50 text-green-600', want_to_read: 'bg-stone-50 text-stone-700', completed: 'bg-stone-100 text-stone-600' };
 
               if (filteredBooks.length === 0) {
                 return (
-                  <div className="text-center py-8 text-gray-400">
-                    <p>
+                  <div className="bg-white rounded-2xl shadow-sm border border-warmgray-200 p-12 text-center">
+                    <div className="w-16 h-16 bg-stone-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <FiBook className="text-stone-400" size={28} />
+                    </div>
+                    <p className="text-gray-500">
                       {isOwnProfile
                         ? bookFilter === 'all'
                           ? 'No books in your library yet. Click "Add Books" to get started!'
@@ -664,50 +664,60 @@ const ProfilePage = () => {
               }
 
               return (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
                   {filteredBooks.map(userBook => (
-                    <div key={userBook.id} className="group relative">
-                      <img
-                        src={userBook.book.coverUrl || '/images/default.webp'}
-                        alt={userBook.book.title}
-                        className="w-full h-48 object-cover rounded-lg shadow-md group-hover:shadow-xl transition-shadow"
-                        onError={(e) => { e.target.src = '/images/default.webp'; }}
-                      />
-                      {/* Action Overlay */}
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all rounded-lg flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
-                        {isOwnProfile && (
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const ok = await confirm('Remove this book from your library?', { title: 'Remove Book', variant: 'danger', confirmLabel: 'Remove' });
-                              if (ok) DeleteUserBook(userBook.id);
-                            }}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors shadow-lg"
-                          >
-                            Remove
-                          </button>
+                    <div key={userBook.id} className="group">
+                      <div className="relative rounded-xl overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1">
+                        <img
+                          src={userBook.book.coverUrl || '/images/default.webp'}
+                          alt={userBook.book.title}
+                          className="w-full h-56 object-cover"
+                          onError={(e) => { e.target.src = '/images/default.webp'; }}
+                        />
+                        {/* Hover overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-end p-3 gap-2">
+                          <div className="flex items-center gap-2">
+                            {isOwnProfile && (
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  const ok = await confirm('Remove this book from your library?', { title: 'Remove Book', variant: 'danger', confirmLabel: 'Remove' });
+                                  if (ok) DeleteUserBook(userBook.id);
+                                }}
+                                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-semibold transition-colors"
+                              >
+                                Remove
+                              </button>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedBook(userBook.book);
+                                setShowBookDetails(true);
+                              }}
+                              className="p-2 bg-white/90 hover:bg-white text-gray-800 rounded-lg transition-colors"
+                            >
+                              <FiInfo size={16} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Shelf badge */}
+                        {bookFilter === 'all' && (
+                          <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${shelfBg[userBook._shelf]}`}>
+                            {shelfLabel[userBook._shelf]}
+                          </span>
                         )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedBook(userBook.book);
-                            setShowBookDetails(true);
-                          }}
-                          className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-lg"
-                        >
-                          <FiInfo size={24} />
-                        </button>
+                        
+                        {/* Rating */}
+                        {userBook.rating && (
+                          <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-yellow-400 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                            {'★'.repeat(userBook.rating)}
+                          </div>
+                        )}
                       </div>
-                      <h4 className="mt-2 text-sm font-medium line-clamp-2">{userBook.book.title}</h4>
-                      <p className="text-xs text-gray-600">{userBook.book.author}</p>
-                      {bookFilter === 'all' && (
-                        <p className={`text-xs font-medium mt-0.5 ${shelfColor[userBook._shelf]}`}>
-                          {shelfLabel[userBook._shelf]}
-                        </p>
-                      )}
-                      {userBook.rating && (
-                        <p className="text-xs text-yellow-600">{'⭐'.repeat(userBook.rating)}</p>
-                      )}
+                      <h4 className="mt-2.5 text-sm font-semibold text-gray-800 line-clamp-2 leading-snug">{userBook.book.title}</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">{userBook.book.author}</p>
                     </div>
                   ))}
                 </div>

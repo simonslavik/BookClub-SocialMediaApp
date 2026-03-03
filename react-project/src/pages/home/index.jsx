@@ -176,17 +176,17 @@ const Home = () => {
     return (
         <div>
             <HomePageHeader />
-            <div className="flex flex-col p-8 w-full min-h-screen gap-4">
+            <div className="flex flex-col p-8 w-full min-h-screen gap-4 bg-warmgray-50">
                 {auth?.user && (
                     <div className="flex flex-col p-4 rounded w-full">
                         {/* Header with title and filter */}
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-end mb-4">
                             <button
                                 onClick={() => { setFilterCreatedByMe(prev => !prev); setCarouselIndex(0); }}
                                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                                     filterCreatedByMe
-                                        ? 'bg-purple-600 text-white'
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                        ? 'bg-stone-600 text-white'
+                                        : 'bg-warmgray-200 text-stone-600 hover:bg-warmgray-300'
                                 }`}
                             >
                                 {filterCreatedByMe ? '★ Mine' : '☆ Mine'}
@@ -206,7 +206,7 @@ const Home = () => {
                                                 <p className="mb-3">You haven't created any bookclubs yet.</p>
                                                 <button
                                                     onClick={createNewBookClub}
-                                                    className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                                                    className="px-4 py-2 bg-stone-600 text-white rounded-lg hover:bg-stone-700 transition-colors text-sm font-medium"
                                                 >
                                                     Create Your First Book Club
                                                 </button>
@@ -217,7 +217,7 @@ const Home = () => {
                                                 <div className="flex gap-3">
                                                     <button
                                                         onClick={createNewBookClub}
-                                                        className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                                                        className="px-4 py-2 bg-stone-600 text-white rounded-lg hover:bg-stone-700 transition-colors text-sm font-medium"
                                                     >
                                                         Create Book Club
                                                     </button>
@@ -264,17 +264,17 @@ const Home = () => {
                                                 opacity,
                                                 zIndex,
                                                 background: isCenter
-                                                    ? 'linear-gradient(135deg, #f3e8ff 0%, #ede9fe 50%, #e0e7ff 100%)'
-                                                    : '#f9fafb',
+                                                    ? '#faf9f7'
+                                                    : '#f5f3f0',
                                                 border: '2px dashed',
-                                                borderColor: isCenter ? '#a78bfa' : '#d1d5db',
-                                                boxShadow: isCenter ? '0 20px 60px rgba(139, 92, 246, 0.15)' : 'none',
+                                                borderColor: isCenter ? '#d97706' : '#d5cec4',
+                                                boxShadow: isCenter ? '0 12px 40px rgba(180, 160, 130, 0.15)' : 'none',
                                             }}
                                         >
-                                            <div className="w-16 h-16 rounded-full bg-purple-100 group-hover:bg-purple-200 flex items-center justify-center transition-colors mb-3">
-                                                <span className="text-3xl text-purple-500 group-hover:text-purple-600 transition-colors">+</span>
+                                            <div className="w-16 h-16 rounded-full bg-stone-100 group-hover:bg-stone-200 flex items-center justify-center transition-colors mb-3">
+                                                <span className="text-3xl text-stone-500 group-hover:text-stone-700 transition-colors">+</span>
                                             </div>
-                                            <span className="text-sm text-gray-600 group-hover:text-purple-700 font-semibold transition-colors">Create Book Club</span>
+                                            <span className="text-sm text-gray-600 group-hover:text-stone-800 font-semibold transition-colors">Create Book Club</span>
                                         </div>
                                     );
                                 }
@@ -285,14 +285,14 @@ const Home = () => {
                                         key={bookClub.id}
                                         onClick={() => navigate(`/bookclub/${bookClub.id}`)}
                                         className="w-[300px] h-[440px] flex-shrink-0 rounded-2xl flex flex-col cursor-pointer transition-all duration-500 ease-out overflow-hidden relative"
-                                        style={{
+                                            style={{
                                             transform: `scale(${scale})`,
                                             opacity,
                                             zIndex,
                                             background: '#fff',
                                             boxShadow: isCenter
-                                                ? '0 25px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(139,92,246,0.2)'
-                                                : '0 4px 16px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)',
+                                                ? '0 16px 48px rgba(120, 100, 70, 0.12), 0 0 0 1px rgba(180, 160, 130, 0.15)'
+                                                : '0 2px 12px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.03)',
                                         }}
                                     >
                                         {/* Cover image with gradient overlay */}
@@ -307,7 +307,7 @@ const Home = () => {
                                             
                                             {/* Owner badge */}
                                             {bookClub.creatorId === auth.user.id && (
-                                                <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-purple-700 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm">
+                                                <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-stone-800 text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm">
                                                     ✦ Owner
                                                 </span>
                                             )}
@@ -325,8 +325,8 @@ const Home = () => {
 
                                             {/* Current Book */}
                                             {bookClub.currentBook && (
-                                                <div className="mt-2.5 p-2.5 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-100">
-                                                    <p className="text-[10px] uppercase tracking-wider text-purple-500 font-bold mb-1.5">Currently Reading</p>
+                                                <div className="mt-2.5 p-2.5 bg-warmgray-50 rounded-lg border border-warmgray-200">
+                                                    <p className="text-[10px] uppercase tracking-wider text-stone-600 font-bold mb-1.5">Currently Reading</p>
                                                     <div className="flex gap-2">
                                                         <img
                                                             src={bookClub.currentBook.book?.coverUrl || '/images/default.webp'}
@@ -357,7 +357,7 @@ const Home = () => {
                                                             />
                                                         ))}
                                                         {bookClub.members.length > 4 && (
-                                                            <div className="w-7 h-7 rounded-full border-2 border-white bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-600">
+                                                            <div className="w-7 h-7 rounded-full border-2 border-white bg-stone-100 flex items-center justify-center text-[10px] font-bold text-stone-700">
                                                                 +{bookClub.members.length - 4}
                                                             </div>
                                                         )}
@@ -386,7 +386,7 @@ const Home = () => {
                                         className={`absolute left-40 z-20 w-11 h-11 rounded-full flex items-center justify-center transition-all ${
                                             idx === 0
                                                 ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                                                : 'bg-white shadow-lg text-gray-600 hover:bg-purple-50 hover:text-purple-600 hover:shadow-xl'
+                                                : 'bg-white shadow-lg text-gray-600 hover:bg-stone-50 hover:text-stone-700 hover:shadow-xl'
                                         }`}
                                     >
                                         <FiChevronLeft size={22} />
@@ -412,7 +412,7 @@ const Home = () => {
                                         className={`absolute right-40 z-20 w-11 h-11 rounded-full flex items-center justify-center transition-all ${
                                             idx === items.length - 1
                                                 ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                                                : 'bg-white shadow-lg text-gray-600 hover:bg-purple-50 hover:text-purple-600 hover:shadow-xl'
+                                                : 'bg-white shadow-lg text-gray-600 hover:bg-stone-50 hover:text-stone-700 hover:shadow-xl'
                                         }`}
                                     >
                                         <FiChevronRight size={22} />
@@ -426,7 +426,7 @@ const Home = () => {
                                                 onClick={() => setCarouselIndex(i)}
                                                 className={`rounded-full transition-all duration-300 ${
                                                     i === idx
-                                                        ? 'w-6 h-2.5 bg-purple-600'
+                                                        ? 'w-6 h-2.5 bg-stone-700'
                                                         : 'w-2.5 h-2.5 bg-gray-300 hover:bg-gray-400'
                                                 }`}
                                             />
@@ -439,10 +439,10 @@ const Home = () => {
                 )}
 
 
-                <div className='flex justify-center mt-20'>
+                <div className='flex justify-center mt-16'>
                     <button 
                         onClick={() => navigate('/discover')}
-                        className='font-medium border-0.5 rounded p-2  bg-gray-200 text-gray-800 cursor-pointer hover:bg-gray-100'
+                        className='font-medium rounded-lg px-5 py-2.5 bg-stone-800 text-white cursor-pointer hover:bg-stone-700 transition-colors text-sm'
                     >
                         Discover More Book Clubs
                     </button>

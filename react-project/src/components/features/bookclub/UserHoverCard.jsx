@@ -112,13 +112,13 @@ const UserHoverCard = ({
           style={{ top: position.top, left: position.left }}
         >
           {/* Banner / top accent */}
-          <div className="h-12 bg-gradient-to-r from-purple-600 to-indigo-600 relative">
+          <div className="h-12 bg-stone-700 relative">
             <div className="absolute -bottom-5 left-4">
               <div className="relative">
                 <img
                   src={getProfileImageUrl(user?.profileImage) || '/images/default.webp'}
                   alt={user?.username}
-                  className="w-12 h-12 rounded-full object-cover border-[3px] border-gray-800 cursor-pointer hover:ring-2 hover:ring-purple-400 transition-all"
+                  className="w-12 h-12 rounded-full object-cover border-[3px] border-gray-800 cursor-pointer hover:ring-2 hover:ring-stone-500 transition-all"
                   onClick={() => {
                     setVisible(false);
                     navigate(`/profile/${user?.id}`);
@@ -134,7 +134,7 @@ const UserHoverCard = ({
           <div className="pt-7 px-4 pb-3">
             <div className="flex items-center gap-1.5">
               <span
-                className="text-white text-sm font-semibold cursor-pointer hover:text-purple-400 hover:underline transition-colors truncate"
+                className="text-white text-sm font-semibold cursor-pointer hover:text-stone-500 hover:underline transition-colors truncate"
                 onClick={() => {
                   setVisible(false);
                   navigate(`/profile/${user?.id}`);
@@ -167,7 +167,7 @@ const UserHoverCard = ({
                   onSendFriendRequest(user?.id);
                   setVisible(false);
                 }}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium py-1.5 rounded-lg transition-colors cursor-pointer"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-stone-700 hover:bg-stone-500 text-white text-xs font-medium py-1.5 rounded-lg transition-colors cursor-pointer"
               >
                 <FiUserPlus size={13} />
                 Add Friend

@@ -30,7 +30,7 @@ const BookclubHeader = ({
           <h2 className="text-white font-semibold">Book Suggestions & Voting</h2>
         ) : showMeetings ? (
           <>
-            <FiVideo className="text-purple-400" />
+            <FiVideo className="text-stone-500" />
             <h2 className="text-white font-semibold">Meetings</h2>
           </>
         ) : (
@@ -44,7 +44,7 @@ const BookclubHeader = ({
         {auth?.user && (
           <button 
             onClick={onInviteClick}
-            className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm font-medium"
+            className="flex items-center gap-2 px-3 py-1.5 bg-stone-700 hover:bg-stone-800 text-white rounded-lg transition-colors text-sm font-medium"
             title="Invite people"
           >
             <FiUserPlus size={18} />

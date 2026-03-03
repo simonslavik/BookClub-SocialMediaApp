@@ -104,7 +104,7 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
       <div className="bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-stone-700 px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
             <FiBook />
             Add Book to BookClub
@@ -128,13 +128,13 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by title, author, or ISBN..."
-                  className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-stone-500"
                 />
               </div>
               <button
                 type="submit"
                 disabled={searching || !searchQuery.trim()}
-                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-semibold"
+                className="px-6 py-3 bg-stone-700 hover:bg-stone-800 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-semibold"
               >
                 {searching ? 'Searching...' : 'Search'}
               </button>
@@ -143,7 +143,7 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
 
           {/* Selected Book Configuration */}
           {selectedBook && (
-            <div className="mb-6 bg-gray-700 rounded-lg p-4 border-2 border-purple-500">
+            <div className="mb-6 bg-gray-700 rounded-lg p-4 border-2 border-stone-500">
               <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
                 <FiCheck className="text-green-400" />
                 Selected Book
@@ -168,7 +168,7 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
                   onClick={() => setStatus('current')}
                   className={`px-4 py-3 rounded-lg font-semibold transition-all ${
                     status === 'current'
-                      ? 'bg-purple-600 text-white ring-2 ring-purple-400'
+                      ? 'bg-stone-700 text-white ring-2 ring-stone-500'
                       : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                   }`}
                 >
@@ -178,7 +178,7 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
                   onClick={() => setStatus('upcoming')}
                   className={`px-4 py-3 rounded-lg font-semibold transition-all ${
                     status === 'upcoming'
-                      ? 'bg-blue-600 text-white ring-2 ring-blue-400'
+                      ? 'bg-stone-600 text-white ring-2 ring-stone-400'
                       : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                   }`}
                 >
@@ -207,7 +207,7 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:ring-2 focus:ring-stone-500"
                   />
                 </div>
                 <div>
@@ -220,7 +220,7 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     min={startDate}
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:ring-2 focus:ring-stone-500"
                   />
                 </div>
               </div>
@@ -228,7 +228,7 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
               <button
                 onClick={handleAddBook}
                 disabled={adding}
-                className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-all font-semibold text-lg shadow-lg"
+                className="w-full mt-4 px-6 py-3 bg-stone-700 hover:bg-stone-800 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-all font-semibold text-lg shadow-lg"
               >
                 {adding ? 'Adding Book...' : 'Add Book to BookClub'}
               </button>
@@ -248,7 +248,7 @@ const AddBookToBookclubModal = ({ bookClubId, onClose, onBookAdded }) => {
                     onClick={() => setSelectedBook(book)}
                     className={`flex gap-3 p-3 rounded-lg cursor-pointer transition-all ${
                       selectedBook?.googleBooksId === book.googleBooksId
-                        ? 'bg-purple-600 ring-2 ring-purple-400'
+                        ? 'bg-stone-700 ring-2 ring-stone-500'
                         : 'bg-gray-700 hover:bg-gray-600'
                     }`}
                   >

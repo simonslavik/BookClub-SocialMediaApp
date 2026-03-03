@@ -45,7 +45,7 @@ const VerifyEmail = () => {
         <div className="text-center">
           {status === 'verifying' && (
             <>
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-stone-700 mx-auto"></div>
               <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
                 Verifying your email...
               </h2>
@@ -102,7 +102,7 @@ const VerifyEmail = () => {
               <div className="mt-6 space-y-3">
                 <button
                   onClick={() => navigate('/login')}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-stone-700 hover:bg-stone-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-stone-500"
                 >
                   Go to Login
                 </button>
@@ -110,7 +110,7 @@ const VerifyEmail = () => {
                   Need a new verification link?{' '}
                   <button
                     onClick={() => navigate('/resend-verification')}
-                    className="font-medium text-indigo-600 hover:text-indigo-500"
+                    className="font-medium text-stone-700 hover:text-stone-500"
                   >
                     Resend verification email
                   </button>

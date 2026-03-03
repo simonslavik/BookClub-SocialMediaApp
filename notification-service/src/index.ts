@@ -5,6 +5,7 @@ import prisma from './config/database.js';
 import notificationRoutes from './routes/notification.routes.js';
 import { setupWebSocket } from './websocket/index.js';
 import { startScheduler, stopScheduler } from './services/scheduler.service.js';
+import { verifyEmailConnection } from './services/email.service.js';
 import logger from './utils/logger.js';
 
 const app = express();
@@ -51,6 +52,9 @@ server.listen(PORT, () => {
 
   // Start the reminder scheduler
   startScheduler();
+
+  // Verify email connection (non-blocking)
+  verifyEmailConnection().catch(() => {});
 });
 
 // Graceful shutdown

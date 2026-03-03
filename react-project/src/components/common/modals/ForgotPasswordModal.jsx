@@ -59,7 +59,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-500"
                 placeholder="Enter your email"
                 required
               />
@@ -85,7 +85,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-stone-700 text-white rounded-md hover:bg-stone-800 disabled:opacity-50"
               >
                 {loading ? 'Sending...' : 'Send Reset Link'}
               </button>
@@ -111,7 +111,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
 
             <button
               onClick={onClose}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="w-full px-4 py-2 bg-stone-700 text-white rounded-md hover:bg-stone-800"
             >
               Close
             </button>

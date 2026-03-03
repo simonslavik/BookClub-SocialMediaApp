@@ -56,7 +56,7 @@ const ResetPasswordPage = () => {
           </p>
           <button
             onClick={() => navigate('/')}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="w-full px-4 py-2 bg-stone-700 text-white rounded-md hover:bg-stone-800"
           >
             Go to Home
           </button>
@@ -99,7 +99,7 @@ const ResetPasswordPage = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-500"
               placeholder="Enter new password"
               required
             />
@@ -113,17 +113,17 @@ const ResetPasswordPage = () => {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-500"
               placeholder="Confirm new password"
               required
             />
           </div>
 
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-            <p className="text-sm text-blue-700">
+          <div className="mb-4 p-3 bg-stone-50 border border-stone-200 rounded-md">
+            <p className="text-sm text-stone-700">
               Password requirements:
             </p>
-            <ul className="text-xs text-blue-600 mt-1 list-disc list-inside">
+            <ul className="text-xs text-stone-600 mt-1 list-disc list-inside">
               <li>At least 8 characters long</li>
               <li>Contains uppercase and lowercase letters</li>
               <li>Contains at least one number</li>
@@ -140,7 +140,7 @@ const ResetPasswordPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className="w-full px-4 py-2 bg-stone-700 text-white rounded-md hover:bg-stone-800 disabled:opacity-50"
           >
             {loading ? 'Resetting...' : 'Reset Password'}
           </button>
@@ -149,7 +149,7 @@ const ResetPasswordPage = () => {
         <div className="mt-4 text-center">
           <button
             onClick={() => navigate('/')}
-            className="text-sm text-blue-600 hover:text-blue-700"
+            className="text-sm text-stone-600 hover:text-stone-700"
           >
             Back to Home
           </button>

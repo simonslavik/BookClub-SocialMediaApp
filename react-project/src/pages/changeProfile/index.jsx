@@ -192,7 +192,7 @@ const ChangeProfilePage = () => {
                                     <img 
                                         src={imagePreview} 
                                         alt="Profile Preview" 
-                                        className="w-32 h-32 rounded-full object-cover border-4 border-purple-200"
+                                        className="w-32 h-32 rounded-full object-cover border-4 border-stone-200"
                                         onError={(e) => { e.target.src = '/images/default-avatar.png'; }}
                                     />
                                     {/* Only show delete button if user has a custom profile image or selected a new one */}
@@ -216,7 +216,7 @@ const ChangeProfilePage = () => {
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors font-medium"
+                                className="px-4 py-2 bg-stone-100 text-stone-800 rounded-lg hover:bg-stone-200 transition-colors font-medium"
                             >
                                 <FiImage className="inline mr-2" />
                                 {imagePreview ? 'Change Picture' : 'Upload Picture'}
@@ -245,7 +245,7 @@ const ChangeProfilePage = () => {
                             value={form.name}
                             onChange={handleChange}
                             placeholder="Enter your name"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500"
                             required
                         />
                     </div>
@@ -263,7 +263,7 @@ const ChangeProfilePage = () => {
                             placeholder="Tell us about yourself..."
                             rows={3}
                             maxLength={300}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 resize-none"
                         />
                         <div className="text-xs text-gray-400 text-right mt-1">
                             {form.bio.length}/300
@@ -281,14 +281,14 @@ const ChangeProfilePage = () => {
                             Change Password
                         </button>
                     ) : (
-                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <div className="flex items-center gap-2 text-blue-700">
+                        <div className="p-4 bg-stone-50 border border-stone-200 rounded-lg">
+                            <div className="flex items-center gap-2 text-stone-700">
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                                 </svg>
                                 <span className="text-sm font-medium">You're signed in with Google</span>
                             </div>
-                            <p className="text-xs text-blue-600 mt-1">
+                            <p className="text-xs text-stone-600 mt-1">
                                 Password changes are managed through your Google account.
                             </p>
                         </div>
@@ -298,7 +298,7 @@ const ChangeProfilePage = () => {
                     <button
                         type="submit"
                         disabled={loading || !form.name.trim()}
-                        className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                        className="w-full bg-stone-700 hover:bg-stone-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-lg transition-colors"
                     >
                         {loading ? 'Changing...' : 'Change Profile'}
                     </button>
@@ -307,7 +307,7 @@ const ChangeProfilePage = () => {
                 <div className="mt-4 text-center">
                     <button
                         onClick={() => navigate(-1)}
-                        className="text-sm text-purple-600 hover:text-purple-800"
+                        className="text-sm text-stone-700 hover:text-stone-900"
                     >
                         Cancel and go back
                     </button>

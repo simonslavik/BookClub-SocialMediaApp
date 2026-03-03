@@ -250,7 +250,7 @@ const NotificationBell = () => {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium"
+                className="text-xs text-stone-600 hover:text-stone-800 flex items-center gap-1 font-medium"
               >
                 <FiCheckCircle size={12} />
                 Mark all read
@@ -274,7 +274,7 @@ const NotificationBell = () => {
                 key={n.id}
                 onClick={() => handleNotificationClick(n)}
                 className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer group ${
-                  !n.read ? 'bg-blue-50/50' : ''
+                  !n.read ? 'bg-stone-50/50' : ''
                 }`}
               >
                 <div className="flex items-start gap-3">

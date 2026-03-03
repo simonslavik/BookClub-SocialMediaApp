@@ -1,5 +1,6 @@
 import prisma from '../config/database.js';
 import { NotificationService } from './notification.service.js';
+import { sendReminderEmails } from './emailNotification.service.js';
 import logger from '../utils/logger.js';
 
 const REMINDER_TEMPLATES: Record<string, { title: string; message: (name: string) => string }> = {
@@ -55,6 +56,7 @@ async function processScheduledNotifications() {
         // Get meeting info
         let meetingTitle = 'Book Club Meeting';
         let memberUserIds: string[] = [];
+        let clubName = 'your book club';
 
         try {
           // Get meeting details from collab-editor
@@ -83,6 +85,7 @@ async function processScheduledNotifications() {
           if (membersRes.ok) {
             const clubData = await membersRes.json() as any;
             const club = clubData.data || clubData;
+            clubName = club.name || clubName;
             const members = club.members || [];
             memberUserIds = members
               .filter((m: any) => m.status === 'ACTIVE')
@@ -102,6 +105,16 @@ async function processScheduledNotifications() {
             scheduled.meetingId
           );
           logger.info(`Sent ${scheduled.type} reminder to ${memberUserIds.length} members for meeting ${scheduled.meetingId}`);
+
+          // Send reminder emails asynchronously
+          sendReminderEmails({
+            type: scheduled.type as 'reminder_24h' | 'reminder_1h' | 'meeting_starting',
+            userIds: memberUserIds,
+            meetingId: scheduled.meetingId,
+            meetingTitle,
+            clubName,
+            scheduledAt: scheduled.scheduledAt.toISOString(),
+          }).catch((err) => logger.error('Reminder email error:', err));
         }
 
         // Mark as sent

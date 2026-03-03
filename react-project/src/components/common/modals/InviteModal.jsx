@@ -158,18 +158,18 @@ const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], currentUs
             <>
               {/* Invite Link Section */}
               {invite ? (
-                <div className="mb-6 p-5 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
+                <div className="mb-6 p-5 bg-stone-50 rounded-lg border-2 border-stone-200">
                   <div className="flex items-center gap-2 mb-3">
-                    <FiLink className="text-purple-600" size={20} />
+                    <FiLink className="text-stone-700" size={20} />
                     <h3 className="font-semibold text-gray-900">Permanent Invite Link</h3>
                   </div>
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="flex-1 bg-white px-4 py-3 rounded-lg border border-gray-300 font-mono text-sm text-purple-600 break-all">
+                    <div className="flex-1 bg-white px-4 py-3 rounded-lg border border-gray-300 font-mono text-sm text-stone-700 break-all">
                       {window.location.origin}/invite/{invite.code || invite.inviteCode}
                     </div>
                     <button
                       onClick={copyInviteLink}
-                      className="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                      className="px-4 py-3 bg-stone-700 hover:bg-stone-800 text-white rounded-lg transition-colors flex items-center gap-2"
                     >
                       {copied ? (
                         <>
@@ -216,7 +216,7 @@ const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], currentUs
                       value={searchQuery}
                       onChange={(e) => handleSearch(e.target.value)}
                       placeholder="Search friends..."
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -252,7 +252,7 @@ const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], currentUs
                             <img
                               src={friendImage}
                               alt={friendName}
-                              className="w-10 h-10 rounded-full object-cover border-2 border-purple-200"
+                              className="w-10 h-10 rounded-full object-cover border-2 border-stone-200"
                               onError={(e) => { e.target.src = '/images/default.webp'; }}
                             />
                             <div>
@@ -268,7 +268,7 @@ const InviteModal = ({ bookClubId, bookClubName, bookClubMembers = [], currentUs
                             <button
                               onClick={() => sendDMInvite(friend.id, friendName)}
                               disabled={sendingInvites.has(friend.id)}
-                              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-400 font-semibold"
+                              className="px-4 py-2 bg-stone-700 text-white rounded-lg hover:bg-stone-800 transition-colors disabled:bg-gray-400 font-semibold"
                             >
                               {sendingInvites.has(friend.id) ? 'Sending...' : 'Send Invite'}
                             </button>

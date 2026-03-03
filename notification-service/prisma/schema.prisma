@@ -37,3 +37,36 @@ model ScheduledNotification {
   @@index([scheduledAt, sent])
   @@index([meetingId])
 }
+
+model NotificationPreference {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  emailEnabled        Boolean  @default(true)
+  meetingCreated      Boolean  @default(true)
+  meetingUpdated      Boolean  @default(true)
+  meetingCancelled    Boolean  @default(true)
+  meetingReminder24h  Boolean  @default(true)
+  meetingReminder1h   Boolean  @default(true)
+  meetingStarting     Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model EmailLog {
+  id             String   @id @default(uuid())
+  notificationId String?
+  userId         String
+  email          String
+  subject        String
+  type           String   // meeting_created, reminder_24h, etc.
+  status         String   @default("sent") // sent, failed, bounced
+  errorMessage   String?
+  meetingId      String?
+  createdAt      DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([notificationId])
+  @@index([meetingId, type])
+}

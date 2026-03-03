@@ -143,7 +143,7 @@ const NewBookClubPage = () => {
                             value={form.name}
                             onChange={handleChange}
                             placeholder="Enter book club name"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500"
                             required
                         />
                     </div>
@@ -161,7 +161,7 @@ const NewBookClubPage = () => {
                             onChange={handleChange}
                             placeholder="Describe your book club..."
                             rows="3"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 resize-none"
                         />
                     </div>
 
@@ -175,7 +175,7 @@ const NewBookClubPage = () => {
                             name="category"
                             value={form.category}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 bg-white"
                             required
                         >
                             {categories.map(cat => (
@@ -191,7 +191,7 @@ const NewBookClubPage = () => {
                         </label>
                         <div className="space-y-2">
                             <label className={`flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                                form.visibility === 'PUBLIC' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-200'
+                                form.visibility === 'PUBLIC' ? 'border-stone-500 bg-stone-50' : 'border-gray-200 hover:border-stone-200'
                             }`}>
                                 <input
                                     type="radio"
@@ -211,7 +211,7 @@ const NewBookClubPage = () => {
                             </label>
 
                             <label className={`flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                                form.visibility === 'PRIVATE' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-200'
+                                form.visibility === 'PRIVATE' ? 'border-stone-500 bg-stone-50' : 'border-gray-200 hover:border-stone-200'
                             }`}>
                                 <input
                                     type="radio"
@@ -231,7 +231,7 @@ const NewBookClubPage = () => {
                             </label>
 
                             <label className={`flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                                form.visibility === 'INVITE_ONLY' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-200'
+                                form.visibility === 'INVITE_ONLY' ? 'border-stone-500 bg-stone-50' : 'border-gray-200 hover:border-stone-200'
                             }`}>
                                 <input
                                     type="radio"
@@ -243,7 +243,7 @@ const NewBookClubPage = () => {
                                 />
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <FiEyeOff className="w-4 h-4 text-purple-600" />
+                                        <FiEyeOff className="w-4 h-4 text-stone-700" />
                                         <span className="font-semibold text-gray-900">Invite Only</span>
                                     </div>
                                     <p className="text-xs text-gray-600">Only visible to members, join via invite</p>
@@ -293,7 +293,7 @@ const NewBookClubPage = () => {
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:border-purple-500 hover:bg-purple-50 transition-colors"
+                                className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:border-stone-500 hover:bg-stone-50 transition-colors"
                             >
                                 <FiImage className="text-4xl text-gray-400 mb-2" />
                                 <span className="text-sm text-gray-600">Click to upload image</span>
@@ -314,7 +314,7 @@ const NewBookClubPage = () => {
                     <button
                         type="submit"
                         disabled={loading || !form.name.trim()}
-                        className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                        className="w-full bg-stone-700 hover:bg-stone-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-lg transition-colors"
                     >
                         {loading ? 'Creating...' : 'Create Book Club'}
                     </button>
@@ -323,7 +323,7 @@ const NewBookClubPage = () => {
                 <div className="mt-4 text-center">
                     <button
                         onClick={() => navigate(-1)}
-                        className="text-sm text-purple-600 hover:text-purple-800"
+                        className="text-sm text-stone-700 hover:text-stone-900"
                     >
                         Cancel and go back
                     </button>

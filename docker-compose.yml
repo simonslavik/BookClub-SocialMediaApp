@@ -160,6 +160,13 @@ services:
       NODE_ENV: development
       JWT_SECRET: ${JWT_SECRET}
       COLLAB_EDITOR_URL: http://collab-editor:4000
+      USER_SERVICE_URL: http://user-service:3001
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-BookClubs <noreply@bookclubs.app>}
+      APP_URL: ${APP_URL:-http://localhost:5173}
     depends_on:
       postgres:
         condition: service_healthy

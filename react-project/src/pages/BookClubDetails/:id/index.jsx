@@ -107,7 +107,7 @@ const BookClubPage = () => {
                 <HomePageHeader />
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-20">
                     <div className="text-center">
-                        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-stone-700 mx-auto mb-4"></div>
                         <p className="text-lg text-gray-600">Loading book club...</p>
                     </div>
                 </div>
@@ -125,7 +125,7 @@ const BookClubPage = () => {
                         <p className="text-lg text-red-600 mb-4">{error}</p>
                         <button 
                             onClick={() => navigate('/')}
-                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                            className="px-6 py-2 bg-stone-700 text-white rounded-lg hover:bg-stone-800 transition-colors"
                         >
                             Go Home
                         </button>
@@ -138,9 +138,9 @@ const BookClubPage = () => {
     return (
         <>
             <HomePageHeader />
-            <div className="min-h-screen bg-gray-50 pt-20">
+            <div className="min-h-screen bg-gray-50">
                 {/* Hero Section */}
-                <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+                <div className="bg-stone-700 text-white">
                     <div className="max-w-7xl mx-auto px-6 py-12">
                         <div className="flex items-center gap-8">
                             {/* BookClub Image */}
@@ -215,7 +215,7 @@ const BookClubPage = () => {
                                         toastError(error.response?.data?.message || 'Failed to join bookclub');
                                     }
                                 }}
-                                className="px-8 py-4 bg-white text-purple-600 rounded-xl font-semibold hover:bg-purple-50 transition-all transform hover:scale-105 shadow-xl flex items-center gap-2"
+                                className="px-8 py-4 bg-white text-stone-700 rounded-xl font-semibold hover:bg-stone-50 transition-all transform hover:scale-105 shadow-xl flex items-center gap-2"
                             >
                                 <FiMessageSquare size={20} />
                                 {!auth?.user 
@@ -237,7 +237,7 @@ const BookClubPage = () => {
                             {/* Current Book Section */}
                             {currentBook ? (
                                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                                    <div className="bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-4">
+                                    <div className="bg-gradient-to-r from-stone-600 to-stone-700 px-6 py-4">
                                         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                                             <FiBook />
                                             Currently Reading
@@ -263,11 +263,11 @@ const BookClubPage = () => {
                                                 <div className="mb-4">
                                                     <div className="flex justify-between text-sm text-gray-600 mb-2">
                                                         <span>Reading Progress</span>
-                                                        <span className="font-semibold text-purple-600">{calculateProgress()}%</span>
+                                                        <span className="font-semibold text-stone-700">{calculateProgress()}%</span>
                                                     </div>
                                                     <div className="w-full bg-gray-200 rounded-full h-3">
                                                         <div
-                                                            className="bg-gradient-to-r from-purple-500 to-blue-500 h-3 rounded-full transition-all"
+                                                            className="bg-gradient-to-r from-stone-600 to-stone-700 h-3 rounded-full transition-all"
                                                             style={{ width: `${calculateProgress()}%` }}
                                                         />
                                                     </div>
@@ -275,18 +275,18 @@ const BookClubPage = () => {
 
                                                 {/* Timeline */}
                                                 <div className="grid grid-cols-2 gap-4 mb-4">
-                                                    <div className="bg-purple-50 rounded-lg p-3">
+                                                    <div className="bg-stone-50 rounded-lg p-3">
                                                         <p className="text-xs text-gray-600 mb-1">Started</p>
-                                                        <p className="font-semibold text-purple-600">
+                                                        <p className="font-semibold text-stone-700">
                                                             {new Date(currentBook.startDate).toLocaleDateString('en-US', {
                                                                 month: 'short',
                                                                 day: 'numeric'
                                                             })}
                                                         </p>
                                                     </div>
-                                                    <div className="bg-blue-50 rounded-lg p-3">
+                                                    <div className="bg-stone-50 rounded-lg p-3">
                                                         <p className="text-xs text-gray-600 mb-1">Target Finish</p>
-                                                        <p className="font-semibold text-blue-600">
+                                                        <p className="font-semibold text-stone-600">
                                                             {new Date(currentBook.endDate).toLocaleDateString('en-US', {
                                                                 month: 'short',
                                                                 day: 'numeric'
@@ -298,13 +298,13 @@ const BookClubPage = () => {
                                                 {/* Stats */}
                                                 <div className="flex gap-4">
                                                     <div className="text-center">
-                                                        <p className="text-2xl font-bold text-purple-600">
+                                                        <p className="text-2xl font-bold text-stone-700">
                                                             {currentBook.book?.pageCount || '?'}
                                                         </p>
                                                         <p className="text-xs text-gray-600">Total Pages</p>
                                                     </div>
                                                     <div className="text-center">
-                                                        <p className="text-2xl font-bold text-blue-600">
+                                                        <p className="text-2xl font-bold text-stone-600">
                                                             {calculateDaysRemaining()}
                                                         </p>
                                                         <p className="text-xs text-gray-600">Days Left</p>
@@ -325,7 +325,7 @@ const BookClubPage = () => {
                             {/* Upcoming Books */}
                             {upcomingBooks.length > 0 && (
                                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                                    <div className="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4">
+                                    <div className="bg-gradient-to-r from-stone-600 to-stone-700 px-6 py-4">
                                         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                                             <FiCalendar />
                                             Coming Up Next
@@ -334,7 +334,7 @@ const BookClubPage = () => {
                                     <div className="p-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {upcomingBooks.slice(0, 4).map((bookClubBook) => (
-                                                <div key={bookClubBook.id} className="flex gap-3 bg-blue-50 rounded-lg p-3 hover:shadow-md transition-shadow">
+                                                <div key={bookClubBook.id} className="flex gap-3 bg-stone-50 rounded-lg p-3 hover:shadow-md transition-shadow">
                                                     <img
                                                         src={bookClubBook.book?.coverUrl || '/images/default.webp'}
                                                         alt={bookClubBook.book?.title}
@@ -349,7 +349,7 @@ const BookClubPage = () => {
                                                             {bookClubBook.book?.author}
                                                         </p>
                                                         {bookClubBook.startDate && (
-                                                            <p className="text-xs text-blue-600 font-medium">
+                                                            <p className="text-xs text-stone-600 font-medium">
                                                                 Starts {new Date(bookClubBook.startDate).toLocaleDateString()}
                                                             </p>
                                                         )}
@@ -395,7 +395,7 @@ const BookClubPage = () => {
                         <div className="space-y-8">
                             {/* Members Section */}
                             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                                <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
+                                <div className="bg-gradient-to-r from-stone-500 to-stone-600 px-6 py-4">
                                     <h2 className="text-xl font-bold text-white flex items-center gap-2">
                                         <FiUsers />
                                         Members ({bookClubMembers.length})
@@ -408,7 +408,7 @@ const BookClubPage = () => {
                                             return (
                                                 <div
                                                     key={member.id}
-                                                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer"
+                                                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer"
                                                     onClick={() => navigate(`/profile/${member.id}`)}
                                                 >
                                                     <div className="relative">
@@ -441,7 +441,7 @@ const BookClubPage = () => {
                             </div>
 
                             {/* Stats Card */}
-                            <div className="bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl shadow-lg p-6 text-white">
+                            <div className="bg-gradient-to-br from-stone-600 to-stone-700 rounded-2xl shadow-lg p-6 text-white">
                                 <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                                     <FiTrendingUp />
                                     BookClub Stats

@@ -85,7 +85,7 @@ const DMSidebar = ({ conversations, friends = [], currentConversation, onSelectC
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setShowSearch(true)}
             placeholder="Find or start a conversation"
-            className="w-full pl-8 pr-7 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className="w-full pl-8 pr-7 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-stone-500"
           />
           {(searchQuery || showSearch) && (
             <button
@@ -125,7 +125,7 @@ const DMSidebar = ({ conversations, friends = [], currentConversation, onSelectC
               <div className="flex-1 min-w-0">
                 <span className="text-white text-sm truncate block">{user.name || user.username}</span>
                 {friendIds.has(user.id) && (
-                  <span className="text-xs text-purple-400">Friend</span>
+                  <span className="text-xs text-stone-500">Friend</span>
                 )}
               </div>
             </button>
@@ -166,7 +166,7 @@ const DMSidebar = ({ conversations, friends = [], currentConversation, onSelectC
                         {conv.friend.name || 'Unknown User'}
                       </span>
                       {conv.unreadCount > 0 && (
-                        <span className="bg-purple-600 text-white text-xs rounded-full px-2 py-0.5 flex-shrink-0 ml-2">
+                        <span className="bg-stone-700 text-white text-xs rounded-full px-2 py-0.5 flex-shrink-0 ml-2">
                           {conv.unreadCount}
                         </span>
                       )}

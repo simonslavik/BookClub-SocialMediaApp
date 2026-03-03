@@ -78,7 +78,7 @@ const InviteJoinPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      <div className="min-h-screen bg-stone-50">
         <HomePageHeader />
         <div className="flex items-center justify-center h-screen">
           <div className="text-xl text-gray-600">Loading invite...</div>
@@ -89,7 +89,7 @@ const InviteJoinPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      <div className="min-h-screen bg-stone-50">
         <HomePageHeader />
         <div className="flex items-center justify-center h-screen">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
@@ -100,7 +100,7 @@ const InviteJoinPage = () => {
             <p className="text-gray-600 mb-6">{error}</p>
             <button
               onClick={() => navigate('/')}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              className="px-6 py-3 bg-stone-700 text-white rounded-lg hover:bg-stone-800 transition-colors"
             >
               Go Home
             </button>
@@ -112,7 +112,7 @@ const InviteJoinPage = () => {
 
   if (joined) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      <div className="min-h-screen bg-stone-50">
         <HomePageHeader />
         <div className="flex items-center justify-center h-screen">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
@@ -131,7 +131,7 @@ const InviteJoinPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="min-h-screen bg-stone-50">
       <HomePageHeader />
       <div className="flex items-center justify-center min-h-screen py-12">
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
@@ -151,21 +151,21 @@ const InviteJoinPage = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             You've been invited to join
           </h1>
-          <h2 className="text-3xl font-bold text-purple-600 mb-4">
+          <h2 className="text-3xl font-bold text-stone-700 mb-4">
             {inviteInfo.bookClub.name}
           </h2>
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-purple-50 rounded-lg p-4 text-center">
-              <FiUsers className="text-purple-600 mx-auto mb-2" size={24} />
+            <div className="bg-stone-50 rounded-lg p-4 text-center">
+              <FiUsers className="text-stone-700 mx-auto mb-2" size={24} />
               <div className="text-2xl font-bold text-gray-900">
                 {inviteInfo.bookClub.memberCount}
               </div>
               <div className="text-sm text-gray-600">Members</div>
             </div>
-            <div className="bg-blue-50 rounded-lg p-4 text-center">
-              <FiBook className="text-blue-600 mx-auto mb-2" size={24} />
+            <div className="bg-stone-50 rounded-lg p-4 text-center">
+              <FiBook className="text-stone-600 mx-auto mb-2" size={24} />
               <div className="text-2xl font-bold text-gray-900">
                 {inviteInfo.bookClub.category}
               </div>
@@ -177,7 +177,7 @@ const InviteJoinPage = () => {
           <button
             onClick={handleJoin}
             disabled={joining}
-            className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-semibold shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="w-full px-6 py-3 bg-stone-700 hover:bg-stone-800 text-white rounded-lg font-semibold shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             {joining ? 'Joining...' : auth?.token ? 'Join Book Club' : 'Login to Join'}
           </button>

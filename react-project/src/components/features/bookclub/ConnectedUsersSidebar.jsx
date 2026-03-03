@@ -10,8 +10,8 @@ import logger from '@utils/logger';
 const RoleBadge = ({ role }) => {
   const roleConfig = {
     OWNER: { icon: FiStar, color: 'text-yellow-400', bg: 'bg-yellow-400/10', label: 'Owner' },
-    ADMIN: { icon: FiShield, color: 'text-purple-400', bg: 'bg-purple-400/10', label: 'Admin' },
-    MODERATOR: { icon: FiAward, color: 'text-blue-400', bg: 'bg-blue-400/10', label: 'Mod' },
+    ADMIN: { icon: FiShield, color: 'text-stone-500', bg: 'bg-stone-500/10', label: 'Admin' },
+    MODERATOR: { icon: FiAward, color: 'text-stone-400', bg: 'bg-stone-400/10', label: 'Mod' },
     MEMBER: { icon: null, color: '', bg: '', label: '' }
   };
 
@@ -85,11 +85,11 @@ const ConnectedUsersSidebar = ({
         onClick={() => setShowMembersModal(true)}
         className="flex items-center gap-2 px-2 py-1.5 mb-2 w-full rounded-md hover:bg-gray-700 transition-colors group cursor-pointer"
       >
-        <FiUsers className="text-gray-400 group-hover:text-indigo-400 transition-colors" size={14} />
-        <h3 className="text-gray-400 group-hover:text-indigo-400 text-xs font-semibold uppercase transition-colors">
+        <FiUsers className="text-gray-400 group-hover:text-stone-500 transition-colors" size={14} />
+        <h3 className="text-gray-400 group-hover:text-stone-500 text-xs font-semibold uppercase transition-colors">
           Members
         </h3>
-        <span className="ml-auto bg-gray-700 group-hover:bg-indigo-500/20 text-gray-300 group-hover:text-indigo-400 text-xs font-bold px-1.5 py-0.5 rounded-full transition-colors">
+        <span className="ml-auto bg-gray-700 group-hover:bg-stone-500/20 text-gray-300 group-hover:text-stone-500 text-xs font-bold px-1.5 py-0.5 rounded-full transition-colors">
           {bookClubMembers.length}
         </span>
       </button>
@@ -102,7 +102,7 @@ const ConnectedUsersSidebar = ({
           placeholder="Search members..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-gray-700/50 border border-gray-600 rounded-md py-1 pl-7 pr-6 text-xs text-gray-300 placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-colors"
+          className="w-full bg-gray-700/50 border border-gray-600 rounded-md py-1 pl-7 pr-6 text-xs text-gray-300 placeholder-gray-500 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500/30 transition-colors"
         />
         {searchQuery && (
           <button
@@ -120,9 +120,9 @@ const ConnectedUsersSidebar = ({
           <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
               <div className="flex items-center gap-2">
-                <FiUsers className="text-indigo-400" size={18} />
+                <FiUsers className="text-stone-500" size={18} />
                 <h2 className="text-white font-semibold text-lg">All Members</h2>
-                <span className="bg-indigo-500/20 text-indigo-400 text-xs font-bold px-2 py-0.5 rounded-full">{bookClubMembers.length}</span>
+                <span className="bg-stone-500/20 text-stone-500 text-xs font-bold px-2 py-0.5 rounded-full">{bookClubMembers.length}</span>
               </div>
               <button onClick={() => setShowMembersModal(false)} className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-700 rounded-md">
                 <FiX size={18} />

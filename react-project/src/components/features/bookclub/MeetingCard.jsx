@@ -6,9 +6,9 @@ import {
 import { getProfileImageUrl } from '@config/constants';
 
 const PLATFORM_META = {
-  zoom:        { icon: '📹', label: 'Zoom',        gradient: 'from-blue-600 to-blue-700' },
+  zoom:        { icon: '📹', label: 'Zoom',        gradient: 'from-stone-600 to-stone-700' },
   google_meet: { icon: '🟢', label: 'Google Meet', gradient: 'from-green-600 to-green-700' },
-  teams:       { icon: '🟣', label: 'Teams',       gradient: 'from-indigo-600 to-indigo-700' },
+  teams:       { icon: '🟣', label: 'Teams',       gradient: 'from-stone-700 to-stone-800' },
   discord:     { icon: '🎮', label: 'Discord',     gradient: 'from-violet-600 to-violet-700' },
   custom:      { icon: '🔗', label: 'Meeting',     gradient: 'from-gray-600 to-gray-700' },
 };
@@ -212,7 +212,7 @@ const MeetingCard = ({ meeting, currentUserId, allMembers, onRSVP, onEdit, onDel
                     ? 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-600/30'
                     : isStartingSoon
                     ? 'bg-yellow-600 hover:bg-yellow-500 text-white'
-                    : 'bg-purple-600 hover:bg-purple-500 text-white'
+                    : 'bg-stone-700 hover:bg-stone-500 text-white'
                 }`}
               >
                 <FiExternalLink size={14} />

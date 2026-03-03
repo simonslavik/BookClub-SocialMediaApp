@@ -84,7 +84,7 @@ const FileUpload = forwardRef(({ onFilesSelected, auth, disabled = false }, ref)
   };
 
   const getFileIcon = (file) => {
-    if (file.type.startsWith('image/')) return <FiImage className="text-blue-400" size={20} />;
+    if (file.type.startsWith('image/')) return <FiImage className="text-stone-400" size={20} />;
     return <FiFile className="text-gray-400" size={20} />;
   };
 
@@ -92,11 +92,11 @@ const FileUpload = forwardRef(({ onFilesSelected, auth, disabled = false }, ref)
     <>
       {/* File Preview Panel - Shows above message input when files are selected */}
       {selectedFiles.length > 0 && (
-        <div className="absolute bottom-full left-0 right-0 mb-2 px-4 py-3 bg-gradient-to-b from-gray-750 to-gray-800 border border-purple-500/30 rounded-t-lg shadow-xl animate-fadeIn">
+        <div className="absolute bottom-full left-0 right-0 mb-2 px-4 py-3 bg-gradient-to-b from-gray-750 to-gray-800 border border-stone-500/30 rounded-t-lg shadow-xl animate-fadeIn">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="bg-purple-600/20 p-1.5 rounded-lg">
-                <FiPaperclip className="text-purple-400" size={16} />
+              <div className="bg-stone-700/20 p-1.5 rounded-lg">
+                <FiPaperclip className="text-stone-500" size={16} />
               </div>
               <span className="text-white text-sm font-semibold">
                 {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} ready to send
@@ -117,7 +117,7 @@ const FileUpload = forwardRef(({ onFilesSelected, auth, disabled = false }, ref)
             {selectedFiles.map((file, index) => (
               <div
                 key={index}
-                className="flex-shrink-0 relative group bg-gray-700 hover:bg-gray-650 rounded-xl p-2.5 w-36 border border-gray-600/50 hover:border-purple-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/20"
+                className="flex-shrink-0 relative group bg-gray-700 hover:bg-gray-650 rounded-xl p-2.5 w-36 border border-gray-600/50 hover:border-stone-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-stone-500/20"
               >
                 {file.type.startsWith('image/') ? (
                   <div className="relative">

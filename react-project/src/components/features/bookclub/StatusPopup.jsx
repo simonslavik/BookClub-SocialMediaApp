@@ -73,7 +73,7 @@ const StatusPopup = ({ user, onClose, onStatusChange, wsRef, onLogout }) => {
             <div className={`w-2.5 h-2.5 rounded-full ${opt.color} flex-shrink-0`} />
             <span className="text-sm text-white">{opt.label}</span>
             {currentStatus === opt.value && (
-              <span className="ml-auto text-xs text-purple-400">Current</span>
+              <span className="ml-auto text-xs text-stone-500">Current</span>
             )}
           </button>
         ))}

@@ -142,7 +142,7 @@ const DiscoverBookClubs = () => {
             case 'PRIVATE':
                 return 'bg-yellow-100 text-yellow-700';
             case 'INVITE_ONLY':
-                return 'bg-purple-100 text-purple-700';
+                return 'bg-stone-100 text-stone-800';
             default:
                 return 'bg-gray-100 text-gray-700';
         }
@@ -152,9 +152,9 @@ const DiscoverBookClubs = () => {
         <div className="min-h-screen bg-gray-50">
             <HomePageHeader />
             
-            <div className="pt-20 pb-12">
+            <div className="pb-12">
                 {/* Hero Section */}
-                <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-16">
+                <div className="bg-stone-700 text-white py-16">
                     <div className="max-w-7xl mx-auto px-6">
                         <h1 className="text-5xl font-display font-bold mb-4">Discover Book Clubs</h1>
                         <p className="text-xl text-white/90 font-outfit">Find your perfect reading community</p>
@@ -172,7 +172,7 @@ const DiscoverBookClubs = () => {
                                 placeholder="Search for book clubs..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-12 py-4 border-2 border-gray-200 rounded-xl font-outfit focus:border-purple-500 focus:outline-none text-lg"
+                                className="w-full pl-12 pr-12 py-4 border-2 border-gray-200 rounded-xl font-outfit focus:border-stone-500 focus:outline-none text-lg"
                             />
                             {searchQuery && (
                                 <button
@@ -197,7 +197,7 @@ const DiscoverBookClubs = () => {
                                         onClick={() => handleCategoryClick(category)}
                                         className={`px-4 py-2 rounded-full font-outfit text-sm transition-all ${
                                             selectedCategory === category
-                                                ? 'bg-purple-600 text-white shadow-lg scale-105'
+                                                ? 'bg-stone-700 text-white shadow-lg scale-105'
                                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         }`}
                                     >
@@ -222,7 +222,7 @@ const DiscoverBookClubs = () => {
                                     setSearchQuery('');
                                     setSelectedCategory('All');
                                 }}
-                                className="text-purple-600 hover:text-purple-700 font-outfit font-medium"
+                                className="text-stone-700 hover:text-stone-800 font-outfit font-medium"
                             >
                                 Clear All Filters
                             </button>
@@ -232,7 +232,7 @@ const DiscoverBookClubs = () => {
                     {/* Loading State */}
                     {loading ? (
                         <div className="flex justify-center items-center py-20">
-                            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
+                            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-stone-700"></div>
                         </div>
                     ) : filteredBookClubs.length === 0 ? (
                         /* Empty State */
@@ -246,7 +246,7 @@ const DiscoverBookClubs = () => {
                             </p>
                             <button
                                 onClick={() => navigate('/create-bookclub')}
-                                className="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 transition-colors font-outfit"
+                                className="px-6 py-3 bg-stone-700 text-white rounded-xl font-semibold hover:bg-stone-800 transition-colors font-outfit"
                             >
                                 Create a Book Club
                             </button>
@@ -260,7 +260,7 @@ const DiscoverBookClubs = () => {
                                     className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden transform hover:scale-105 w-full h-[420px] flex flex-col"
                                 >
                                     {/* Book Club Image */}
-                                    <div className="relative h-48 bg-gradient-to-br from-purple-400 to-blue-400">
+                                    <div className="relative h-48 bg-gradient-to-br from-stone-500 to-stone-600">
                                         <img
                                             src={bookClub.imageUrl ? `${COLLAB_EDITOR_URL}${bookClub.imageUrl}` : '/images/default.webp'}
                                             alt={bookClub.name}
@@ -269,7 +269,7 @@ const DiscoverBookClubs = () => {
                                         />
                                         <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
                                             {bookClub.category && (
-                                                <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-purple-700 font-outfit">
+                                                <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-stone-800 font-outfit">
                                                     {bookClub.category}
                                                 </div>
                                             )}
@@ -300,7 +300,7 @@ const DiscoverBookClubs = () => {
                                         {/* Stats */}
                                         <div className="mt-auto space-y-2">
                                             <div className="flex items-center gap-2 text-gray-600">
-                                                <FiUsers className="text-purple-600" />
+                                                <FiUsers className="text-stone-700" />
                                                 <span className="text-sm font-outfit">
                                                     {bookClub.memberCount || 0} member{bookClub.memberCount !== 1 ? 's' : ''}
                                                 </span>

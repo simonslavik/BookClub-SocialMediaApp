@@ -98,7 +98,7 @@ const BookSuggestionsView = ({ bookClubId, auth, members = [], onSuggestionAdded
               className={`px-4 py-2 text-white rounded-lg transition-colors flex items-center gap-2 font-medium ${
                 suggestionsRemaining != null && suggestionsRemaining <= 0
                   ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                  : 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-stone-700 hover:bg-stone-800'
               }`}
               title={suggestionsRemaining != null && suggestionsRemaining <= 0 ? 'Suggestion limit reached' : ''}
             >
@@ -115,7 +115,7 @@ const BookSuggestionsView = ({ bookClubId, auth, members = [], onSuggestionAdded
               <div
                 key={suggestion.id}
                 onClick={() => setSelectedSuggestion(suggestion)}
-                className="bg-gray-800 rounded-lg p-5 border border-gray-700 hover:border-purple-500 transition-all cursor-pointer overflow-hidden"
+                className="bg-gray-800 rounded-lg p-5 border border-gray-700 hover:border-stone-500 transition-all cursor-pointer overflow-hidden"
               >
                 {/* Book Cover and Info */}
                 <div className="flex gap-4 mb-4">
@@ -176,7 +176,7 @@ const BookSuggestionsView = ({ bookClubId, auth, members = [], onSuggestionAdded
                     </button>
                   </div>
                   <div
-                    className="flex items-center gap-2 text-gray-400 text-xs cursor-pointer hover:text-purple-400 transition-colors"
+                    className="flex items-center gap-2 text-gray-400 text-xs cursor-pointer hover:text-stone-500 transition-colors"
                     onClick={(e) => { e.stopPropagation(); navigate(`/profile/${suggestion.suggestedById || suggestion.suggestedBy?.id}`); }}
                   >
                     <img
@@ -208,7 +208,7 @@ const BookSuggestionsView = ({ bookClubId, auth, members = [], onSuggestionAdded
             {auth?.user && (
               <button
                 onClick={() => setShowSuggestBook(true)}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors inline-flex items-center gap-2 font-medium"
+                className="px-6 py-3 bg-stone-700 hover:bg-stone-800 text-white rounded-lg transition-colors inline-flex items-center gap-2 font-medium"
               >
                 <FiPlus size={18} />
                 Suggest a Book

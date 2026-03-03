@@ -63,7 +63,7 @@ const AdminApprovalPanel = ({ bookclubId, userRole }) => {
     return (
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex items-center justify-center py-8">
-          <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-stone-700 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -73,7 +73,7 @@ const AdminApprovalPanel = ({ bookclubId, userRole }) => {
     return (
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex items-center gap-3 mb-4">
-          <FiUsers className="w-6 h-6 text-purple-600" />
+          <FiUsers className="w-6 h-6 text-stone-700" />
           <h3 className="text-xl font-bold text-gray-900 font-display">Join Requests</h3>
         </div>
         <div className="text-center py-8">
@@ -87,9 +87,9 @@ const AdminApprovalPanel = ({ bookclubId, userRole }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
       <div className="flex items-center gap-3 mb-6">
-        <FiUsers className="w-6 h-6 text-purple-600" />
+        <FiUsers className="w-6 h-6 text-stone-700" />
         <h3 className="text-xl font-bold text-gray-900 font-display">Join Requests</h3>
-        <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold">
+        <span className="bg-stone-100 text-stone-800 px-3 py-1 rounded-full text-sm font-semibold">
           {requests.length}
         </span>
       </div>
@@ -98,7 +98,7 @@ const AdminApprovalPanel = ({ bookclubId, userRole }) => {
         {requests.map((request) => (
           <div
             key={request.id}
-            className="border-2 border-gray-200 rounded-xl p-4 hover:border-purple-300 transition-colors"
+            className="border-2 border-gray-200 rounded-xl p-4 hover:border-stone-300 transition-colors"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
@@ -109,7 +109,7 @@ const AdminApprovalPanel = ({ bookclubId, userRole }) => {
                     className="w-10 h-10 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-blue-400 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 bg-gradient-to-br from-stone-500 to-stone-600 rounded-full flex items-center justify-center text-white font-bold">
                     {request.user?.username?.charAt(0)?.toUpperCase() || request.userId?.charAt(0)?.toUpperCase() || '?'}
                   </div>
                 )}

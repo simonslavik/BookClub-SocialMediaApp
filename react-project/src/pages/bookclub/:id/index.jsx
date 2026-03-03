@@ -24,7 +24,7 @@ const linkifyText = (text) => {
           href={part}
           target="_blank"
           rel="noopener noreferrer"
-          className="underline hover:text-blue-300"
+          className="underline hover:text-stone-300"
           onClick={(e) => e.stopPropagation()}
         >
           {part}
@@ -703,7 +703,7 @@ const BookClub = () => {
         <div className="text-red-400 text-xl mb-4">{error}</div>
         <button 
           onClick={() => navigate('/')}
-          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+          className="px-4 py-2 bg-stone-700 text-white rounded hover:bg-stone-800"
         >
           Go Home
         </button>
@@ -827,7 +827,7 @@ const BookClub = () => {
               {/* Settings Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <FiSettingsIcon className="w-6 h-6 text-purple-400" />
+                    <FiSettingsIcon className="w-6 h-6 text-stone-500" />
                     <h2 className="text-2xl font-bold text-white">Bookclub Settings</h2>
                   </div>
                   <button
@@ -867,7 +867,7 @@ const BookClub = () => {
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploadingImage}
-                            className="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center gap-1.5"
+                            className="px-2 py-1 bg-stone-700 hover:bg-stone-800 text-white rounded-lg text-sm font-medium flex items-center gap-1.5"
                           >
                             <FiImage size={14} />
                             {uploadingImage ? 'Uploading...' : 'Change'}
@@ -900,7 +900,7 @@ const BookClub = () => {
                         type="text"
                         value={settingsForm.name}
                         onChange={(e) => setSettingsForm({...settingsForm, name: e.target.value})}
-                        className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                        className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-stone-500 outline-none"
                         required
                       />
                     </div>
@@ -912,7 +912,7 @@ const BookClub = () => {
                         value={settingsForm.description}
                         onChange={(e) => setSettingsForm({...settingsForm, description: e.target.value})}
                         rows={4}
-                        className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500 outline-none resize-none"
+                        className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-stone-500 outline-none resize-none"
                       />
                     </div>
 
@@ -922,7 +922,7 @@ const BookClub = () => {
                       <select
                         value={settingsForm.category}
                         onChange={(e) => setSettingsForm({...settingsForm, category: e.target.value})}
-                        className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                        className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-stone-500 outline-none"
                       >
                         <option value="">Select a category</option>
                         <option value="Fiction">Fiction</option>
@@ -983,7 +983,7 @@ const BookClub = () => {
                             onChange={(e) => setSettingsForm({...settingsForm, visibility: e.target.value})}
                             className="w-4 h-4"
                           />
-                          <FiEyeOff className="text-purple-400" />
+                          <FiEyeOff className="text-stone-500" />
                           <div>
                             <span className="font-semibold text-white">Invite Only</span>
                             <p className="text-sm text-gray-400">Only visible to members, join via invite</p>
@@ -1014,7 +1014,7 @@ const BookClub = () => {
                       className={`w-full px-6 py-3 rounded-xl font-semibold transition-colors ${
                         savingSettings
                           ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                          : 'bg-purple-600 text-white hover:bg-purple-700'
+                          : 'bg-stone-700 text-white hover:bg-stone-800'
                       }`}
                     >
                       {savingSettings ? 'Saving...' : 'Save Settings'}
@@ -1140,7 +1140,7 @@ const BookClub = () => {
             ) : !showBooksHistory && !showCalendar && !showSuggestions && !showMeetings && !showSettings ? (
               <div className="bg-gray-800 border-t border-gray-700 p-4 text-center">
                 <p className="text-gray-400">
-                  Please <button onClick={() => navigate('/login', { state: { from: `/bookclub/${bookClubId}` } })} className="text-purple-400 hover:underline">log in</button> to chat
+                  Please <button onClick={() => navigate('/login', { state: { from: `/bookclub/${bookClubId}` } })} className="text-stone-500 hover:underline">log in</button> to chat
                 </p>
               </div>
             ) : null}

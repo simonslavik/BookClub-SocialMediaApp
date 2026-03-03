@@ -42,7 +42,7 @@ const OwnMessage = ({
         <div className="relative">
         {/* Message body */}
         {isEditing ? (
-          <div className="bg-gray-800 rounded-2xl px-2 py-3 shadow-lg mb-1 border border-purple-500">
+          <div className="bg-gray-800 rounded-2xl px-2 py-3 shadow-lg mb-1 border border-stone-500">
             <textarea
               ref={editInputRef}
               value={editingText}
@@ -55,16 +55,16 @@ const OwnMessage = ({
               <button onClick={onCancelEdit} className="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 flex items-center gap-1">
                 <FiX className="w-3 h-3" /> Cancel
               </button>
-              <button onClick={() => onEditSave(msg.id)} className="px-2 py-1 rounded bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1">
+              <button onClick={() => onEditSave(msg.id)} className="px-2 py-1 rounded bg-stone-700 hover:bg-stone-500 text-white flex items-center gap-1">
                 <FiCheck className="w-3 h-3" /> Save
               </button>
             </div>
           </div>
         ) : msg.text && (
-          <div className={`relative w-fit bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl px-2 py-3 shadow-lg mb-1 ml-auto ${msg.deletedAt ? 'opacity-60 italic' : ''}`}>
+          <div className={`relative w-fit bg-stone-700 rounded-2xl px-2 py-3 shadow-lg mb-1 ml-auto ${msg.deletedAt ? 'opacity-60 italic' : ''}`}>
             <p className="text-sm text-white break-words font-medium">
               {renderMessageContent(msg.text, members, auth?.user?.id, { friends, connectedUsers, onSendFriendRequest })}
-              {msg.editedAt && <span className="text-xs text-purple-200 italic ml-1">(edited)</span>}
+              {msg.editedAt && <span className="text-xs text-stone-200 italic ml-1">(edited)</span>}
             </p>
             {copiedMessageId === msg.id && (
               <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs px-2 py-1 rounded-md shadow-lg whitespace-nowrap">

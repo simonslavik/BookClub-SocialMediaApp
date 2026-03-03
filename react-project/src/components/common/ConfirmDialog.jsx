@@ -7,12 +7,12 @@ const variantStyles = {
     confirmBtn: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
   },
   warning: {
-    icon: <FiAlertTriangle className="text-amber-400" size={24} />,
-    confirmBtn: 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500',
+    icon: <FiAlertTriangle className="text-stone-400" size={24} />,
+    confirmBtn: 'bg-stone-600 hover:bg-stone-700 focus:ring-stone-500',
   },
   default: {
-    icon: <FiInfo className="text-blue-400" size={24} />,
-    confirmBtn: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
+    icon: <FiInfo className="text-stone-400" size={24} />,
+    confirmBtn: 'bg-stone-700 hover:bg-stone-800 focus:ring-stone-500',
   },
 };
 

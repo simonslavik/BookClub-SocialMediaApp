@@ -305,7 +305,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
     <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+        <div className="flex items-center justify-between p-6 border-b bg-stone-700 text-white">
           <h2 className="text-2xl font-bold">📖 Current Book</h2>
           <button
             onClick={onClose}
@@ -321,7 +321,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
             onClick={() => setActiveTab('details')}
             className={`flex-1 px-6 py-3 font-medium transition-colors ${
               activeTab === 'details'
-                ? 'bg-white text-purple-600 border-b-2 border-purple-600'
+                ? 'bg-white text-stone-700 border-b-2 border-stone-700'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -332,7 +332,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
             onClick={() => setActiveTab('schedule')}
             className={`flex-1 px-6 py-3 font-medium transition-colors ${
               activeTab === 'schedule'
-                ? 'bg-white text-purple-600 border-b-2 border-purple-600'
+                ? 'bg-white text-stone-700 border-b-2 border-stone-700'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -343,7 +343,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
             onClick={() => setActiveTab('reviews')}
             className={`flex-1 px-6 py-3 font-medium transition-colors ${
               activeTab === 'reviews'
-                ? 'bg-white text-purple-600 border-b-2 border-purple-600'
+                ? 'bg-white text-stone-700 border-b-2 border-stone-700'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -396,7 +396,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
               )}
 
               {/* Reading Timeline */}
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6">
+              <div className="bg-stone-50 rounded-lg p-6">
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">Reading Timeline</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -433,7 +433,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
                   {!editingSchedule && (
                     <button
                       onClick={() => setEditingSchedule(true)}
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-stone-700 text-white rounded-lg hover:bg-stone-800 transition-colors"
                     >
                       <FiEdit2 size={16} />
                       Edit Schedule
@@ -453,7 +453,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 outline-none"
                       />
                     </div>
 
@@ -478,7 +478,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
                           max="90"
                           value={readingDays}
                           onChange={(e) => setReadingDays(parseInt(e.target.value))}
-                          className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                          className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 outline-none"
                         />
                       </div>
                     </div>
@@ -492,7 +492,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
                         type="date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 outline-none"
                       />
                     </div>
 
@@ -507,14 +507,14 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
                       <button
                         onClick={handleUpdateSchedule}
                         disabled={submitting || !startDate || !endDate}
-                        className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+                        className="flex-1 px-6 py-3 bg-stone-700 text-white rounded-lg hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
                       >
                         {submitting ? 'Saving...' : 'Save Changes'}
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6">
+                  <div className="bg-stone-50 rounded-lg p-6">
                     <div className="grid grid-cols-2 gap-6 mb-6">
                       <div>
                         <p className="text-sm text-gray-600 mb-2">Start Date</p>
@@ -539,15 +539,15 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
                     </div>
 
                     {book?.pageCount && (
-                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-purple-200">
+                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-stone-200">
                         <div className="text-center">
-                          <p className="text-3xl font-bold text-purple-600">
+                          <p className="text-3xl font-bold text-stone-700">
                             {calculatePagesPerDay()}
                           </p>
                           <p className="text-sm text-gray-600 mt-1">Pages per day</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-3xl font-bold text-blue-600">
+                          <p className="text-3xl font-bold text-stone-600">
                             {calculateDaysRemaining()}
                           </p>
                           <p className="text-sm text-gray-600 mt-1">Days remaining</p>
@@ -569,7 +569,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
               ) : (
                 <>
                   {/* Your Rating Section */}
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-5 mb-6">
+                  <div className="bg-gradient-to-r from-stone-50 to-warmgray-100 rounded-lg p-5 mb-6">
                     <h4 className="text-base font-semibold text-gray-900 mb-3">
                       {myReview ? 'Your Rating' : 'Rate this Book'}
                     </h4>
@@ -608,7 +608,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
                       onChange={(e) => setReviewText(e.target.value)}
                       rows={2}
                       maxLength={2000}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm mb-3"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-500 text-sm mb-3"
                       placeholder="Write a review (optional)..."
                     />
 
@@ -616,7 +616,7 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
                       <button
                         onClick={handleSaveReview}
                         disabled={savingReview || rating === 0}
-                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium transition-colors"
+                        className="px-4 py-2 bg-stone-700 hover:bg-stone-800 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium transition-colors"
                       >
                         {savingReview ? 'Saving...' : myReview ? 'Update' : 'Submit'}
                       </button>
@@ -659,17 +659,17 @@ const CurrentBookDetailsModal = ({ bookClubId, currentBookData, members = [], on
                           const memberName = isMe ? 'You' : (member?.username || `User ${review.userId.slice(0, 8)}`);
                           const profileImg = getProfileImageUrl(member?.profileImage);
                           return (
-                            <div key={review.id} className={`flex items-start gap-3 px-4 py-3 ${isMe ? 'bg-purple-50' : ''}`}>
+                            <div key={review.id} className={`flex items-start gap-3 px-4 py-3 ${isMe ? 'bg-stone-50' : ''}`}>
                               <img
                                 src={profileImg || '/images/default-avatar.png'}
                                 alt={memberName}
-                                className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-purple-400 transition-all"
+                                className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-stone-500 transition-all"
                                 onClick={() => navigate(`/profile/${review.userId}`)}
                               />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <span
-                                    className={`text-sm font-medium cursor-pointer hover:underline ${isMe ? 'text-purple-700' : 'text-gray-900'}`}
+                                    className={`text-sm font-medium cursor-pointer hover:underline ${isMe ? 'text-stone-800' : 'text-gray-900'}`}
                                     onClick={() => navigate(`/profile/${review.userId}`)}
                                   >
                                     {memberName}

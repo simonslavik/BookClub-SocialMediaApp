@@ -48,7 +48,7 @@ const OtherMessage = ({
         <img
           src={getProfileImageUrl(msg.profileImage) || '/images/default.webp'}
           alt={msg.username}
-          className="w-7 h-7 rounded-[50%] object-cover cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all"
+          className="w-7 h-7 rounded-[50%] object-cover cursor-pointer hover:ring-2 hover:ring-stone-500 transition-all"
           onClick={() => msg.userId && navigate(`/profile/${msg.userId}`)}
           onError={(e) => { e.target.src = '/images/default.webp'; }}
         />
@@ -57,7 +57,7 @@ const OtherMessage = ({
         {/* Username + Pinned badge */}
         <div className="flex items-baseline">
           <span
-            className="text-gray-400 text-xs font-light cursor-pointer hover:text-purple-400 hover:underline transition-colors"
+            className="text-gray-400 text-xs font-light cursor-pointer hover:text-stone-500 hover:underline transition-colors"
             onClick={() => msg.userId && navigate(`/profile/${msg.userId}`)}
           >{msg.username}</span>
           {msg.isPinned && (
