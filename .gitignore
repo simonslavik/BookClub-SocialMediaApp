@@ -2,12 +2,21 @@
 .env
 .env.local
 .env.*.local
+.env.production
 
 # Node
 node_modules/
 
+# Vite cache
+.vite/
+
 # Docker
 *.log
+
+# SSL certificates
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt
 
 # OS
 .DS_Store

@@ -1,0 +1,52 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Docker self-references
+Dockerfile
+.dockerignore
+
+# Environment files
+.env
+.env.*
+
+# Documentation
+*.md
+
+# Logs
+logs
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Build artifacts
+dist
+build
+*.log
+
+# Tests
+tests
+__tests__
+*.test.ts
+*.spec.ts
+jest.config.*
+
+# Test coverage
+coverage
+.nyc_output
+
+# Prisma migration SQL (generated at deploy time)
+prisma/migrations/*.sql

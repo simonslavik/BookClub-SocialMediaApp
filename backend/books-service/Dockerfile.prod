@@ -1,0 +1,33 @@
+# ── Production Dockerfile for books-service ────────────
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm ci
+RUN npx prisma generate
+
+COPY . .
+RUN npm run build
+
+# ── Runtime ────────────────────────────────────────────
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm ci --omit=dev
+RUN npx prisma generate
+
+COPY --from=build /app/dist ./dist
+
+RUN chown -R node:node /app
+USER node
+
+EXPOSE 3002
+
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]

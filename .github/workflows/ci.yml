@@ -1,0 +1,182 @@
+# ──────────────────────────────────────────────────────
+# CI — Runs on every push/PR to any branch
+# ──────────────────────────────────────────────────────
+name: CI
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main, staging]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Detect which services changed ──────────────────
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      gateway: ${{ steps.filter.outputs.gateway }}
+      user-service: ${{ steps.filter.outputs.user-service }}
+      books-service: ${{ steps.filter.outputs.books-service }}
+      collab-editor: ${{ steps.filter.outputs.collab-editor }}
+      notification-service: ${{ steps.filter.outputs.notification-service }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            gateway:
+              - 'backend/gateway/**'
+            user-service:
+              - 'backend/user-service/**'
+            books-service:
+              - 'backend/books-service/**'
+            collab-editor:
+              - 'backend/collab-editor/**'
+            notification-service:
+              - 'backend/notification-service/**'
+
+  # ── Frontend lint + build ──────────────────────────
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+        env:
+          VITE_GOOGLE_CLIENT_ID: dummy-for-ci
+          VITE_API_URL: http://localhost:3000
+
+  # ── Backend test matrix ────────────────────────────
+  backend-test:
+    needs: changes
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: gateway
+            changed: ${{ needs.changes.outputs.gateway }}
+          - service: user-service
+            changed: ${{ needs.changes.outputs.user-service }}
+          - service: books-service
+            changed: ${{ needs.changes.outputs.books-service }}
+          - service: collab-editor
+            changed: ${{ needs.changes.outputs.collab-editor }}
+          - service: notification-service
+            changed: ${{ needs.changes.outputs.notification-service }}
+    if: >-
+      needs.changes.outputs.gateway == 'true' ||
+      needs.changes.outputs.user-service == 'true' ||
+      needs.changes.outputs.books-service == 'true' ||
+      needs.changes.outputs.collab-editor == 'true' ||
+      needs.changes.outputs.notification-service == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/${{ matrix.service }}
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - if: matrix.changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/${{ matrix.service }}/package-lock.json
+      - if: matrix.changed == 'true'
+        run: npm ci
+      - if: matrix.changed == 'true'
+        run: npx prisma generate 2>/dev/null || true
+      - if: matrix.changed == 'true'
+        run: npm test -- --forceExit --detectOpenHandles
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          JWT_SECRET: ci-test-secret
+          JWT_REFRESH_SECRET: ci-test-refresh-secret
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+          PORT: 0
+
+  # ── Docker build check (no push) ───────────────────
+  docker-build:
+    needs: changes
+    if: >-
+      needs.changes.outputs.frontend == 'true' ||
+      needs.changes.outputs.gateway == 'true' ||
+      needs.changes.outputs.user-service == 'true' ||
+      needs.changes.outputs.books-service == 'true' ||
+      needs.changes.outputs.collab-editor == 'true' ||
+      needs.changes.outputs.notification-service == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - context: frontend
+            dockerfile: frontend/Dockerfile
+            changed: ${{ needs.changes.outputs.frontend }}
+          - context: backend/gateway
+            dockerfile: backend/gateway/Dockerfile.prod
+            changed: ${{ needs.changes.outputs.gateway }}
+          - context: backend/user-service
+            dockerfile: backend/user-service/Dockerfile.prod
+            changed: ${{ needs.changes.outputs.user-service }}
+          - context: backend/books-service
+            dockerfile: backend/books-service/Dockerfile.prod
+            changed: ${{ needs.changes.outputs.books-service }}
+          - context: backend/collab-editor
+            dockerfile: backend/collab-editor/Dockerfile.prod
+            changed: ${{ needs.changes.outputs.collab-editor }}
+          - context: backend/notification-service
+            dockerfile: backend/notification-service/Dockerfile.prod
+            changed: ${{ needs.changes.outputs.notification-service }}
+    steps:
+      - uses: actions/checkout@v4
+      - if: matrix.changed == 'true'
+        uses: docker/setup-buildx-action@v3
+      - if: matrix.changed == 'true'
+        run: |
+          docker build -f ${{ matrix.dockerfile }} ${{ matrix.context }} \
+            --build-arg VITE_GOOGLE_CLIENT_ID=ci \
+            --build-arg VITE_API_URL=http://ci \
+            -t ci-test

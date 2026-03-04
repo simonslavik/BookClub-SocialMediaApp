@@ -1,0 +1,35 @@
+# ── Production Dockerfile for collab-editor ────────────
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm ci
+RUN npx prisma generate
+
+COPY . .
+RUN npm run build
+
+# ── Runtime ────────────────────────────────────────────
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm ci --omit=dev
+RUN npx prisma generate
+
+COPY --from=build /app/dist ./dist
+
+# Create uploads directory
+RUN mkdir -p uploads/bookclub-images uploads/chat-files && chown -R node:node /app
+
+USER node
+
+EXPOSE 4000
+
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
