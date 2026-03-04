@@ -105,10 +105,28 @@ const BookClubPage = () => {
         return (
             <>
                 <HomePageHeader />
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-20">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-stone-700 mx-auto mb-4"></div>
-                        <p className="text-lg text-gray-600">Loading book club...</p>
+                <div className="min-h-screen bg-gray-50 pt-8">
+                    <div className="max-w-6xl mx-auto px-6 space-y-6">
+                        {/* Hero skeleton */}
+                        <div className="relative rounded-2xl overflow-hidden">
+                            <div className="animate-pulse bg-warmgray-200 h-72 w-full" />
+                            <div className="absolute bottom-6 left-6 space-y-3">
+                                <div className="animate-pulse bg-white/30 h-8 w-64 rounded-lg" />
+                                <div className="animate-pulse bg-white/20 h-4 w-96 rounded" />
+                            </div>
+                        </div>
+                        {/* Content skeleton */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 space-y-4">
+                                {[...Array(3)].map((_, i) => (
+                                    <div key={i} className="animate-pulse bg-white rounded-xl h-32 shadow-sm" />
+                                ))}
+                            </div>
+                            <div className="space-y-4">
+                                <div className="animate-pulse bg-white rounded-xl h-48 shadow-sm" />
+                                <div className="animate-pulse bg-white rounded-xl h-36 shadow-sm" />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </>
@@ -120,15 +138,26 @@ const BookClubPage = () => {
             <>
                 <HomePageHeader />
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-20">
-                    <div className="text-center">
-                        <div className="text-red-500 text-6xl mb-4">⚠️</div>
-                        <p className="text-lg text-red-600 mb-4">{error}</p>
-                        <button 
-                            onClick={() => navigate('/')}
-                            className="px-6 py-2 bg-stone-700 text-white rounded-lg hover:bg-stone-800 transition-colors"
-                        >
-                            Go Home
-                        </button>
+                    <div className="text-center max-w-md">
+                        <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-5">
+                            <FiBook className="w-7 h-7 text-red-500" />
+                        </div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2 font-display">Couldn't Load Book Club</h2>
+                        <p className="text-sm text-gray-500 mb-6 font-outfit">{error}</p>
+                        <div className="flex items-center justify-center gap-3">
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="px-5 py-2.5 bg-stone-700 text-white rounded-xl text-sm font-semibold hover:bg-stone-800 transition-colors font-outfit"
+                            >
+                                Try Again
+                            </button>
+                            <button
+                                onClick={() => navigate('/')}
+                                className="px-5 py-2.5 bg-warmgray-100 text-stone-700 rounded-xl text-sm font-medium hover:bg-warmgray-200 transition-colors font-outfit"
+                            >
+                                Go Home
+                            </button>
+                        </div>
                     </div>
                 </div>
             </>

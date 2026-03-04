@@ -53,6 +53,7 @@ import { bookclubAPI } from '@api/bookclub.api';
 import { FiX, FiSettings as FiSettingsIcon, FiLock, FiUnlock, FiEyeOff, FiImage, FiTrash2 } from 'react-icons/fi';
 import apiClient from '@api/axios';
 import logger from '@utils/logger';
+import { ChatSkeleton, SidebarSkeleton } from '@components/common/Skeleton';
 
 
 const BookClub = () => {
@@ -691,8 +692,23 @@ const BookClub = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-900">
-        <div className="text-white text-xl">Loading book club...</div>
+      <div className="flex h-screen bg-gray-900">
+        {/* Sidebar skeleton */}
+        <div className="w-[72px] bg-[#1a1a2e] border-r border-white/5">
+          <SidebarSkeleton />
+        </div>
+        {/* Rooms sidebar skeleton */}
+        <div className="w-60 bg-[#1e1e2e] p-3 space-y-2">
+          <div className="animate-pulse bg-white/10 h-8 rounded-lg mb-4" />
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="animate-pulse bg-white/5 h-9 rounded-lg" />
+          ))}
+        </div>
+        {/* Chat area skeleton */}
+        <div className="flex-1 bg-[#12121c]">
+          <div className="h-14 bg-[#1e1e2e] border-b border-white/5 animate-pulse" />
+          <ChatSkeleton />
+        </div>
       </div>
     );
   }
@@ -700,13 +716,27 @@ const BookClub = () => {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-900">
-        <div className="text-red-400 text-xl mb-4">{error}</div>
-        <button 
-          onClick={() => navigate('/')}
-          className="px-4 py-2 bg-stone-700 text-white rounded hover:bg-stone-800"
-        >
-          Go Home
-        </button>
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-5">
+            <FiX className="w-7 h-7 text-red-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-200 mb-2 font-display">Failed to Load</h2>
+          <p className="text-sm text-gray-400 mb-6 font-outfit">{error}</p>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-5 py-2.5 bg-stone-700 text-white rounded-xl text-sm font-semibold hover:bg-stone-800 transition-colors font-outfit"
+            >
+              Retry
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="px-5 py-2.5 bg-white/10 text-gray-300 rounded-xl text-sm font-medium hover:bg-white/15 transition-colors font-outfit"
+            >
+              Go Home
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -1076,8 +1106,17 @@ const BookClub = () => {
             ) : showBooksHistory ? (
               <div className="flex-1 overflow-y-auto p-6">
                 {loadingBooks ? (
-                  <div className="text-center text-gray-500 mt-8">
-                    <p>Loading books...</p>
+                  <div className="space-y-4 mt-4">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="flex items-center gap-4 p-4 bg-white/5 rounded-xl">
+                        <div className="animate-pulse bg-white/10 w-16 h-24 rounded-lg flex-shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <div className="animate-pulse bg-white/10 h-5 w-3/4 rounded" />
+                          <div className="animate-pulse bg-white/10 h-4 w-1/2 rounded" />
+                          <div className="animate-pulse bg-white/10 h-3 w-1/4 rounded" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <BookClubBookView 

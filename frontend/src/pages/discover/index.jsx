@@ -7,6 +7,8 @@ import { bookclubAPI } from '@api/bookclub.api';
 import JoinBookclubModal from '@components/common/modals/JoinBookclubModal';
 import { COLLAB_EDITOR_URL } from '@config/constants';
 import logger from '@utils/logger';
+import { DiscoverCardSkeleton } from '@components/common/Skeleton';
+import EmptyState from '@components/common/EmptyState';
 
 const categories = [
     'All',
@@ -231,26 +233,22 @@ const DiscoverBookClubs = () => {
 
                     {/* Loading State */}
                     {loading ? (
-                        <div className="flex justify-center items-center py-20">
-                            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-stone-700"></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {[...Array(8)].map((_, i) => (
+                                <DiscoverCardSkeleton key={i} />
+                            ))}
                         </div>
                     ) : filteredBookClubs.length === 0 ? (
-                        /* Empty State */
-                        <div className="text-center py-20">
-                            <div className="text-6xl mb-4">📚</div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2 font-display">No Book Clubs Found</h3>
-                            <p className="text-gray-600 mb-6 font-outfit">
-                                {searchQuery || selectedCategory !== 'All'
+                        <EmptyState
+                            preset={searchQuery || selectedCategory !== 'All' ? 'no-results' : 'no-clubs'}
+                            description={
+                                searchQuery || selectedCategory !== 'All'
                                     ? 'Try adjusting your search or filters'
-                                    : 'Be the first to create a book club!'}
-                            </p>
-                            <button
-                                onClick={() => navigate('/create-bookclub')}
-                                className="px-6 py-3 bg-stone-700 text-white rounded-xl font-semibold hover:bg-stone-800 transition-colors font-outfit"
-                            >
-                                Create a Book Club
-                            </button>
-                        </div>
+                                    : 'Be the first to create a book club!'
+                            }
+                            actionLabel="Create a Book Club"
+                            actionPath="/create-bookclub"
+                        />
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {filteredBookClubs.map(bookClub => (

@@ -84,8 +84,16 @@ const BookclubSettings = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <HomePageHeader />
-        <div className="pt-24 flex items-center justify-center">
-          <div className="w-16 h-16 border-4 border-stone-700 border-t-transparent rounded-full animate-spin" />
+        <div className="pt-24 max-w-6xl mx-auto px-6 space-y-6">
+          <div className="animate-pulse bg-white rounded-xl h-12 w-64 shadow-sm" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="animate-pulse bg-white rounded-xl h-20 shadow-sm" />
+              ))}
+            </div>
+            <div className="animate-pulse bg-white rounded-xl h-64 shadow-sm" />
+          </div>
         </div>
       </div>
     );

@@ -12,11 +12,15 @@ import ResetPasswordPage from "@pages/ResetPassword";
 import VerifyEmailPage from "@pages/VerifyEmail";
 import BookclubSettings from "@pages/BookclubSettings";
 import DMChatPage from "@pages/DMChat";
+import ErrorBoundary from "@components/common/ErrorBoundary";
+import PageTransition from "@components/common/PageTransition";
 
 
 function App() {
   return (
-    <Routes>
+    <ErrorBoundary>
+      <PageTransition>
+        <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/bookclub/:id" element={
         <ProtectedRoute>
@@ -51,6 +55,8 @@ function App() {
       <Route path="/verify-email" element={<VerifyEmailPage />}/>
       
     </Routes>
+      </PageTransition>
+    </ErrorBoundary>
   );
 }
 

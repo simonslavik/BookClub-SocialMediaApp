@@ -161,7 +161,18 @@ const ChangeProfilePage = () => {
     if (fetchingProfile) {
         return (
             <div className='flex items-center justify-center min-h-screen bg-gray-100'>
-                <div className="text-gray-600 text-lg">Loading profile...</div>
+                <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6 space-y-6">
+                    <div className="flex justify-center">
+                        <div className="animate-pulse bg-warmgray-200 w-24 h-24 rounded-full" />
+                    </div>
+                    {[...Array(3)].map((_, i) => (
+                        <div key={i} className="space-y-2">
+                            <div className="animate-pulse bg-warmgray-200 h-4 w-20 rounded" />
+                            <div className="animate-pulse bg-warmgray-100 h-10 w-full rounded-lg" />
+                        </div>
+                    ))}
+                    <div className="animate-pulse bg-warmgray-200 h-10 w-full rounded-lg" />
+                </div>
             </div>
         );
     }

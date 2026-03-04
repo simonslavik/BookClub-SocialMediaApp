@@ -10,6 +10,7 @@ import { COLLAB_EDITOR_URL, getProfileImageUrl } from '@config/constants';
 import apiClient from '@api/axios';
 import logger from '@utils/logger';
 import { useConfirm, useToast } from '@hooks/useUIFeedback';
+import { ProfileSkeleton } from '@components/common/Skeleton';
 
 
 const ProfilePage = () => {
@@ -262,27 +263,33 @@ const ProfilePage = () => {
 
   if (loading) {
     return (
-      <div>
+      <div className="min-h-screen bg-warmgray-50">
         <HomePageHeader />
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-xl text-gray-600">Loading profile...</div>
-        </div>
+        <ProfileSkeleton />
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div>
+      <div className="min-h-screen bg-warmgray-50">
         <HomePageHeader />
-        <div className="flex flex-col items-center justify-center h-screen">
-          <div className="text-xl text-red-500 mb-4">{error || 'Profile not found'}</div>
-          <button 
-            onClick={() => navigate('/')}
-            className="px-4 py-2 bg-stone-700 text-white rounded-lg hover:bg-stone-600"
-          >
-            Go Home
-          </button>
+        <div className="flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
+          <div className="text-center max-w-md">
+            <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-5">
+              <FiInfo className="w-7 h-7 text-red-500" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2 font-display">
+              {error ? 'Something Went Wrong' : 'Profile Not Found'}
+            </h2>
+            <p className="text-sm text-gray-500 mb-6 font-outfit">{error || 'This profile doesn\'t exist or has been removed.'}</p>
+            <button
+              onClick={() => navigate('/')}
+              className="px-5 py-2.5 bg-stone-700 text-white rounded-xl text-sm font-semibold hover:bg-stone-800 transition-colors font-outfit"
+            >
+              Go Home
+            </button>
+          </div>
         </div>
       </div>
     );

@@ -80,8 +80,15 @@ const InviteJoinPage = () => {
     return (
       <div className="min-h-screen bg-stone-50">
         <HomePageHeader />
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-xl text-gray-600">Loading invite...</div>
+        <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="animate-pulse bg-warmgray-200 w-20 h-20 rounded-full" />
+              <div className="animate-pulse bg-warmgray-200 h-6 w-48 rounded" />
+              <div className="animate-pulse bg-warmgray-200 h-4 w-64 rounded" />
+              <div className="animate-pulse bg-warmgray-200 h-12 w-full rounded-xl mt-4" />
+            </div>
+          </div>
         </div>
       </div>
     );
