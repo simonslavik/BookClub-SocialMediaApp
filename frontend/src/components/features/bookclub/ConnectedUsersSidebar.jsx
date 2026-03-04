@@ -80,7 +80,7 @@ const ConnectedUsersSidebar = ({
   }, [sortedMembers, searchQuery]);
 
   return (
-    <div className="w-full bg-gray-800 border-l border-gray-700 p-2">
+    <div className="w-full h-full bg-gray-800 border-l border-gray-700 p-2">
       <button
         onClick={() => setShowMembersModal(true)}
         className="flex items-center gap-2 px-2 py-1.5 mb-2 w-full rounded-md hover:bg-gray-700 transition-colors group cursor-pointer"

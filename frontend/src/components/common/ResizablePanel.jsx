@@ -95,7 +95,7 @@ const ResizablePanel = ({
 
   return (
     <div
-      className={`relative flex-shrink-0 ${className}`}
+      className={`relative flex-shrink-0 h-full ${className}`}
       style={{ width: `${width}px` }}
     >
       {children}

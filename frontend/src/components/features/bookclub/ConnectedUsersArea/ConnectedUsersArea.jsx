@@ -23,7 +23,7 @@ const ConnectedUsersArea = (
     const [menuPosition, setMenuPosition] = React.useState({ top: 0, left: 0 });
     
     return (
-        <div className="w-44 bg-gray-800 border-l border-gray-700 p-2">
+        <div className="w-full h-full bg-gray-800 border-l border-gray-700 p-2">
             <div className="flex items-center gap-2 px-2 py-1 mb-2">
               <FiUsers className="text-gray-400" size={14} />
               <h3 className="text-gray-400 text-xs font-semibold uppercase">
