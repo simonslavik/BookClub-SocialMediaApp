@@ -2,6 +2,9 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+rule_files:
+  - /etc/prometheus/alert-rules.yml
+
 scrape_configs:
   # Books Service
   - job_name: 'books-service'
@@ -25,6 +28,12 @@ scrape_configs:
   - job_name: 'collab-editor'
     static_configs:
       - targets: ['collab-editor:4000']
+    metrics_path: '/metrics'
+  
+  # Notification Service
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: ['notification-service:3005']
     metrics_path: '/metrics'
   
   # Prometheus itself

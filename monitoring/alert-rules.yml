@@ -1,0 +1,97 @@
+groups:
+  - name: service_health
+    rules:
+      # Service is down for more than 1 minute
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been unreachable for more than 1 minute."
+
+      # High error rate (>5% of requests returning 5xx)
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status_code=~"5.."}[5m])) by (job)
+          /
+          sum(rate(http_requests_total[5m])) by (job)
+          > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 5xx error rate on {{ $labels.job }}"
+          description: "{{ $labels.job }} has a 5xx error rate above 5% (current: {{ $value | humanizePercentage }})."
+
+      # Slow response times (p95 > 2 seconds)
+      - alert: SlowResponses
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (job, le)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow p95 response time on {{ $labels.job }}"
+          description: "{{ $labels.job }} p95 response time is above 2s (current: {{ $value | humanizeDuration }})."
+
+  - name: resource_usage
+    rules:
+      # High memory usage (RSS > 512MB)
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes > 536870912
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory on {{ $labels.job }}"
+          description: "{{ $labels.job }} RSS is above 512MB (current: {{ $value | humanize1024 }}B)."
+
+      # Event loop lag > 100ms
+      - alert: HighEventLoopLag
+        expr: nodejs_eventloop_lag_seconds > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High event loop lag on {{ $labels.job }}"
+          description: "{{ $labels.job }} event loop lag is above 100ms (current: {{ $value | humanizeDuration }})."
+
+      # Too many open handles (potential leak)
+      - alert: TooManyActiveHandles
+        expr: nodejs_active_handles_total > 500
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Too many active handles on {{ $labels.job }}"
+          description: "{{ $labels.job }} has {{ $value }} active handles — possible resource leak."
+
+  - name: business_metrics
+    rules:
+      # High authentication failure rate
+      - alert: HighAuthFailureRate
+        expr: |
+          sum(rate(authentication_attempts_total{result="failure"}[5m]))
+          /
+          sum(rate(authentication_attempts_total[5m]))
+          > 0.3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High auth failure rate"
+          description: "More than 30% of authentication attempts are failing ({{ $value | humanizePercentage }})."
+
+      # Rate limiting triggered heavily
+      - alert: HighRateLimiting
+        expr: rate(rate_limited_requests_total[5m]) > 1
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "High rate limiting on gateway"
+          description: "Gateway is rate-limiting more than 1 req/s — possible abuse or misconfiguration."

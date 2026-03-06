@@ -125,6 +125,9 @@ services:
     volumes:
       - ./backend/user-service:/app
       - /app/node_modules
+    labels:
+      logging: "promtail"
+      service_name: "user-service"
 
   gateway:
     build:
@@ -155,6 +158,9 @@ services:
     volumes:
       - ./backend/gateway:/app
       - /app/node_modules
+    labels:
+      logging: "promtail"
+      service_name: "gateway"
 
   collab-editor:
     build:
@@ -181,6 +187,9 @@ services:
     volumes:
       - ./backend/collab-editor:/app
       - /app/node_modules
+    labels:
+      logging: "promtail"
+      service_name: "collab-editor"
 
   books-service:
     build:
@@ -283,6 +292,7 @@ services:
       - "9090:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml
       - prometheus-data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
