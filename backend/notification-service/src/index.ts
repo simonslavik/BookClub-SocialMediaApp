@@ -8,6 +8,7 @@ import { setupWebSocket } from './websocket/index.js';
 import { startScheduler, stopScheduler } from './services/scheduler.service.js';
 import { verifyEmailConnection } from './services/email.service.js';
 import logger from './utils/logger.js';
+import { metricsMiddleware, metricsEndpoint } from './utils/metrics.js';
 import { requestLogger } from './middleware/requestLogger.js';
 
 const app = express();
@@ -24,6 +25,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '1mb' }));
 app.use(requestLogger);
+app.use(metricsMiddleware);
 
 // HTTP server
 const server = createServer(app);
@@ -40,6 +42,9 @@ app.get('/health', async (_req, res) => {
     res.status(503).json({ status: 'unhealthy' });
   }
 });
+
+// Prometheus metrics endpoint
+app.get('/metrics', metricsEndpoint);
 
 // Routes
 app.use('/notifications', notificationRoutes);

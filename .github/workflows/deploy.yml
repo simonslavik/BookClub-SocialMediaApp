@@ -1,0 +1,143 @@
+# ──────────────────────────────────────────────────────
+# Deploy — Builds images and deploys on push to main/staging
+# ──────────────────────────────────────────────────────
+name: Deploy
+
+on:
+  push:
+    branches: [main, staging]
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository }}
+
+jobs:
+  # ── Set environment based on branch ────────────────
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      tag: ${{ steps.env.outputs.tag }}
+    steps:
+      - id: env
+        run: |
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "environment=production" >> "$GITHUB_OUTPUT"
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          else
+            echo "environment=staging" >> "$GITHUB_OUTPUT"
+            echo "tag=staging" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ── Build & push Docker images ─────────────────────
+  build-push:
+    needs: setup
+    runs-on: ubuntu-latest
+    environment: ${{ needs.setup.outputs.environment }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - name: frontend
+            context: frontend
+            dockerfile: frontend/Dockerfile
+            build-args: |
+              VITE_API_URL=${{ vars.VITE_API_URL }}
+              VITE_WS_URL=${{ vars.VITE_WS_URL }}
+              VITE_NOTIFICATION_WS_URL=${{ vars.VITE_NOTIFICATION_WS_URL }}
+              VITE_GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }}
+          - name: gateway
+            context: backend/gateway
+            dockerfile: backend/gateway/Dockerfile.prod
+          - name: user-service
+            context: backend/user-service
+            dockerfile: backend/user-service/Dockerfile.prod
+          - name: books-service
+            context: backend/books-service
+            dockerfile: backend/books-service/Dockerfile.prod
+          - name: collab-editor
+            context: backend/collab-editor
+            dockerfile: backend/collab-editor/Dockerfile.prod
+          - name: notification-service
+            context: backend/notification-service
+            dockerfile: backend/notification-service/Dockerfile.prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.name }}:${{ needs.setup.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.name }}:${{ github.sha }}
+          build-args: ${{ matrix.build-args || '' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── Deploy to server ───────────────────────────────
+  deploy:
+    needs: [setup, build-push]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.setup.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy compose files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: "docker-compose.prod.yml,nginx/,monitoring/"
+          target: ${{ vars.DEPLOY_PATH || '~/app' }}
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          TAG: ${{ needs.setup.outputs.tag }}
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_PREFIX: ${{ env.IMAGE_PREFIX }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: TAG,REGISTRY,IMAGE_PREFIX
+          script: |
+            cd ${{ vars.DEPLOY_PATH || '~/app' }}
+
+            # Pull latest images
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            export TAG=$TAG
+            export REGISTRY=$REGISTRY
+            export IMAGE_PREFIX=$IMAGE_PREFIX
+
+            # Source production env vars
+            set -a
+            source .env.production
+            set +a
+
+            # Deploy
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            # Cleanup old images
+            docker image prune -f
+
+            echo "✅ Deployed $TAG successfully"

@@ -29,6 +29,10 @@ scrape_configs:
         regex: '/(.*)'
         target_label: 'container'
       
+      # Set service_name from docker label (matches Prometheus job names)
+      - source_labels: ['__meta_docker_container_label_service_name']
+        target_label: 'service_name'
+
       # Set service label from compose service
       - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
         target_label: 'service'

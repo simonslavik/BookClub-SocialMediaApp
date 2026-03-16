@@ -200,7 +200,7 @@ const Home = () => {
 
                             if (displayed.length === 0) {
                                 return (
-                                    <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                                    <div className="flex flex-col items-center justify-center py-2 text-gray-500">
                                         <p className="mb-5">
                                             {filterCreatedByMe
                                                 ? "You haven't created any bookclubs yet."

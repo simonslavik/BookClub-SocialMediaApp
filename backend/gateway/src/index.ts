@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import http from 'http';
 import logger from './utils/logger.js';
+import { metricsMiddleware, metricsEndpoint } from './utils/metrics.js';
 import { setupMiddleware, setupErrorHandling } from './middleware/index.js';
 import { setupRoutes } from './routes/index.js';
 import { initializeRedis } from './config/redis.js';
@@ -44,6 +45,12 @@ const initializeApp = async (): Promise<Express> => {
   app.use(express.json({ limit: BODY_LIMITS.JSON }));
   app.use(express.urlencoded({ limit: BODY_LIMITS.URL_ENCODED, extended: true }));
 
+  // Prometheus metrics middleware
+  app.use(metricsMiddleware);
+
+  // Metrics endpoint for Prometheus scraping
+  app.get('/metrics', metricsEndpoint);
+
   // Initialize Redis connection
   redisClient = await initializeRedis();
 
@@ -71,6 +78,7 @@ const startServer = async (): Promise<void> => {
     server = app.listen(PORT, () => {
       logger.info(`🚀 Gateway running on port ${PORT}`);
       logger.info(`📊 Environment: ${NODE_ENV}`);
+      logger.info(`📊 Metrics: http://localhost:${PORT}/metrics`);
       logger.info(`✅ Ready to accept requests`);
     });
 

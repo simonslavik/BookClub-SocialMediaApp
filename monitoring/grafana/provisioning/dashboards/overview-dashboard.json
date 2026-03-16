@@ -1,0 +1,572 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "🔴 Service Health",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "targets": [{ "expr": "up{job=\"gateway\"}", "refId": "A" }],
+      "title": "Gateway",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 5, "y": 1 },
+      "id": 2,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "targets": [{ "expr": "up{job=\"user-service\"}", "refId": "A" }],
+      "title": "User Service",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 10, "y": 1 },
+      "id": 3,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "targets": [{ "expr": "up{job=\"books-service\"}", "refId": "A" }],
+      "title": "Books Service",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 15, "y": 1 },
+      "id": 4,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "targets": [{ "expr": "up{job=\"collab-editor\"}", "refId": "A" }],
+      "title": "Collab Editor",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "id": 5,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "targets": [{ "expr": "up{job=\"notification-service\"}", "refId": "A" }],
+      "title": "Notifications",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "📊 Request Rates & Errors",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisLabel": "req/s",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "mode": "none" }
+          },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 10,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "expr": "sum(rate(http_requests_total{job=\"gateway\"}[5m]))", "refId": "A", "legendFormat": "Gateway" },
+        { "expr": "sum(rate(http_requests_total{job=\"user-service\"}[5m]))", "refId": "B", "legendFormat": "User Service" },
+        { "expr": "sum(rate(http_requests_total{job=\"books-service\"}[5m]))", "refId": "C", "legendFormat": "Books Service" },
+        { "expr": "sum(rate(http_requests_total{job=\"collab-editor\"}[5m]))", "refId": "D", "legendFormat": "Collab Editor" },
+        { "expr": "sum(rate(http_requests_total{job=\"notification-service\"}[5m]))", "refId": "E", "legendFormat": "Notifications" }
+      ],
+      "title": "Request Rate by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisLabel": "errors/s",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 11,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "expr": "sum(rate(http_requests_total{job=\"gateway\", status_code=~\"5..\"}[5m]))", "refId": "A", "legendFormat": "Gateway 5xx" },
+        { "expr": "sum(rate(http_requests_total{job=\"user-service\", status_code=~\"5..\"}[5m]))", "refId": "B", "legendFormat": "User Service 5xx" },
+        { "expr": "sum(rate(http_requests_total{job=\"books-service\", status_code=~\"5..\"}[5m]))", "refId": "C", "legendFormat": "Books Service 5xx" },
+        { "expr": "sum(rate(http_requests_total{job=\"collab-editor\", status_code=~\"5..\"}[5m]))", "refId": "D", "legendFormat": "Collab Editor 5xx" },
+        { "expr": "sum(rate(http_requests_total{job=\"notification-service\", status_code=~\"5..\"}[5m]))", "refId": "E", "legendFormat": "Notifications 5xx" }
+      ],
+      "title": "Error Rate (5xx) by Service",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 102,
+      "title": "⏱️ Response Times",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "id": 20,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"gateway\"}[5m])) by (le))", "refId": "A", "legendFormat": "Gateway p95" },
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"user-service\"}[5m])) by (le))", "refId": "B", "legendFormat": "User Service p95" },
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"books-service\"}[5m])) by (le))", "refId": "C", "legendFormat": "Books Service p95" },
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"collab-editor\"}[5m])) by (le))", "refId": "D", "legendFormat": "Collab Editor p95" },
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"notification-service\"}[5m])) by (le))", "refId": "E", "legendFormat": "Notifications p95" }
+      ],
+      "title": "Response Time p95 by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "id": 21,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"gateway\"}[5m])) by (le))", "refId": "A", "legendFormat": "Gateway p50" },
+        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"user-service\"}[5m])) by (le))", "refId": "B", "legendFormat": "User Service p50" },
+        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"books-service\"}[5m])) by (le))", "refId": "C", "legendFormat": "Books Service p50" },
+        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"collab-editor\"}[5m])) by (le))", "refId": "D", "legendFormat": "Collab Editor p50" },
+        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"notification-service\"}[5m])) by (le))", "refId": "E", "legendFormat": "Notifications p50" }
+      ],
+      "title": "Response Time p50 (Median) by Service",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "id": 103,
+      "title": "💻 System Resources",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "id": 30,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "expr": "process_resident_memory_bytes{job=\"gateway\"}", "refId": "A", "legendFormat": "Gateway" },
+        { "expr": "process_resident_memory_bytes{job=\"user-service\"}", "refId": "B", "legendFormat": "User Service" },
+        { "expr": "process_resident_memory_bytes{job=\"books-service\"}", "refId": "C", "legendFormat": "Books Service" },
+        { "expr": "process_resident_memory_bytes{job=\"collab-editor\"}", "refId": "D", "legendFormat": "Collab Editor" },
+        { "expr": "process_resident_memory_bytes{job=\"notification-service\"}", "refId": "E", "legendFormat": "Notifications" }
+      ],
+      "title": "Memory Usage (RSS) by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "id": 31,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "expr": "nodejs_heap_size_used_bytes{job=\"gateway\"}", "refId": "A", "legendFormat": "Gateway" },
+        { "expr": "nodejs_heap_size_used_bytes{job=\"user-service\"}", "refId": "B", "legendFormat": "User Service" },
+        { "expr": "nodejs_heap_size_used_bytes{job=\"books-service\"}", "refId": "C", "legendFormat": "Books Service" },
+        { "expr": "nodejs_heap_size_used_bytes{job=\"collab-editor\"}", "refId": "D", "legendFormat": "Collab Editor" },
+        { "expr": "nodejs_heap_size_used_bytes{job=\"notification-service\"}", "refId": "E", "legendFormat": "Notifications" }
+      ],
+      "title": "Heap Usage by Service",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+      "id": 104,
+      "title": "🔌 WebSocket & Connections",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 33 },
+      "id": 40,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last", "max"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "expr": "websocket_connections_active{job=\"collab-editor\"}", "refId": "A", "legendFormat": "Collab Editor WS" },
+        { "expr": "websocket_connections_active{job=\"notification-service\"}", "refId": "B", "legendFormat": "Notifications WS" }
+      ],
+      "title": "Active WebSocket Connections",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 33 },
+      "id": 41,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last", "max"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "expr": "active_connections{job=\"gateway\"}", "refId": "A", "legendFormat": "Gateway Active" },
+        { "expr": "nodejs_active_requests_total{job=\"gateway\"}", "refId": "B", "legendFormat": "Gateway Node Active Requests" }
+      ],
+      "title": "Gateway Active Connections",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 41 },
+      "id": 105,
+      "title": "🔐 Authentication & Business Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 50,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": { "mode": "normal" }
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 42 },
+      "id": 50,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["sum"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "expr": "rate(authentication_attempts_total{result=\"success\"}[5m])", "refId": "A", "legendFormat": "{{type}} success" },
+        { "expr": "rate(authentication_attempts_total{result=\"failure\"}[5m])", "refId": "B", "legendFormat": "{{type}} failure" }
+      ],
+      "title": "Authentication Attempts",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 42 },
+      "id": 51,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["sum"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "expr": "rate(notifications_sent_total[5m])", "refId": "A", "legendFormat": "{{type}} via {{channel}}" },
+        { "expr": "rate(email_delivery_total[5m])", "refId": "B", "legendFormat": "Email {{status}}" }
+      ],
+      "title": "Notifications & Email Delivery",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 50 },
+      "id": 106,
+      "title": "📋 Node.js Internals",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 51 },
+      "id": 60,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "expr": "nodejs_eventloop_lag_seconds{job=\"gateway\"}", "refId": "A", "legendFormat": "Gateway" },
+        { "expr": "nodejs_eventloop_lag_seconds{job=\"user-service\"}", "refId": "B", "legendFormat": "User Service" },
+        { "expr": "nodejs_eventloop_lag_seconds{job=\"books-service\"}", "refId": "C", "legendFormat": "Books Service" },
+        { "expr": "nodejs_eventloop_lag_seconds{job=\"collab-editor\"}", "refId": "D", "legendFormat": "Collab Editor" },
+        { "expr": "nodejs_eventloop_lag_seconds{job=\"notification-service\"}", "refId": "E", "legendFormat": "Notifications" }
+      ],
+      "title": "Event Loop Lag",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 51 },
+      "id": 61,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["last"] },
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        { "expr": "nodejs_active_handles_total{job=\"gateway\"}", "refId": "A", "legendFormat": "Gateway handles" },
+        { "expr": "nodejs_active_handles_total{job=\"user-service\"}", "refId": "B", "legendFormat": "User handles" },
+        { "expr": "nodejs_active_handles_total{job=\"books-service\"}", "refId": "C", "legendFormat": "Books handles" },
+        { "expr": "nodejs_active_handles_total{job=\"collab-editor\"}", "refId": "D", "legendFormat": "Collab handles" },
+        { "expr": "nodejs_active_handles_total{job=\"notification-service\"}", "refId": "E", "legendFormat": "Notif handles" }
+      ],
+      "title": "Active Handles (file descriptors, sockets, etc.)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 59 },
+      "id": 107,
+      "title": "📜 Logs (Loki)",
+      "type": "row"
+    },
+    {
+      "datasource": "Loki",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 60 },
+      "id": 70,
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "targets": [
+        { "expr": "{service_name=~\".+\"} |~ \"error|Error|ERROR|warn|WARN\"", "refId": "A" }
+      ],
+      "title": "Error & Warning Logs (All Services)",
+      "type": "logs"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "tags": ["bookclubs", "overview", "microservices"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "BookClubs — Service Overview",
+  "uid": "bookclubs-overview",
+  "version": 1
+}

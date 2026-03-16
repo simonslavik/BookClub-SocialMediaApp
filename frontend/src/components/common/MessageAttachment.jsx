@@ -42,7 +42,7 @@ const MessageAttachment = ({ attachment, canDelete, onDelete, auth }) => {
   if (isImage) {
     return (
       <>
-        <div className="relative inline-block mt-2 group">
+        <div className="relative inline-block mt-2 group z-50">
           <img
             src={`${COLLAB_EDITOR_URL}${attachment.url}`}
             alt={attachment.filename}

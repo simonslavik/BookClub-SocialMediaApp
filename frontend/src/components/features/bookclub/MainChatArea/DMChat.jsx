@@ -275,7 +275,7 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs, r
       </div>
 
       {/* Messages */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-900">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-2 space-y-2 bg-gray-900">
         {loadingOlder && (
           <div className="flex justify-center py-3">
             <div className="w-5 h-5 border-2 border-stone-500 border-t-transparent rounded-full animate-spin" />
