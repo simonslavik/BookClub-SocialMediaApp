@@ -63,9 +63,21 @@ const NotificationBell = () => {
     if (!auth?.token) return;
 
     let unmounted = false;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 10;
+
+    const getReconnectDelay = () => {
+      const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000) + Math.random() * 1000;
+      reconnectAttempts++;
+      return delay;
+    };
 
     const connect = () => {
       if (unmounted) return;
+      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        logger.error('Notification WS: max reconnection attempts reached');
+        return;
+      }
 
       try {
         const ws = new WebSocket(NOTIFICATION_WS_URL);
@@ -73,6 +85,7 @@ const NotificationBell = () => {
 
         ws.onopen = () => {
           logger.debug('Notification WS connected');
+          reconnectAttempts = 0; // Reset on successful connection
           // Authenticate
           ws.send(JSON.stringify({ type: 'auth', token: auth.token }));
         };
@@ -103,8 +116,9 @@ const NotificationBell = () => {
 
         ws.onclose = () => {
           if (!unmounted) {
-            logger.debug('Notification WS disconnected, reconnecting in 5s...');
-            reconnectTimerRef.current = setTimeout(connect, 5000);
+            const delay = getReconnectDelay();
+            logger.debug(`Notification WS disconnected, reconnecting in ${Math.round(delay / 1000)}s (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+            reconnectTimerRef.current = setTimeout(connect, delay);
           }
         };
 
@@ -114,7 +128,8 @@ const NotificationBell = () => {
       } catch (err) {
         logger.error('Notification WS connect error:', err);
         if (!unmounted) {
-          reconnectTimerRef.current = setTimeout(connect, 5000);
+          const delay = getReconnectDelay();
+          reconnectTimerRef.current = setTimeout(connect, delay);
         }
       }
     };

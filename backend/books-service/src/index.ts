@@ -78,6 +78,33 @@ connectRedis().catch((_error) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   logger.info(`📚 Books service running on http://localhost:${PORT}`);
 });
+
+// ── Graceful shutdown ─────────────────────────────────────
+const gracefulShutdown = async (signal: string) => {
+  logger.info(`${signal} received — shutting down gracefully...`);
+
+  server.close(async () => {
+    logger.info('HTTP server closed');
+
+    try {
+      await prisma.$disconnect();
+      logger.info('Database connection closed');
+    } catch (error) {
+      logger.error('Error disconnecting from database:', error);
+    }
+
+    process.exit(0);
+  });
+
+  // Force shutdown after 10 seconds
+  setTimeout(() => {
+    logger.error('Forced shutdown after timeout');
+    process.exit(1);
+  }, 10_000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

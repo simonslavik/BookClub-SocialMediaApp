@@ -16,6 +16,8 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
   const { toastError } = useContext(UIFeedbackContext);
   const reconnectTimeoutRef = useRef(null);
   const isIntentionalCloseRef = useRef(false);
+  const reconnectAttemptsRef = useRef(0);
+  const MAX_RECONNECT_ATTEMPTS = 10;
   const currentRoomIdRef = useRef(null);
   const currentBookClubIdRef = useRef(null);
   const onInitRef = useRef(onInit);
@@ -73,6 +75,7 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
 
       socket.onopen = () => {
         logger.debug('✅ WebSocket connected to bookclub:', bookClubId);
+        reconnectAttemptsRef.current = 0; // Reset on successful connection
         
         // Check if this socket is still the current one (not replaced by another effect run)
         if (ws.current !== socket) {
@@ -294,11 +297,18 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
         
         // Only attempt to reconnect if it wasn't an intentional close and socket is still current
         if (!isIntentionalCloseRef.current && ws.current === null) {
-          logger.debug('🔄 Attempting to reconnect in 3 seconds...');
+          if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+            logger.error('🔌 Max reconnection attempts reached, giving up');
+            toastError('Connection lost. Please refresh the page.');
+            return;
+          }
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000) + Math.random() * 1000;
+          reconnectAttemptsRef.current += 1;
+          logger.debug(`🔄 Attempting to reconnect in ${Math.round(delay / 1000)}s (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})...`);
           reconnectTimeoutRef.current = setTimeout(() => {
             logger.debug('Reconnecting WebSocket...');
             connectWebSocket();
-          }, 3000);
+          }, delay);
         }
       };
     };

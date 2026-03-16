@@ -13,7 +13,8 @@ services:
       - "${EXTERNAL_SSL_PORT:-443}:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro          # mount certs here (optional)
+      - ./nginx/ssl:/etc/nginx/ssl:ro          # mount certs here
+      - certbot-webroot:/var/www/certbot:ro     # Let's Encrypt ACME
     depends_on:
       - frontend
       - gateway
@@ -22,6 +23,10 @@ services:
     restart: unless-stopped
     networks:
       - microservices-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
   # ─── Frontend ────────────────────────────────────────
   frontend:
@@ -41,12 +46,16 @@ services:
     restart: unless-stopped
     networks:
       - microservices-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
   # ─── Databases ───────────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: redis-cache
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --maxmemory 128mb --maxmemory-policy allkeys-lru
     volumes:
       - redis-data:/data
     restart: unless-stopped
@@ -57,6 +66,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 192M
 
   postgres-users:
     image: postgres:16-alpine
@@ -75,6 +88,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   postgres-collab:
     image: postgres:16-alpine
@@ -93,6 +110,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   postgres-books:
     image: postgres:16-alpine
@@ -111,6 +132,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   postgres-notifications:
     image: postgres:16-alpine
@@ -129,6 +154,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   # ─── Backend Services ───────────────────────────────
   user-service:
@@ -158,6 +187,16 @@ services:
       - microservices-network
     volumes:
       - user-uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/health').then(r=>{if(!r.ok)throw 1})"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   gateway:
     build:
@@ -185,6 +224,16 @@ services:
     restart: unless-stopped
     networks:
       - microservices-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r=>{if(!r.ok)throw 1})"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   collab-editor:
     build:
@@ -210,6 +259,16 @@ services:
       - microservices-network
     volumes:
       - collab-uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/health').then(r=>{if(!r.ok)throw 1})"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   books-service:
     build:
@@ -234,6 +293,16 @@ services:
     restart: unless-stopped
     networks:
       - microservices-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3002/health').then(r=>{if(!r.ok)throw 1})"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   notification-service:
     build:
@@ -262,6 +331,16 @@ services:
     restart: unless-stopped
     networks:
       - microservices-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3005/health').then(r=>{if(!r.ok)throw 1})"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   # ─── Monitoring (optional — remove if not needed) ────
   loki:
@@ -271,6 +350,10 @@ services:
     networks:
       - microservices-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   promtail:
     image: grafana/promtail:latest
@@ -285,6 +368,10 @@ services:
     networks:
       - microservices-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
   prometheus:
     image: prom/prometheus:latest
@@ -295,9 +382,14 @@ services:
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
     networks:
       - microservices-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   grafana:
     image: grafana/grafana:latest
@@ -316,6 +408,10 @@ services:
     networks:
       - microservices-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
 volumes:
   redis-data:
@@ -327,6 +423,7 @@ volumes:
   collab-uploads:
   prometheus-data:
   grafana-data:
+  certbot-webroot:
 
 networks:
   microservices-network:
