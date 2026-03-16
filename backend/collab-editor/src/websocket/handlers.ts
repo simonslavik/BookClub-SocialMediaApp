@@ -86,7 +86,7 @@ export const handleJoin = (
         return;
       }
 
-      if (membership.status === MembershipStatus.BANNED) {
+      if ((membership as any).status === MembershipStatus.BANNED) {
         console.error('❌ Access denied: User is banned');
         ws.send(JSON.stringify({
           type: 'access-denied',
@@ -213,7 +213,7 @@ export const handleJoin = (
         take: 200
       });
 
-      let memberDetails = [];
+      let memberDetails: any[] = [];
       const memberIds = activeMembers.map(m => m.userId);
       
       try {
@@ -528,7 +528,7 @@ export const handleChatMessage = (message: any, currentClient: Client | null) =>
     // Save message to database
     const savedMessage = await prisma.message.create({
       data: {
-        roomId: currentClient.roomId,
+        roomId: currentClient.roomId!,
         userId: currentClient.userId,
         username: currentClient.username,
         profileImage: currentClient.profileImage,
@@ -584,8 +584,8 @@ export const handleChatMessage = (message: any, currentClient: Client | null) =>
     });
     console.log(`🔔 room-activity sent to ${activityCount} clients in other rooms (total clients: ${activeClub.clients.size})`);
 
-    const attachmentInfo = savedMessage.attachments?.length > 0 
-      ? ` with ${savedMessage.attachments.length} attachment(s)` 
+    const attachmentInfo = (savedMessage as any).attachments?.length > 0 
+      ? ` with ${(savedMessage as any).attachments.length} attachment(s)` 
       : '';
     console.log(`💬 ${currentClient.username} in room ${currentClient.roomId}: ${message.message || '[files only]'}${attachmentInfo}`);
   })

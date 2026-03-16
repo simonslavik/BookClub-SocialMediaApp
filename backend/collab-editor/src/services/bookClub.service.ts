@@ -232,7 +232,7 @@ export class BookClubService {
     if (!club) throw new Error('CLUB_NOT_FOUND');
 
     // Hide INVITE_ONLY clubs from non-members
-    let membership = null;
+    let membership: Awaited<ReturnType<typeof BookClubService.getMembership>> | null = null;
 
     if (userId) {
       membership = await this.getMembership(clubId, userId);
@@ -244,7 +244,7 @@ export class BookClubService {
       }
     }
 
-    let pendingRequest = null;
+    let pendingRequest: any = null;
 
     if (userId && (!membership || membership.status !== MembershipStatus.ACTIVE)) {
       pendingRequest = await prisma.membershipRequest.findUnique({

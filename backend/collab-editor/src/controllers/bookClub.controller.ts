@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { BookClubService } from '../services/bookclub.service.js';
+import { BookClubService } from '../services/bookClub.service.js';
 import logger from '../utils/logger.js';
 import prisma from '../config/database.js';
 
