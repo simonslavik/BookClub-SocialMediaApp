@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/authMiddleware.js';
-import { BookClubService } from '../services/bookclub.service.js';
+import { BookClubService } from '../services/bookClub.service.js';
 import { BookClubRole } from '@prisma/client';
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
