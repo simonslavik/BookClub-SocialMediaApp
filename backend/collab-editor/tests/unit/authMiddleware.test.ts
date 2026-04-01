@@ -1,8 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 import { authMiddleware, optionalAuthMiddleware } from '../../src/middleware/authMiddleware';
-
-const JWT_SECRET = 'test-secret-key-for-testing';
 
 const mockRequest = (headers: Record<string, string> = {}): Partial<Request> => ({
   headers,
@@ -16,148 +13,129 @@ const mockResponse = (): Partial<Response> => {
 };
 
 describe('authMiddleware', () => {
-  beforeEach(() => {
-    process.env.JWT_SECRET = JWT_SECRET;
-  });
-
-  it('should return 401 if no authorization header', async () => {
+  it('should return 401 if no x-user-id header', () => {
     const req = mockRequest() as Request;
     const res = mockResponse() as Response;
     const next = jest.fn();
 
-    await authMiddleware(req, res, next);
+    authMiddleware(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'No authorization token provided' })
+      expect.objectContaining({ message: 'Authentication required' })
     );
     expect(next).not.toHaveBeenCalled();
   });
 
-  it('should return 401 for invalid format (no Bearer)', async () => {
-    const req = mockRequest({ authorization: 'Token abc123' }) as Request;
+  it('should return 401 when only email/name headers present without x-user-id', () => {
+    const req = mockRequest({
+      'x-user-email': 'test@example.com',
+      'x-user-name': 'Test User',
+    }) as Request;
     const res = mockResponse() as Response;
     const next = jest.fn();
 
-    await authMiddleware(req, res, next);
+    authMiddleware(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: expect.stringContaining('Invalid authorization format') })
+      expect.objectContaining({ message: 'Authentication required' })
     );
+    expect(next).not.toHaveBeenCalled();
   });
 
-  it('should return 500 if JWT_SECRET is not set', async () => {
-    delete process.env.JWT_SECRET;
-    const token = jwt.sign({ userId: 'u1', email: 'a@b.com' }, 'some-secret');
-    const req = mockRequest({ authorization: `Bearer ${token}` }) as Request;
+  it('should attach user to request when x-user-id is present', () => {
+    const req = mockRequest({
+      'x-user-id': 'user-123',
+      'x-user-email': 'test@example.com',
+      'x-user-name': 'Test User',
+    }) as Request;
     const res = mockResponse() as Response;
     const next = jest.fn();
 
-    await authMiddleware(req, res, next);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'Server configuration error' })
-    );
-  });
-
-  it('should attach user to request for valid token', async () => {
-    const token = jwt.sign({ userId: 'user-123', email: 'test@example.com' }, JWT_SECRET, { expiresIn: '1h' });
-    const req = mockRequest({ authorization: `Bearer ${token}` }) as Request;
-    const res = mockResponse() as Response;
-    const next = jest.fn();
-
-    await authMiddleware(req, res, next);
+    authMiddleware(req, res, next);
 
     expect(next).toHaveBeenCalled();
     expect(req.user).toEqual({
       userId: 'user-123',
       email: 'test@example.com',
+      name: 'Test User',
     });
   });
 
-  it('should return 401 for invalid token', async () => {
-    const req = mockRequest({ authorization: 'Bearer invalid.token.here' }) as Request;
+  it('should default email to empty string and name to undefined when not provided', () => {
+    const req = mockRequest({ 'x-user-id': 'user-123' }) as Request;
     const res = mockResponse() as Response;
     const next = jest.fn();
 
-    await authMiddleware(req, res, next);
+    authMiddleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'Invalid token' })
-    );
-  });
-
-  it('should return 401 for expired token', async () => {
-    const token = jwt.sign(
-      { userId: 'user-123', email: 'test@example.com' },
-      JWT_SECRET,
-      { expiresIn: '-1s' }
-    );
-    const req = mockRequest({ authorization: `Bearer ${token}` }) as Request;
-    const res = mockResponse() as Response;
-    const next = jest.fn();
-
-    await authMiddleware(req, res, next);
-
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'Token expired' })
-    );
+    expect(next).toHaveBeenCalled();
+    expect(req.user).toEqual({
+      userId: 'user-123',
+      email: '',
+      name: undefined,
+    });
   });
 });
 
 describe('optionalAuthMiddleware', () => {
-  beforeEach(() => {
-    process.env.JWT_SECRET = JWT_SECRET;
-  });
-
-  it('should call next without error when no token', async () => {
+  it('should call next without error when no headers', () => {
     const req = mockRequest() as Request;
     const res = mockResponse() as Response;
     const next = jest.fn();
 
-    await optionalAuthMiddleware(req, res, next);
+    optionalAuthMiddleware(req, res, next);
 
     expect(next).toHaveBeenCalled();
     expect(req.user).toBeUndefined();
   });
 
-  it('should attach user for valid token', async () => {
-    const token = jwt.sign({ userId: 'user-123', email: 'test@example.com' }, JWT_SECRET, { expiresIn: '1h' });
-    const req = mockRequest({ authorization: `Bearer ${token}` }) as Request;
+  it('should attach user for valid headers', () => {
+    const req = mockRequest({
+      'x-user-id': 'user-123',
+      'x-user-email': 'test@example.com',
+    }) as Request;
     const res = mockResponse() as Response;
     const next = jest.fn();
 
-    await optionalAuthMiddleware(req, res, next);
+    optionalAuthMiddleware(req, res, next);
 
     expect(next).toHaveBeenCalled();
     expect(req.user).toEqual({
       userId: 'user-123',
       email: 'test@example.com',
+      name: undefined,
     });
   });
 
-  it('should call next without error for invalid token', async () => {
-    const req = mockRequest({ authorization: 'Bearer invalid.token' }) as Request;
+  it('should call next without setting user when no x-user-id', () => {
+    const req = mockRequest({ 'x-user-email': 'test@example.com' }) as Request;
     const res = mockResponse() as Response;
     const next = jest.fn();
 
-    await optionalAuthMiddleware(req, res, next);
+    optionalAuthMiddleware(req, res, next);
 
     expect(next).toHaveBeenCalled();
-    // Should not set user, but should not error
+    expect(req.user).toBeUndefined();
   });
 
-  it('should call next without error for invalid format', async () => {
-    const req = mockRequest({ authorization: 'Basic abc123' }) as Request;
+  it('should set all user fields when all headers provided', () => {
+    const req = mockRequest({
+      'x-user-id': 'user-123',
+      'x-user-email': 'test@example.com',
+      'x-user-name': 'Test User',
+    }) as Request;
     const res = mockResponse() as Response;
     const next = jest.fn();
 
-    await optionalAuthMiddleware(req, res, next);
+    optionalAuthMiddleware(req, res, next);
 
     expect(next).toHaveBeenCalled();
+    expect(req.user).toEqual({
+      userId: 'user-123',
+      email: 'test@example.com',
+      name: 'Test User',
+    });
   });
 });

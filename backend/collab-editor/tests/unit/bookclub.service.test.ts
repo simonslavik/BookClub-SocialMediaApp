@@ -35,7 +35,7 @@ jest.mock('../../src/config/database', () => ({
   default: mockPrisma,
 }));
 
-import { BookClubService } from '../../src/services/bookclub.service';
+import { BookClubService } from '../../src/services/bookClub.service';
 
 describe('BookClubService', () => {
   beforeEach(() => {

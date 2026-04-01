@@ -76,18 +76,30 @@ describe('RoomService', () => {
       ).rejects.toThrow('You must be a member to create rooms');
     });
 
-    it('should create room for active member', async () => {
+    it('should create room for active moderator', async () => {
       mockBookClubRepo.findById.mockResolvedValue({ id: 'club-1' });
-      mockPrisma.bookClubMember.findUnique.mockResolvedValue({ status: 'ACTIVE' });
+      mockPrisma.bookClubMember.findUnique.mockResolvedValue({ status: 'ACTIVE', role: 'MODERATOR' });
       const room = { id: 'r-1', name: 'discussion', bookClubId: 'club-1' };
       mockRoomRepo.create.mockResolvedValue(room);
 
       const result = await RoomService.create('club-1', 'user-1', { name: '  discussion  ' });
       expect(result).toEqual(room);
-      expect(mockRoomRepo.create).toHaveBeenCalledWith({
-        name: 'discussion',
-        bookClubId: 'club-1',
-      });
+      expect(mockRoomRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'discussion',
+          bookClubId: 'club-1',
+          createdBy: 'user-1',
+        })
+      );
+    });
+
+    it('should throw if member lacks moderator role', async () => {
+      mockBookClubRepo.findById.mockResolvedValue({ id: 'club-1' });
+      mockPrisma.bookClubMember.findUnique.mockResolvedValue({ status: 'ACTIVE', role: 'MEMBER' });
+
+      await expect(
+        RoomService.create('club-1', 'user-1', { name: 'discussion' })
+      ).rejects.toThrow('Only moderators and above can create rooms');
     });
   });
 
@@ -128,16 +140,18 @@ describe('RoomService', () => {
       );
     });
 
-    it('should throw if user is not the creator', async () => {
+    it('should throw if user lacks admin role', async () => {
       mockBookClubRepo.findById.mockResolvedValue({ id: 'club-1', creatorId: 'other-user' });
+      mockPrisma.bookClubMember.findUnique.mockResolvedValue({ status: 'ACTIVE', role: 'MEMBER' });
 
       await expect(RoomService.delete('club-1', 'r-1', 'user-1')).rejects.toThrow(
-        'Only the book club creator can delete rooms'
+        'Only admins and owners can delete rooms'
       );
     });
 
     it('should throw if room not found', async () => {
       mockBookClubRepo.findById.mockResolvedValue({ id: 'club-1', creatorId: 'user-1' });
+      mockPrisma.bookClubMember.findUnique.mockResolvedValue({ status: 'ACTIVE', role: 'ADMIN' });
       mockRoomRepo.findById.mockResolvedValue(null);
 
       await expect(RoomService.delete('club-1', 'r-1', 'user-1')).rejects.toThrow(
@@ -147,6 +161,7 @@ describe('RoomService', () => {
 
     it('should throw if trying to delete general room', async () => {
       mockBookClubRepo.findById.mockResolvedValue({ id: 'club-1', creatorId: 'user-1' });
+      mockPrisma.bookClubMember.findUnique.mockResolvedValue({ status: 'ACTIVE', role: 'ADMIN' });
       mockRoomRepo.findById.mockResolvedValue({ id: 'r-1', name: 'general' });
 
       await expect(RoomService.delete('club-1', 'r-1', 'user-1')).rejects.toThrow(
@@ -156,6 +171,7 @@ describe('RoomService', () => {
 
     it('should throw if trying to delete the last room', async () => {
       mockBookClubRepo.findById.mockResolvedValue({ id: 'club-1', creatorId: 'user-1' });
+      mockPrisma.bookClubMember.findUnique.mockResolvedValue({ status: 'ACTIVE', role: 'ADMIN' });
       mockRoomRepo.findById.mockResolvedValue({ id: 'r-1', name: 'discussion' });
       mockRoomRepo.findByBookClub.mockResolvedValue([{ id: 'r-1' }]);
 
@@ -166,6 +182,7 @@ describe('RoomService', () => {
 
     it('should delete room when valid', async () => {
       mockBookClubRepo.findById.mockResolvedValue({ id: 'club-1', creatorId: 'user-1' });
+      mockPrisma.bookClubMember.findUnique.mockResolvedValue({ status: 'ACTIVE', role: 'ADMIN' });
       mockRoomRepo.findById.mockResolvedValue({ id: 'r-1', name: 'discussion' });
       mockRoomRepo.findByBookClub.mockResolvedValue([{ id: 'r-1' }, { id: 'r-2' }]);
       mockRoomRepo.delete.mockResolvedValue(undefined);

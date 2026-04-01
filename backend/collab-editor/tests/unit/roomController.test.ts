@@ -7,6 +7,7 @@ jest.mock('../../src/config/database', () => ({
 const mockRoomService = {
   create: jest.fn(),
   getRooms: jest.fn(),
+  getVisibleRooms: jest.fn(),
   getRoomMessages: jest.fn(),
   delete: jest.fn(),
 };
@@ -120,23 +121,23 @@ describe('RoomController', () => {
   describe('getRooms', () => {
     it('should return rooms', async () => {
       const rooms = [{ id: 'r-1', name: 'general' }];
-      mockRoomService.getRooms.mockResolvedValue(rooms);
+      mockRoomService.getVisibleRooms.mockResolvedValue(rooms);
 
-      const req = mockReq({ params: { bookClubId: 'club-1' } }) as Request;
+      const req = mockReq({ params: { bookClubId: 'club-1' }, user: { userId: 'user-1' } }) as Request;
       const res = mockRes() as Response;
 
-      await getRooms(req, res);
+      await getRooms(req as any, res);
 
       expect(res.json).toHaveBeenCalledWith({ rooms });
     });
 
     it('should return 500 on error', async () => {
-      mockRoomService.getRooms.mockRejectedValue(new Error('DB error'));
+      mockRoomService.getVisibleRooms.mockRejectedValue(new Error('DB error'));
 
-      const req = mockReq({ params: { bookClubId: 'club-1' } }) as Request;
+      const req = mockReq({ params: { bookClubId: 'club-1' }, user: { userId: 'user-1' } }) as Request;
       const res = mockRes() as Response;
 
-      await getRooms(req, res);
+      await getRooms(req as any, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ error: 'Failed to fetch rooms' });

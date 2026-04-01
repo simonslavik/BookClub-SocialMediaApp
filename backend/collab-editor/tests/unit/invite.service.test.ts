@@ -50,8 +50,7 @@ describe('InviteService', () => {
     });
 
     it('should throw if user is not a member', async () => {
-      mockPrisma.bookClub.findUnique.mockResolvedValue({ id: 'club-1', creatorId: 'other-user' });
-      mockPrisma.bookClubMember.findUnique.mockResolvedValue(null);
+      mockPrisma.bookClub.findUnique.mockResolvedValue({ id: 'club-1', creatorId: 'other-user', members: [] });
 
       await expect(InviteService.getInvite('club-1', 'user-1')).rejects.toThrow(
         'Only book club members can view invite'
@@ -59,7 +58,7 @@ describe('InviteService', () => {
     });
 
     it('should allow creator to view invite', async () => {
-      mockPrisma.bookClub.findUnique.mockResolvedValue({ id: 'club-1', creatorId: 'user-1' });
+      mockPrisma.bookClub.findUnique.mockResolvedValue({ id: 'club-1', creatorId: 'user-1', members: [] });
       const invite = { id: 'inv-1', code: 'ABC12345' };
       mockPrisma.bookClubInvite.findFirst.mockResolvedValue(invite);
 
@@ -68,8 +67,7 @@ describe('InviteService', () => {
     });
 
     it('should allow active member to view invite', async () => {
-      mockPrisma.bookClub.findUnique.mockResolvedValue({ id: 'club-1', creatorId: 'other-user' });
-      mockPrisma.bookClubMember.findUnique.mockResolvedValue({ status: 'ACTIVE' });
+      mockPrisma.bookClub.findUnique.mockResolvedValue({ id: 'club-1', creatorId: 'other-user', members: [{ userId: 'user-1', status: 'ACTIVE' }] });
       const invite = { id: 'inv-1', code: 'ABC12345' };
       mockPrisma.bookClubInvite.findFirst.mockResolvedValue(invite);
 
@@ -78,7 +76,7 @@ describe('InviteService', () => {
     });
 
     it('should create new invite if none exists', async () => {
-      mockPrisma.bookClub.findUnique.mockResolvedValue({ id: 'club-1', creatorId: 'user-1', name: 'Test' });
+      mockPrisma.bookClub.findUnique.mockResolvedValue({ id: 'club-1', creatorId: 'user-1', name: 'Test', members: [] });
       mockPrisma.bookClubInvite.findFirst.mockResolvedValue(null);
       mockInviteRepo.findByCode.mockResolvedValue(null);
       const newInvite = { id: 'inv-new', code: 'TESTCODE' };
@@ -203,8 +201,7 @@ describe('InviteService', () => {
     });
 
     it('should throw if user is not a member', async () => {
-      mockPrisma.bookClub.findUnique.mockResolvedValue({ id: 'club-1', creatorId: 'other' });
-      mockPrisma.bookClubMember.findUnique.mockResolvedValue(null);
+      mockPrisma.bookClub.findUnique.mockResolvedValue({ id: 'club-1', creatorId: 'other', members: [] });
 
       await expect(
         InviteService.create('club-1', 'user-1', {})
@@ -212,7 +209,7 @@ describe('InviteService', () => {
     });
 
     it('should create invite for valid member', async () => {
-      mockPrisma.bookClub.findUnique.mockResolvedValue({ id: 'club-1', creatorId: 'user-1', name: 'Test' });
+      mockPrisma.bookClub.findUnique.mockResolvedValue({ id: 'club-1', creatorId: 'user-1', name: 'Test', members: [] });
       mockInviteRepo.findByCode.mockResolvedValue(null);
       const invite = { id: 'inv-1', code: 'TESTCODE' };
       mockInviteRepo.create.mockResolvedValue(invite);
