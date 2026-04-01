@@ -56,13 +56,19 @@ if (warnings.length > 0) {
   console.log('');
 }
 
-// Exit with error if critical variables are missing
+// Exit with error if critical variables are missing (skip hard-fail in CI builds)
 if (missing.length > 0) {
-  console.error('❌ Missing required environment variables:');
-  missing.forEach(v => console.error(`   - ${v}`));
-  console.error('\n💡 Please check your .env file and ensure all required variables are set.');
-  console.error('   See .env.example for reference.\n');
-  process.exit(1);
+  if (process.env.CI || process.env.DOCKER_BUILD) {
+    console.warn('⚠️  Missing environment variables (CI build — continuing):');
+    missing.forEach(v => console.warn(`   - ${v}`));
+    console.warn('');
+  } else {
+    console.error('❌ Missing required environment variables:');
+    missing.forEach(v => console.error(`   - ${v}`));
+    console.error('\n💡 Please check your .env file and ensure all required variables are set.');
+    console.error('   See .env.example for reference.\n');
+    process.exit(1);
+  }
 }
 
 // Success message

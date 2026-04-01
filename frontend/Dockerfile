@@ -16,6 +16,8 @@ ARG VITE_GOOGLE_CLIENT_ID
 ARG VITE_USER_SERVICE_URL
 ARG VITE_COLLAB_EDITOR_URL
 
+ENV CI=true
+
 RUN npm run build
 
 # ── Stage 2: Serve with nginx ──────────────────────────
