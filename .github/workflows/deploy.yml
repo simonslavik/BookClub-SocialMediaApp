@@ -120,9 +120,8 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           envs: TAG,REGISTRY,IMAGE_PREFIX
+          script_stop: true
           script: |
-            set -e
-
             cd ${{ vars.DEPLOY_PATH || '~/app' }}
 
             echo "── Logging into GHCR ──"
@@ -134,11 +133,14 @@ jobs:
             _IMAGE_PREFIX="$IMAGE_PREFIX"
 
             # Source production env vars (DB passwords, secrets, etc.)
-            set +e
-            set -a
-            source .env.production 2>/dev/null || true
-            set +a
-            set -e
+            if [ -f .env.production ]; then
+              echo "── Loading .env.production ──"
+              set -a
+              . .env.production
+              set +a
+            else
+              echo "⚠️  No .env.production found — using compose defaults"
+            fi
 
             # Restore CI-provided values (must override .env.production)
             export TAG="$_TAG"
@@ -148,18 +150,22 @@ jobs:
             echo "── Deploying: $REGISTRY/$IMAGE_PREFIX/*:$TAG ──"
 
             # Stop any existing containers that may conflict (from other compose projects)
+            echo "── Removing existing containers ──"
             CONTAINERS="nginx-proxy frontend api-gateway user-service books-service collab-editor notification-service redis-cache postgres-users postgres-collab postgres-books postgres-notifications loki promtail prometheus grafana certbot"
             for c in $CONTAINERS; do
               docker rm -f "$c" 2>/dev/null || true
             done
 
             # Pull and deploy
+            echo "── Pulling images ──"
             docker compose -f docker-compose.prod.yml pull
+
+            echo "── Starting services ──"
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
-            # Wait for services to start, then check health
+            # Wait for services to start, then check status
             echo "── Waiting for services to start ──"
-            sleep 10
+            sleep 15
             docker compose -f docker-compose.prod.yml ps
 
             # Cleanup old images
