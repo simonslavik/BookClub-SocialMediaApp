@@ -22,3 +22,10 @@ nginx/ssl/*.crt
 .DS_Store
 .deploy_key
 .deploy_key.pub
+deploy_key
+deploy_key.pub
+
+# SSH/Private keys
+id_rsa
+id_ed25519
+id_ecdsa
