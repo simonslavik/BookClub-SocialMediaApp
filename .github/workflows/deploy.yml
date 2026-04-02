@@ -128,14 +128,27 @@ jobs:
             echo "── Logging into GHCR ──"
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # Save CI-provided values
+            # Save CI-provided values before sourcing .env
             _TAG="$TAG"
             _REGISTRY="$REGISTRY"
             _IMAGE_PREFIX="$IMAGE_PREFIX"
 
-            # Find and source .env.production (check multiple locations)
+            # ── Detect existing compose project to reuse volumes ──
+            # Docker prefixes volumes with project name. If app was previously
+            # deployed from a different directory, volumes have a different prefix.
+            # We must use the SAME project name to keep database data and SSL certs.
+            OLD_PROJECT=$(docker volume ls --format '{{.Name}}' | grep 'certbot-certs' | head -1 | sed 's/_certbot-certs$//')
+            if [ -n "$OLD_PROJECT" ]; then
+              export COMPOSE_PROJECT_NAME="$OLD_PROJECT"
+              echo "── Reusing existing project: $COMPOSE_PROJECT_NAME (preserves volumes) ──"
+            else
+              export COMPOSE_PROJECT_NAME="bookclub"
+              echo "── No existing project found, using: $COMPOSE_PROJECT_NAME ──"
+            fi
+
+            # ── Find and source .env.production ──
             ENV_FILE=""
-            for f in "$DEPLOY_DIR/.env.production" "$HOME/.env.production" "$HOME/app/.env.production" "$HOME/BookClub-SocialMediaApp/.env.production" "$HOME/bookclub/.env.production"; do
+            for f in "$DEPLOY_DIR/.env.production" "$DEPLOY_DIR/.env" "$HOME/.env.production" "$HOME/app/.env.production" "$HOME/BookClub-SocialMediaApp/.env.production" "$HOME/bookclub/.env.production"; do
               if [ -f "$f" ]; then
                 ENV_FILE="$f"
                 break
@@ -147,15 +160,12 @@ jobs:
               set -a
               . "$ENV_FILE"
               set +a
-              # Copy to deploy dir if not already there
-              if [ "$ENV_FILE" != "$DEPLOY_DIR/.env.production" ]; then
-                cp "$ENV_FILE" "$DEPLOY_DIR/.env.production"
-              fi
+              # Copy to deploy dir as .env so docker compose auto-loads it
+              cp "$ENV_FILE" "$DEPLOY_DIR/.env"
             else
-              echo "⚠️  No .env.production found! Searching..."
-              find "$HOME" -name '.env.production' -maxdepth 4 2>/dev/null || true
-              find "$HOME" -name '.env' -maxdepth 4 2>/dev/null || true
-              echo "ERROR: Cannot deploy without .env.production"
+              echo "⚠️  No .env.production found! Listing all env files:"
+              find "$HOME" -maxdepth 4 -name '.env*' -not -path '*/node_modules/*' 2>/dev/null || true
+              echo "ERROR: Cannot deploy without environment file"
               exit 1
             fi
 
@@ -166,27 +176,83 @@ jobs:
 
             echo "── Deploying: $REGISTRY/$IMAGE_PREFIX/*:$TAG ──"
             echo "── ENV check: POSTGRES_USER=${POSTGRES_USER:-MISSING} REDIS_PASSWORD=${REDIS_PASSWORD:+SET} JWT_SECRET=${JWT_SECRET:+SET} ──"
+            echo "── Project: $COMPOSE_PROJECT_NAME | Dir: $DEPLOY_DIR ──"
 
-            # Stop any existing containers that may conflict
+            # ── Ensure SSL certificates exist ──
+            CERT_VOL="${COMPOSE_PROJECT_NAME}_certbot-certs"
+            CERT_EXISTS=$(docker run --rm -v "$CERT_VOL":/certs alpine sh -c \
+              "test -f /certs/live/mybookclub.win/fullchain.pem && echo yes || echo no" 2>/dev/null || echo "no")
+
+            if [ "$CERT_EXISTS" = "no" ]; then
+              echo "── No Let's Encrypt certs found, generating self-signed for initial boot ──"
+              docker run --rm -v "$CERT_VOL":/etc/letsencrypt alpine sh -c "
+                apk add --no-cache openssl > /dev/null 2>&1
+                mkdir -p /etc/letsencrypt/live/mybookclub.win
+                openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+                  -keyout /etc/letsencrypt/live/mybookclub.win/privkey.pem \
+                  -out /etc/letsencrypt/live/mybookclub.win/fullchain.pem \
+                  -subj '/CN=mybookclub.win' 2>/dev/null
+              "
+              echo "── Self-signed cert created (replace with Let's Encrypt later) ──"
+            else
+              echo "── SSL certs found in volume $CERT_VOL ──"
+            fi
+
+            # ── Stop conflicting containers ──
             echo "── Removing conflicting containers ──"
             CONTAINERS="nginx-proxy frontend api-gateway user-service books-service collab-editor notification-service redis-cache postgres-users postgres-collab postgres-books postgres-notifications loki promtail prometheus grafana certbot"
             for c in $CONTAINERS; do
               docker rm -f "$c" 2>/dev/null || true
             done
 
-            # Pull and deploy
+            # ── Pull and deploy ──
             echo "── Pulling images ──"
             docker compose -f docker-compose.prod.yml pull
 
             echo "── Starting services ──"
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
-            # Wait and check status
-            echo "── Waiting for services to start ──"
-            sleep 15
+            # ── Health verification ──
+            echo "── Waiting for services to start (30s) ──"
+            sleep 30
+
+            echo "── Container status ──"
             docker compose -f docker-compose.prod.yml ps
 
+            # Count running containers (expect at least nginx + gateway + frontend)
+            RUNNING=$(docker compose -f docker-compose.prod.yml ps --format json 2>/dev/null | grep -c '"running"' || echo "0")
+            echo "── Running containers: $RUNNING ──"
+
+            # Check if nginx is actually listening
+            if docker exec nginx-proxy nginx -t 2>/dev/null; then
+              echo "── nginx config OK ──"
+            else
+              echo "── nginx config FAILED, showing logs: ──"
+              docker logs nginx-proxy --tail 30 2>&1 || true
+            fi
+
+            # Check if gateway responds
+            HEALTH=$(docker exec nginx-proxy wget -qO- http://gateway:3000/v1/health 2>/dev/null || echo "FAIL")
+            echo "── Gateway health: $HEALTH ──"
+
+            # Show logs of any crashed containers
+            for c in $CONTAINERS; do
+              STATUS=$(docker inspect -f '{{.State.Status}}' "$c" 2>/dev/null || echo "missing")
+              if [ "$STATUS" != "running" ] && [ "$STATUS" != "missing" ]; then
+                echo "── $c is $STATUS, last 10 log lines: ──"
+                docker logs "$c" --tail 10 2>&1 || true
+              fi
+            done
+
             # Cleanup old images
-            docker image prune -f
+            docker image prune -f > /dev/null 2>&1
+
+            # Final check - if nginx isn't running, fail the deploy
+            if ! docker ps --format '{{.Names}}' | grep -q 'nginx-proxy'; then
+              echo "❌ DEPLOY FAILED: nginx-proxy is not running"
+              echo "── All container statuses: ──"
+              docker ps -a --format 'table {{.Names}}\t{{.Status}}' | head -20
+              exit 1
+            fi
 
             echo "✅ Deployed $TAG successfully"
