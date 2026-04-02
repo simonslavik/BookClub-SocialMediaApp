@@ -76,6 +76,7 @@ describe('UserRepository', () => {
 
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
         where: { email: 'john@test.com' },
+        select: { id: true, name: true, email: true, profileImage: true, createdAt: true },
       });
       expect(result).toEqual(mockUser);
     });
@@ -191,6 +192,8 @@ describe('UserRepository', () => {
       expect(mockPrisma.user.findMany).toHaveBeenCalledWith({
         select: expect.objectContaining({ id: true, createdAt: true }),
         orderBy: { createdAt: 'desc' },
+        take: 100,
+        skip: 0,
       });
       expect(result).toHaveLength(1);
     });

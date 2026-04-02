@@ -56,8 +56,8 @@ describe('DirectMessageService', () => {
 
       const result = await DirectMessageService.sendMessage('u-1', 'u-2', 'Hello');
 
-      expect(mockDMRepo.create).toHaveBeenCalledWith('u-1', 'u-2', 'Hello', undefined);
-      expect(result).toEqual(mockMsg);
+      expect(mockDMRepo.create).toHaveBeenCalledWith('u-1', 'u-2', 'Hello', undefined, undefined);
+      expect(result).toEqual(expect.objectContaining({ id: 'msg-1', senderId: 'u-1', receiverId: 'u-2', content: 'Hello' }));
     });
 
     it('should pass attachments', async () => {
@@ -66,7 +66,7 @@ describe('DirectMessageService', () => {
 
       await DirectMessageService.sendMessage('u-1', 'u-2', 'Hi', attachments);
 
-      expect(mockDMRepo.create).toHaveBeenCalledWith('u-1', 'u-2', 'Hi', attachments);
+      expect(mockDMRepo.create).toHaveBeenCalledWith('u-1', 'u-2', 'Hi', attachments, undefined);
     });
   });
 

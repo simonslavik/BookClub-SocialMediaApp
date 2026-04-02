@@ -1,6 +1,5 @@
 import { jest } from '@jest/globals';
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 
 // Mock logger before importing auth middleware
 jest.mock('../../../src/utils/logger.js', () => ({
@@ -16,10 +15,7 @@ describe('Auth Middleware', () => {
   let mockRes: Partial<Response>;
   let mockNext: NextFunction;
 
-  const JWT_SECRET = 'test-secret-key-for-testing';
-
   beforeEach(() => {
-    process.env.JWT_SECRET = JWT_SECRET;
     mockReq = {
       headers: {},
     };
@@ -31,17 +27,16 @@ describe('Auth Middleware', () => {
   });
 
   describe('authMiddleware', () => {
-    it('should authenticate with valid Bearer token', async () => {
-      const token = jwt.sign({ userId: 'user-1', email: 'test@test.com' }, JWT_SECRET);
-      mockReq.headers = { authorization: `Bearer ${token}` };
+    it('should authenticate with x-user-id header', () => {
+      mockReq.headers = { 'x-user-id': 'user-1', 'x-user-email': 'test@test.com' };
 
-      await authMiddleware(mockReq as Request, mockRes as Response, mockNext);
+      authMiddleware(mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalled();
-      expect(mockReq.user).toEqual(expect.objectContaining({
+      expect(mockReq.user).toEqual({
         userId: 'user-1',
         email: 'test@test.com',
-      }));
+      });
     });
 
     it('should authenticate with X-User-Id header (internal service call)', async () => {
@@ -56,107 +51,45 @@ describe('Auth Middleware', () => {
       });
     });
 
-    it('should reject request without authorization header', async () => {
+    it('should reject request without x-user-id header', () => {
       mockReq.headers = {};
 
-      await authMiddleware(mockReq as Request, mockRes as Response, mockNext);
+      authMiddleware(mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'No authorization token provided' })
+        expect.objectContaining({ message: 'Authentication required' })
       );
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it('should reject invalid authorization format', async () => {
-      mockReq.headers = { authorization: 'NotBearer token' };
+    it('should default email to empty string when x-user-email is missing', () => {
+      mockReq.headers = { 'x-user-id': 'user-1' };
 
-      await authMiddleware(mockReq as Request, mockRes as Response, mockNext);
+      authMiddleware(mockReq as Request, mockRes as Response, mockNext);
 
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('Invalid authorization format') })
-      );
-    });
-
-    it('should reject expired token', async () => {
-      const token = jwt.sign(
-        { userId: 'user-1', email: 'test@test.com' },
-        JWT_SECRET,
-        { expiresIn: '0s' }
-      );
-      // Wait for token to expire
-      await new Promise(resolve => setTimeout(resolve, 1100));
-      mockReq.headers = { authorization: `Bearer ${token}` };
-
-      await authMiddleware(mockReq as Request, mockRes as Response, mockNext);
-
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('Token expired') })
-      );
-    });
-
-    it('should reject invalid token', async () => {
-      mockReq.headers = { authorization: 'Bearer invalid.token.here' };
-
-      await authMiddleware(mockReq as Request, mockRes as Response, mockNext);
-
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'Invalid token' })
-      );
-    });
-
-    it('should reject token signed with wrong secret', async () => {
-      const token = jwt.sign({ userId: 'user-1', email: 'test@test.com' }, 'wrong-secret');
-      mockReq.headers = { authorization: `Bearer ${token}` };
-
-      await authMiddleware(mockReq as Request, mockRes as Response, mockNext);
-
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'Invalid token' })
-      );
+      expect(mockNext).toHaveBeenCalled();
+      expect(mockReq.user?.email).toBe('');
     });
   });
 
   describe('optionalAuthMiddleware', () => {
-    it('should set user from valid token', async () => {
-      const token = jwt.sign({ userId: 'user-1', email: 'test@test.com' }, JWT_SECRET);
-      mockReq.headers = { authorization: `Bearer ${token}` };
+    it('should set user when x-user-id header is present', () => {
+      mockReq.headers = { 'x-user-id': 'user-1', 'x-user-email': 'test@test.com' };
 
-      await optionalAuthMiddleware(mockReq as Request, mockRes as Response, mockNext);
+      optionalAuthMiddleware(mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalled();
-      expect(mockReq.user).toEqual(expect.objectContaining({
+      expect(mockReq.user).toEqual({
         userId: 'user-1',
         email: 'test@test.com',
-      }));
+      });
     });
 
-    it('should continue without user when no token', async () => {
+    it('should continue without user when no x-user-id header', () => {
       mockReq.headers = {};
 
-      await optionalAuthMiddleware(mockReq as Request, mockRes as Response, mockNext);
-
-      expect(mockNext).toHaveBeenCalled();
-      expect(mockReq.user).toBeUndefined();
-    });
-
-    it('should continue without user when invalid token', async () => {
-      mockReq.headers = { authorization: 'Bearer invalid-token' };
-
-      await optionalAuthMiddleware(mockReq as Request, mockRes as Response, mockNext);
-
-      expect(mockNext).toHaveBeenCalled();
-      expect(mockReq.user).toBeUndefined();
-    });
-
-    it('should continue without user when invalid format', async () => {
-      mockReq.headers = { authorization: 'NotBearer token' };
-
-      await optionalAuthMiddleware(mockReq as Request, mockRes as Response, mockNext);
+      optionalAuthMiddleware(mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalled();
       expect(mockReq.user).toBeUndefined();

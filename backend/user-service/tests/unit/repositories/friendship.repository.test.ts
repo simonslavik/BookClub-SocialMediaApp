@@ -112,6 +112,8 @@ describe('FriendshipRepository', () => {
       expect(mockPrisma.friendship.findMany).toHaveBeenCalledWith({
         where: { friendId: 'u-1', status: 'PENDING' },
         include: { user: { select: expect.any(Object) } },
+        take: 100,
+        orderBy: { createdAt: 'desc' },
       });
       expect(result).toHaveLength(1);
     });
@@ -147,7 +149,6 @@ describe('FriendshipRepository', () => {
 
     it('should return "request_sent" when current user sent request', async () => {
       mockPrisma.friendship.findFirst
-        .mockResolvedValueOnce(null) // no accepted
         .mockResolvedValueOnce({ id: 'f-1', userId: 'u-1', friendId: 'u-2', status: 'PENDING' });
 
       const result = await FriendshipRepository.getFriendshipStatus('u-1', 'u-2');
@@ -157,7 +158,6 @@ describe('FriendshipRepository', () => {
 
     it('should return "request_received" when target user sent request', async () => {
       mockPrisma.friendship.findFirst
-        .mockResolvedValueOnce(null) // no accepted
         .mockResolvedValueOnce({ id: 'f-1', userId: 'u-2', friendId: 'u-1', status: 'PENDING' });
 
       const result = await FriendshipRepository.getFriendshipStatus('u-1', 'u-2');
@@ -167,8 +167,7 @@ describe('FriendshipRepository', () => {
 
     it('should return null when no relationship exists', async () => {
       mockPrisma.friendship.findFirst
-        .mockResolvedValueOnce(null) // no accepted
-        .mockResolvedValueOnce(null); // no pending
+        .mockResolvedValueOnce(null);
 
       const result = await FriendshipRepository.getFriendshipStatus('u-1', 'u-2');
 

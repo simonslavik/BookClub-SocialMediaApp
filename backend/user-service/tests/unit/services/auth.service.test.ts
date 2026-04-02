@@ -12,6 +12,7 @@ jest.mock('../../../src/utils/metrics.js', () => ({
 
 const mockUserRepo = {
   findByEmail: jest.fn(),
+  findByEmailWithPassword: jest.fn(),
   findById: jest.fn(),
   create: jest.fn(),
   updatePassword: jest.fn(),
@@ -110,7 +111,7 @@ describe('AuthService', () => {
   describe('login', () => {
     it('should login with valid credentials', async () => {
       const hashedPass = await bcrypt.hash('Test@1234', 2);
-      mockUserRepo.findByEmail.mockResolvedValue({
+      mockUserRepo.findByEmailWithPassword.mockResolvedValue({
         id: 'user-1',
         name: 'John',
         email: 'john@test.com',
@@ -127,7 +128,7 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedError for non-existent user', async () => {
-      mockUserRepo.findByEmail.mockResolvedValue(null);
+      mockUserRepo.findByEmailWithPassword.mockResolvedValue(null);
 
       await expect(AuthService.login('nobody@test.com', 'Test@1234'))
         .rejects.toThrow('Invalid email or password');
@@ -135,7 +136,7 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedError for wrong password', async () => {
       const hashedPass = await bcrypt.hash('Test@1234', 2);
-      mockUserRepo.findByEmail.mockResolvedValue({
+      mockUserRepo.findByEmailWithPassword.mockResolvedValue({
         id: 'user-1',
         password: hashedPass,
       });
@@ -145,14 +146,14 @@ describe('AuthService', () => {
     });
 
     it('should throw for OAuth user without password', async () => {
-      mockUserRepo.findByEmail.mockResolvedValue({
+      mockUserRepo.findByEmailWithPassword.mockResolvedValue({
         id: 'user-1',
         password: null,
         authProvider: 'google',
       });
 
       await expect(AuthService.login('john@test.com', 'Test@1234'))
-        .rejects.toThrow('Please use Google login');
+        .rejects.toThrow('Please use Google login for this account');
     });
   });
 
@@ -178,7 +179,7 @@ describe('AuthService', () => {
 
   describe('requestPasswordReset', () => {
     it('should return null resetToken for non-existent email', async () => {
-      mockUserRepo.findByEmail.mockResolvedValue(null);
+      mockUserRepo.findByEmailWithPassword.mockResolvedValue(null);
 
       const result = await AuthService.requestPasswordReset('nobody@test.com');
 
@@ -186,7 +187,7 @@ describe('AuthService', () => {
     });
 
     it('should return null resetToken for OAuth user', async () => {
-      mockUserRepo.findByEmail.mockResolvedValue({
+      mockUserRepo.findByEmailWithPassword.mockResolvedValue({
         id: 'u-1',
         password: null,
         authProvider: 'google',
@@ -198,7 +199,7 @@ describe('AuthService', () => {
     });
 
     it('should generate reset token for valid user', async () => {
-      mockUserRepo.findByEmail.mockResolvedValue({
+      mockUserRepo.findByEmailWithPassword.mockResolvedValue({
         id: 'u-1',
         email: 'john@test.com',
         name: 'John',

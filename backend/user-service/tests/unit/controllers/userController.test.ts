@@ -19,13 +19,13 @@ jest.mock('../../../src/services/auth.service.js', () => ({
 }));
 
 const mockVerifyRefreshToken = jest.fn();
-const mockGenerateAccessToken = jest.fn();
-const mockGenerateRefreshToken = jest.fn();
+const mockGenerateTokens = jest.fn();
+const mockRevokeRefreshToken = jest.fn();
 
 jest.mock('../../../src/utils/tokenUtils.js', () => ({
   verifyRefreshToken: mockVerifyRefreshToken,
-  generateAccessToken: mockGenerateAccessToken,
-  generateRefreshToken: mockGenerateRefreshToken,
+  generateTokens: mockGenerateTokens,
+  revokeRefreshToken: mockRevokeRefreshToken,
 }));
 
 jest.mock('../../../src/utils/errors.js', () => {
@@ -156,8 +156,8 @@ describe('UserController', () => {
     it('should return new tokens when refresh token is valid', async () => {
       mockReq.body = { refreshToken: 'valid-rt' };
       mockVerifyRefreshToken.mockResolvedValue({ id: 'u-1', email: 'john@test.com' });
-      mockGenerateAccessToken.mockReturnValue('new-at');
-      mockGenerateRefreshToken.mockReturnValue('new-rt');
+      mockRevokeRefreshToken.mockResolvedValue(undefined);
+      mockGenerateTokens.mockResolvedValue({ accessToken: 'new-at', refreshToken: 'new-rt' });
 
       await refreshAccessToken(mockReq as Request, mockRes as Response);
 

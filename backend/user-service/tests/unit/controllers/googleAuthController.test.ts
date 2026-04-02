@@ -97,7 +97,7 @@ describe('GoogleAuthController', () => {
       );
     });
 
-    it('should link google account when user exists without googleId', async () => {
+    it('should link google account when user exists without googleId and email is verified', async () => {
       mockReq.body = { credential: 'google-token' };
       mockVerifyIdToken.mockResolvedValue({
         getPayload: () => ({
@@ -113,6 +113,7 @@ describe('GoogleAuthController', () => {
         name: 'John',
         googleId: null,
         authProvider: 'local',
+        emailVerified: true,
         profileImage: null,
         createdAt: new Date(),
       });
@@ -122,6 +123,7 @@ describe('GoogleAuthController', () => {
         name: 'John',
         googleId: 'google-123',
         authProvider: 'google',
+        emailVerified: true,
         profileImage: 'https://pic.url',
         createdAt: new Date(),
       });
@@ -142,6 +144,33 @@ describe('GoogleAuthController', () => {
         })
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
+    });
+
+    it('should return 409 when user exists without googleId and email is NOT verified', async () => {
+      mockReq.body = { credential: 'google-token' };
+      mockVerifyIdToken.mockResolvedValue({
+        getPayload: () => ({
+          sub: 'google-123',
+          email: 'john@test.com',
+          name: 'John',
+          picture: 'https://pic.url',
+        }),
+      });
+      mockPrisma.user.findFirst.mockResolvedValue({
+        id: 'u-1',
+        email: 'john@test.com',
+        name: 'John',
+        googleId: null,
+        authProvider: 'local',
+        emailVerified: false,
+        profileImage: null,
+        createdAt: new Date(),
+      });
+
+      await googleAuth(mockReq as Request, mockRes as Response);
+
+      expect(mockRes.status).toHaveBeenCalledWith(409);
+      expect(mockPrisma.user.update).not.toHaveBeenCalled();
     });
 
     it('should login existing google user without creating/updating', async () => {

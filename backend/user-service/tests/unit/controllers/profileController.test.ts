@@ -200,9 +200,9 @@ describe('ProfileController', () => {
 
   describe('getUsersByIds', () => {
     it('should return users mapped with username field', async () => {
-      mockReq.body = { userIds: ['u-1', 'u-2'] };
+      mockReq.body = { userIds: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22'] };
       mockUserService.getUsersByIds.mockResolvedValue([
-        { id: 'u-1', name: 'John', email: 'john@test.com', profileImage: null },
+        { id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'John', email: 'john@test.com', profileImage: null },
       ]);
 
       await getUsersByIds(mockReq as Request, mockRes as Response);
@@ -212,7 +212,7 @@ describe('ProfileController', () => {
         expect.objectContaining({
           users: [
             expect.objectContaining({
-              id: 'u-1',
+              id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
               username: 'John',
               email: 'john@test.com',
             }),

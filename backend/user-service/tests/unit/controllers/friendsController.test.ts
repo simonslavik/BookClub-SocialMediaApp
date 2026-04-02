@@ -83,7 +83,7 @@ describe('FriendsController', () => {
     it('should return 400 when sending to yourself', async () => {
       mockReq.user = { userId: 'u-1', email: 'test@test.com' };
       mockReq.body = { recipientId: 'u-1' };
-      mockFriendshipService.sendFriendRequest.mockRejectedValue(new Error('CANNOT_ADD_YOURSELF'));
+      mockFriendshipService.sendFriendRequest.mockRejectedValue(new Error('CANNOT_ADD_SELF'));
 
       await sendFriendRequest(mockReq as Request, mockRes as Response);
 

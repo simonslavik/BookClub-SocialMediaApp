@@ -71,7 +71,7 @@ describe('DirectMessagesController', () => {
 
       await getDirectMessages(mockReq as Request, mockRes as Response);
 
-      expect(mockDirectMessageService.getConversation).toHaveBeenCalledWith('u-1', 'u-2', 50, 0);
+      expect(mockDirectMessageService.getConversation).toHaveBeenCalledWith('u-1', 'u-2', 50, 0, undefined);
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -110,7 +110,7 @@ describe('DirectMessagesController', () => {
 
       await getDirectMessages(mockReq as Request, mockRes as Response);
 
-      expect(mockDirectMessageService.getConversation).toHaveBeenCalledWith('u-1', 'u-2', 10, 10);
+      expect(mockDirectMessageService.getConversation).toHaveBeenCalledWith('u-1', 'u-2', 10, 10, undefined);
     });
   });
 
@@ -128,7 +128,7 @@ describe('DirectMessagesController', () => {
 
       await sendDirectMessage(mockReq as Request, mockRes as Response);
 
-      expect(mockDirectMessageService.sendMessage).toHaveBeenCalledWith('u-1', 'u-2', 'Hello!', []);
+      expect(mockDirectMessageService.sendMessage).toHaveBeenCalledWith('u-1', 'u-2', 'Hello!', [], undefined);
       expect(mockRes.status).toHaveBeenCalledWith(200);
     });
 
@@ -139,7 +139,7 @@ describe('DirectMessagesController', () => {
 
       await sendDirectMessage(mockReq as Request, mockRes as Response);
 
-      expect(mockDirectMessageService.sendMessage).toHaveBeenCalledWith('u-1', 'u-2', 'Hi', []);
+      expect(mockDirectMessageService.sendMessage).toHaveBeenCalledWith('u-1', 'u-2', 'Hi', [], undefined);
     });
 
     it('should throw UnauthorizedError when not authenticated', async () => {
@@ -157,7 +157,7 @@ describe('DirectMessagesController', () => {
 
       await sendDirectMessage(mockReq as Request, mockRes as Response);
 
-      expect(mockDirectMessageService.sendMessage).toHaveBeenCalledWith('u-1', 'u-2', 'Hello!', []);
+      expect(mockDirectMessageService.sendMessage).toHaveBeenCalledWith('u-1', 'u-2', 'Hello!', [], undefined);
     });
 
     it('should handle null content gracefully', async () => {
@@ -167,7 +167,7 @@ describe('DirectMessagesController', () => {
 
       await sendDirectMessage(mockReq as Request, mockRes as Response);
 
-      expect(mockDirectMessageService.sendMessage).toHaveBeenCalledWith('u-1', 'u-2', '', [{ url: 'file.png' }]);
+      expect(mockDirectMessageService.sendMessage).toHaveBeenCalledWith('u-1', 'u-2', '', [{ url: 'file.png' }], undefined);
     });
   });
 
