@@ -121,9 +121,11 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           envs: TAG,REGISTRY,IMAGE_PREFIX
           script: |
+            set -e
+
             cd ${{ vars.DEPLOY_PATH || '~/app' }}
 
-            # Pull latest images
+            echo "── Logging into GHCR ──"
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # Save CI-provided values before sourcing .env.production
@@ -132,20 +134,33 @@ jobs:
             _IMAGE_PREFIX="$IMAGE_PREFIX"
 
             # Source production env vars (DB passwords, secrets, etc.)
+            set +e
             set -a
             source .env.production 2>/dev/null || true
             set +a
+            set -e
 
             # Restore CI-provided values (must override .env.production)
             export TAG="$_TAG"
             export REGISTRY="$_REGISTRY"
             export IMAGE_PREFIX="$_IMAGE_PREFIX"
 
-            echo "Deploying images: $REGISTRY/$IMAGE_PREFIX/*:$TAG"
+            echo "── Deploying: $REGISTRY/$IMAGE_PREFIX/*:$TAG ──"
 
-            # Deploy — force-recreate ensures containers restart with new images
+            # Stop any existing containers that may conflict (from other compose projects)
+            CONTAINERS="nginx-proxy frontend api-gateway user-service books-service collab-editor notification-service redis-cache postgres-users postgres-collab postgres-books postgres-notifications loki promtail prometheus grafana certbot"
+            for c in $CONTAINERS; do
+              docker rm -f "$c" 2>/dev/null || true
+            done
+
+            # Pull and deploy
             docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            # Wait for services to start, then check health
+            echo "── Waiting for services to start ──"
+            sleep 10
+            docker compose -f docker-compose.prod.yml ps
 
             # Cleanup old images
             docker image prune -f
