@@ -23,7 +23,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Import legacy tailwind.config.js for custom colors, fonts, etc. */
-@config "../../tailwind.config.js";
+@config "../tailwind.config.js";
 
 @layer base {
   body {
