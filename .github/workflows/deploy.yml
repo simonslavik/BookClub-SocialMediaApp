@@ -232,7 +232,7 @@ jobs:
             fi
 
             # Check if gateway responds
-            HEALTH=$(docker exec nginx-proxy wget -qO- http://gateway:3000/v1/health 2>/dev/null || echo "FAIL")
+            HEALTH=$(docker exec nginx-proxy wget -qO- http://api-gateway:3000/health 2>/dev/null || echo "FAIL")
             echo "── Gateway health: $HEALTH ──"
 
             # Show logs of any crashed containers
