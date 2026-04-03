@@ -107,7 +107,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           source: "docker-compose.prod.yml,nginx/,monitoring/"
-          target: ${{ vars.DEPLOY_PATH || '~/app' }}
+          target: ~/app
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
@@ -122,9 +122,11 @@ jobs:
           envs: TAG,REGISTRY,IMAGE_PREFIX
           script_stop: true
           script: |
-            DEPLOY_DIR="${{ vars.DEPLOY_PATH || '~/app' }}"
+            DEPLOY_DIR="$HOME/app"
+            mkdir -p "$DEPLOY_DIR"
             cd "$DEPLOY_DIR"
 
+            echo "── Deploy dir: $DEPLOY_DIR ──"
             echo "── Logging into GHCR ──"
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
@@ -133,22 +135,13 @@ jobs:
             _REGISTRY="$REGISTRY"
             _IMAGE_PREFIX="$IMAGE_PREFIX"
 
-            # ── Detect existing compose project to reuse volumes ──
-            # Docker prefixes volumes with project name. If app was previously
-            # deployed from a different directory, volumes have a different prefix.
-            # We must use the SAME project name to keep database data and SSL certs.
-            OLD_PROJECT=$(docker volume ls --format '{{.Name}}' | grep 'certbot-certs' | head -1 | sed 's/_certbot-certs$//')
-            if [ -n "$OLD_PROJECT" ]; then
-              export COMPOSE_PROJECT_NAME="$OLD_PROJECT"
-              echo "── Reusing existing project: $COMPOSE_PROJECT_NAME (preserves volumes) ──"
-            else
-              export COMPOSE_PROJECT_NAME="bookclub"
-              echo "── No existing project found, using: $COMPOSE_PROJECT_NAME ──"
-            fi
+            # ── Use fixed project name for volume consistency ──
+            export COMPOSE_PROJECT_NAME="bookclub"
+            echo "── Project name: $COMPOSE_PROJECT_NAME ──"
 
             # ── Find and source .env.production ──
             ENV_FILE=""
-            for f in "$DEPLOY_DIR/.env.production" "$DEPLOY_DIR/.env" "$HOME/.env.production" "$HOME/app/.env.production" "$HOME/BookClub-SocialMediaApp/.env.production" "$HOME/bookclub/.env.production"; do
+            for f in "$DEPLOY_DIR/.env.production" "$DEPLOY_DIR/.env" "$HOME/.env.production" "$HOME/BookClub-SocialMediaApp/.env.production" "$HOME/bookclub/.env.production"; do
               if [ -f "$f" ]; then
                 ENV_FILE="$f"
                 break
