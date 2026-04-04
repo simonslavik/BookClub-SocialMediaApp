@@ -209,8 +209,162 @@ const Home = () => {
     return (
         <div>
             <HomePageHeader />
+
+            {/* ===== LOGGED-OUT LANDING PAGE ===== */}
+            {!auth?.user && (
+                <div className="min-h-screen bg-warmgray-50 dark:bg-gray-900 transition-colors duration-300">
+                    {/* Hero Section */}
+                    <section className="relative overflow-hidden px-6 md:px-16 py-16 md:py-28">
+                        {/* Background watermark text */}
+                        <div className="absolute inset-0 pointer-events-none select-none overflow-hidden opacity-[0.06] dark:opacity-[0.04]  pt-1">
+                            <p className="text-[1rem] md:text-[1.1rem] leading-relaxed text-stone-800 dark:text-warmgray-200 font-serif">
+                                Books are the quietest and most constant of friends; they are the most accessible and wisest of counselors, and the most patient of teachers. A reader lives a thousand lives before he dies. The man who never reads lives only one. Reading is to the mind what exercise is to the body. There is no <br></br>friend as loyal as a book. A book is a dream that you hold in your hand. Once you learn to read, you will be forever free. The more that you read, the more things you will know. The more that you learn, the more places you'll go. Reading gives us someplace to go when we have to stay where we are. A room without books is like a body without a soul.
+                                Lorem ipsum, dolor sit amet consectetur adipisici<br></br>ng elit. Minus assumenda 
+                                porro, possimus placeat ipsam rem est voluptatem iste. Dolore officia exc
+                                epturi ut ex aut repudiandae similique fugiat rem voluptatem doloremque blanditiis quo ad aspernatur, veritatis quisquam sunt velit consequatur architecto iusto facilis tota<br></br>m quas. Unde facilis dolores architecto voluptas tenetur ipsam quos dolor odio fuga quidem ab ad mollitia omnis accusantium, necessitatibus pariatur eligendi illum rem sunt facere sequi suscipit! Adipisci, obcaecati? Sapiente architecto voluptatem et eos doloribus adipisci, vitae reiciendis, esse sed blanditiis voluptatum modi, aliquam aspernatur. Ipsam delectus eaque unde esse magni mollitia laborum dolore iste aut alias?
+                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Cum quaerat, ip<br></br>sa officiis dolore provident soluta excepturi, accusantium inventore dolor, nemo totam? Numquam veritatis ad, aliquam dignissimos aliquid nam dolorum atque repellat? Aliquid, laborum reiciendis ex<br></br>pedita, libero laboriosam rem unde perspiciatis fugiat maxime pariatur ipsam, molestias doloremque modi! Eius ex perferendis natus numquam similique volupta<br></br>te dolore quas. Reprehenderit nihil neque in eaque architecto eius debitis asperiores dolor, distinctio tempora est dolorem at quis placeat libero quo ipsa quod pariatur voluptate. Voluptate, earum! Laudantium explicabo, aut molestiae placeat rerum asperiores est soluta eligendi fugiat porro aliquid atque minima cum, dicta quia deleniti ex quisquam. Tempore commodi minus, rem, enim voluptate corporis explicabo nam facilis ipsam hic fugiat, excepturi placeat perspiciatis eos maiores necessitatibus voluptatem voluptatum laudantium pariatur deserunt in. Obcaecati, necessitatibus. Laboriosam cum eaque ullam, modi id fuga illo quo tenetur harum dicta aut totam expedita vel. Laudantium consequatur necessitatibus numquam, laborum placeat eum mollitia, ipsam iusto ab perspiciatis inventore ipsum modi qui, illum ratione sit sunt exercitationem dolorem debitis voluptatem. Corrupti quaerat sequi sit non nam delectus. Volup
+                                tas perspiciatis magni vitae aspernatur deleniti, fugiat delectus nam corporis, molestiae at aperi<br>
+                                </br>am exercitationem!
+
+                            </p>
+                        </div>
+
+                        <div className="relative z-10 flex flex-col md:flex-row items-center gap-10 md:gap-16">
+                            <div className="w-full md:w-1/2">
+                                <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold leading-[1.05] text-stone-900 dark:text-warmgray-100 tracking-tight">
+                                    &ldquo;Connect With<br />Your Fellow<br />BookLovers&rdquo;
+                                </h1>
+                            </div>
+
+                            {/* Image placeholder */}
+                            <div className="w-full md:w-1/2 aspect-[4/3] bg-stone-700 dark:bg-gray-700 rounded-sm overflow-hidden">
+                                <div className="w-full h-full bg-stone-700 dark:bg-gray-700" />
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Feature Section */}
+                    <section className="bg-warmgray-100 dark:bg-gray-800 transition-colors duration-300">
+                        <div className="max-w-6xl mx-auto px-6 md:px-16 py-16 md:py-24 flex flex-col md:flex-row items-center gap-10 md:gap-16">
+                            {/* Image placeholder */}
+                            <div className="w-full md:w-1/2 aspect-[4/3] bg-warmgray-400 dark:bg-gray-600 rounded-sm overflow-hidden">
+                                <div className="w-full h-full bg-warmgray-400 dark:bg-gray-600" />
+                            </div>
+
+                            {/* Text */}
+                            <div className="w-full md:w-1/2">
+                                <p className="text-xl md:text-2xl leading-relaxed text-stone-800 dark:text-warmgray-200 font-serif">
+                                    <span className="text-5xl md:text-6xl font-display font-bold float-left mr-2 leading-[0.85] mt-1 text-stone-900 dark:text-warmgray-100">C</span>
+                                    reate your own bookclub channel and have whole bookloving community together.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Feature Section 2 — text left, image right */}
+                    <section className="bg-warmgray-50 dark:bg-gray-900 transition-colors duration-300">
+                        <div className="max-w-6xl mx-auto px-6 md:px-16 py-16 md:py-24 flex flex-col md:flex-row items-center gap-10 md:gap-16">
+                            {/* Text */}
+                            <div className="w-full md:w-1/2 order-2 md:order-1">
+                                <p className="text-xl md:text-2xl leading-relaxed text-stone-800 dark:text-warmgray-200 font-serif">
+                                    <span className="text-5xl md:text-6xl font-display font-bold float-left mr-2 leading-[0.85] mt-1 text-stone-900 dark:text-warmgray-100">D</span>
+                                    iscover new reads, share reviews, and discuss your favorite chapters with readers who get&nbsp;it.
+                                </p>
+                            </div>
+
+                            {/* Image placeholder */}
+                            <div className="w-full md:w-1/2 aspect-[4/3] bg-warmgray-400 dark:bg-gray-600 rounded-sm overflow-hidden order-1 md:order-2">
+                                <div className="w-full h-full bg-warmgray-400 dark:bg-gray-600" />
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="bg-warmgray-100 dark:bg-gray-800 transition-colors duration-300">
+                        <div className="max-w-6xl mx-auto px-6 md:px-16 py-16 md:py-24 flex flex-col md:flex-row items-center gap-10 md:gap-16">
+                            {/* Image placeholder */}
+                            <div className="w-full md:w-1/2 aspect-[4/3] bg-warmgray-400 dark:bg-gray-600 rounded-sm overflow-hidden">
+                                <div className="w-full h-full bg-warmgray-400 dark:bg-gray-600" />
+                            </div>
+
+                            {/* Text */}
+                            <div className="w-full md:w-1/2">
+                                <p className="text-xl md:text-2xl leading-relaxed text-stone-800 dark:text-warmgray-200 font-serif">
+                                    <span className="text-5xl md:text-6xl font-display font-bold float-left mr-2 leading-[0.85] mt-1 text-stone-900 dark:text-warmgray-100">C</span>
+                                    reate your own bookclub channel and have whole bookloving community together.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+        
+
+                    {/* Top Charting BookClubs Section */}
+                    <section className="px-6 md:px-16 py-16 md:py-24">
+                        <div className="max-w-5xl mx-auto text-center">
+                            <h2 className="font-display text-4xl md:text-5xl font-bold text-stone-900 dark:text-warmgray-100 mb-2 leading-tight">
+                                Top Charting
+                            </h2>
+                            <p className="font-serif text-lg text-stone-500 dark:text-warmgray-400 mb-12 italic">
+                                BookClubs people love right now
+                            </p>
+
+                            <div className="flex flex-wrap justify-center gap-5 md:gap-8">
+                                {(() => {
+                                    const topClubs = [...bookClubs]
+                                        .sort((a, b) => (b.memberCount || 0) - (a.memberCount || 0))
+                                        .slice(0, 4);
+
+                                    if (topClubs.length === 0) {
+                                        return Array.from({ length: 4 }).map((_, i) => (
+                                            <div key={i} className="flex flex-col items-center w-40 sm:w-48">
+                                                <div className="w-full aspect-[3/4] bg-warmgray-200 dark:bg-gray-700 rounded-lg" />
+                                                <div className="mt-3 h-4 w-24 bg-warmgray-200 dark:bg-gray-700 rounded" />
+                                            </div>
+                                        ));
+                                    }
+
+                                    return topClubs.map((club) => (
+                                        <button
+                                            key={club.id}
+                                            onClick={() => navigate(`/bookclubpage/${club.id}`)}
+                                            className="flex flex-col items-center group cursor-pointer w-40 sm:w-48"
+                                        >
+                                            <div className="w-full aspect-[3/4] bg-warmgray-200 dark:bg-gray-700 rounded-lg overflow-hidden shadow-md group-hover:shadow-xl transition-shadow duration-300">
+                                                <img
+                                                    src={getCollabImageUrl(club.image) || '/images/default.webp'}
+                                                    alt={club.name}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    onError={(e) => { e.target.src = '/images/default.webp'; }}
+                                                />
+                                            </div>
+                                            <p className="mt-3 text-sm font-semibold text-stone-800 dark:text-warmgray-200 line-clamp-1 group-hover:text-stone-600 dark:group-hover:text-white transition-colors">
+                                                {club.name}
+                                            </p>
+                                            <p className="text-xs text-stone-400 dark:text-gray-500 mt-0.5">
+                                                {club.memberCount || 0} members
+                                            </p>
+                                        </button>
+                                    ));
+                                })()}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Discover More CTA */}
+                    <section className="flex justify-center pb-20">
+                        <button
+                            onClick={() => navigate('/discover')}
+                            className="px-8 py-3 bg-stone-600 dark:bg-warmgray-300 dark:text-stone-900 text-white rounded-md hover:bg-stone-500 dark:hover:bg-warmgray-400 transition-colors text-sm font-medium cursor-pointer"
+                        >
+                            Discover More
+                        </button>
+                    </section>
+                </div>
+            )}
+
+            {/* ===== LOGGED-IN DASHBOARD ===== */}
+            {auth?.user && (
             <div className="flex flex-col p-4 md:p-8 w-full min-h-screen gap-4 bg-warmgray-50 dark:bg-gray-900 transition-colors duration-300">
-                {auth?.user && (
                     <div className="flex flex-col p-4 rounded w-full">
                         {/* Header with title and filter */}
                         <div className="flex items-center justify-end mb-4">
@@ -723,6 +877,7 @@ const Home = () => {
                     </div>
                 )}
             </div>
+            )}
 
             {/* Portal tooltip for member avatars */}
             {hoveredMember && createPortal(

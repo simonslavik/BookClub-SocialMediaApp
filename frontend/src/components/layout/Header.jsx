@@ -87,9 +87,9 @@ const HomePageHeader = () => {
     };
   }, []);
     return (
-        <div className="w-full h-13 bg-warmgray-50 dark:bg-gray-900 border-b border-warmgray-200 dark:border-gray-700 flex items-center px-4 md:px-10 relative transition-colors duration-300">
-            <button onClick={() => navigate('/')} className={`cursor-pointer md:absolute md:left-1/2 md:-translate-x-1/2 flex items-center gap-2`}>
-                <h2 className="text-lg font-semibold text-stone-800 dark:text-warmgray-100 tracking-tight">MyBookClubs</h2>
+        <div className="w-full h-13 bg-warmgray-50 dark:bg-gray-900 border-b border-warmgray-200 dark:border-gray-700 flex items-center px-4 md:px-10 relative transition-colors duration-300 sticky top-0 left-0 z-50">
+            <button onClick={() => navigate('/')} className={`cursor-pointer ${auth?.user ? 'md:absolute md:left-1/2 md:-translate-x-1/2' : ''} flex items-center gap-2`}>
+                <h2 className="text-lg font-semibold text-stone-800 dark:text-warmgray-100 tracking-tight">{auth?.user ? 'MyBookClubs' : 'YourBookClubs.com'}</h2>
             </button>
             {auth?.user && (
             <>
@@ -389,32 +389,24 @@ const HomePageHeader = () => {
             )}
 
             {!auth?.user && (
-            <div className='ml-auto flex gap-2 flex-1 justify-end'>
-                {/* Theme Toggle for non-auth */}
+            <div className='ml-auto flex items-center gap-6'>
                 <button
-                    onClick={cycleTheme}
-                    className="px-2 py-2 text-gray-600 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer"
-                    title={`Theme: ${mode === 'auto' ? 'Auto' : mode === 'dark' ? 'Dark' : 'Light'}`}
+                    onClick={() => navigate('/discover')}
+                    className="text-sm font-medium text-stone-700 dark:text-warmgray-200 hover:text-stone-900 dark:hover:text-white transition cursor-pointer"
                 >
-                    {mode === 'auto' ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/><path d="M16 12a4 4 0 0 1-4 4" fill="currentColor" opacity="0.3"/></svg>
-                    ) : isDark ? (
-                        <FiMoon size={15} />
-                    ) : (
-                        <FiSun size={15} />
-                    )}
+                    Discover
                 </button>
                 <button 
                     onClick={() => setOpenLogin(true)}
-                    className="px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 transition mr-1 text-sm font-medium"
+                    className="px-5 py-1.5 border border-stone-800 dark:border-warmgray-200 text-stone-800 dark:text-warmgray-200 rounded-full hover:bg-stone-100 dark:hover:bg-gray-800 transition text-sm font-medium cursor-pointer"
                 >
-                    Login
+                    Log In
                 </button>
                 <button 
                     onClick={() => setOpenRegister(true)}
-                    className="px-4 py-2 bg-stone-700 text-white rounded-lg hover:bg-stone-600 transition text-sm font-medium"
+                    className="px-5 py-1.5 bg-stone-800 dark:bg-warmgray-200 dark:text-stone-900 text-white rounded-full hover:bg-stone-700 dark:hover:bg-warmgray-300 transition text-sm font-medium cursor-pointer"
                 >
-                    Register
+                    Sign Up
                 </button>
             </div>
             
