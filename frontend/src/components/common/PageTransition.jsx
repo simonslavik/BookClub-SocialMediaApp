@@ -5,27 +5,35 @@ import { useLocation } from 'react-router-dom';
  * Wraps route content with a smooth fade+slide entrance animation.
  * Triggered on route change via React Router's `useLocation`.
  *
- * Usage — wrap around <Routes> in App.jsx:
- *   <PageTransition>
- *     <Routes>...</Routes>
- *   </PageTransition>
+ * Uses two effects to be resilient to React.lazy / Suspense:
+ *  1. Route-change effect → sets `visible=false`
+ *  2. Recovery effect → whenever `visible` is false, schedules rAF to fade in
+ *
+ * If Suspense cleans up the recovery rAF while loading a chunk, the next
+ * commit will see `visible` is still false and retry automatically.
  */
 const PageTransition = ({ children }) => {
   const location = useLocation();
   const [visible, setVisible] = useState(true);
   const prevPath = useRef(location.pathname);
 
+  // 1) Trigger exit animation on route change (skip initial mount)
   useEffect(() => {
     if (prevPath.current !== location.pathname) {
       prevPath.current = location.pathname;
-      // Reset to hidden, then trigger entrance on next frame
       setVisible(false);
+    }
+  }, [location.pathname]);
+
+  // 2) Self-healing entrance: whenever visible is false, animate in
+  useEffect(() => {
+    if (!visible) {
       const raf = requestAnimationFrame(() => {
         requestAnimationFrame(() => setVisible(true));
       });
       return () => cancelAnimationFrame(raf);
     }
-  }, [location.pathname]);
+  }, [visible]);
 
   return (
     <div

@@ -43,6 +43,7 @@ const Home = () => {
           <FeatureSection
             initial="C"
             text="reate your own bookclub channel and have whole bookloving community together."
+            bgClass="bg-[#F0EFEB] dark:bg-gray-800"
           />
 
           <FeatureSection
@@ -55,6 +56,7 @@ const Home = () => {
           <FeatureSection
             initial="C"
             text="reate your own bookclub channel and have whole bookloving community together."
+            bgClass="bg-[#F0EFEB] dark:bg-gray-800"
           />
 
           <TopChartingSection bookClubs={bookClubs} />

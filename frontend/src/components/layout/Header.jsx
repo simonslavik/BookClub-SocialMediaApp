@@ -70,6 +70,13 @@ const HomePageHeader = () => {
     fetchFriendRequests();
   }, [auth?.user?.id]);
 
+  // Listen for open-login events from other components (e.g. HeroSection CTA)
+  useEffect(() => {
+    const handleOpenLogin = () => setOpenLogin(true);
+    window.addEventListener('open-login', handleOpenLogin);
+    return () => window.removeEventListener('open-login', handleOpenLogin);
+  }, []);
+
   // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -225,7 +232,7 @@ const HomePageHeader = () => {
 
       {/* ── Guest Nav ── */}
       {!auth?.user && (
-        <div className="ml-auto flex items-center gap-6">
+        <div className="ml-auto flex items-center gap-2">
           <button
             onClick={() => navigate('/discover')}
             className="text-sm font-medium text-stone-700 dark:text-warmgray-200 hover:text-stone-900 dark:hover:text-white transition cursor-pointer"

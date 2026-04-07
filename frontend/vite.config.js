@@ -23,6 +23,12 @@ export default defineConfig({
       '@lib': path.resolve(__dirname, './src/lib'),
     },
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    css: true,
+  },
   server: {
     port: 5173,
     proxy: {
