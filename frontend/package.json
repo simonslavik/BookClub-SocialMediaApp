@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node validate-env.js && vite",
     "build": "node validate-env.js && vite build",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest",
     "test:run": "vitest run",
@@ -35,6 +36,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^25.5.2",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
@@ -47,6 +49,8 @@
     "jsdom": "^29.0.2",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.17",
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.58.1",
     "vite": "^7.2.4",
     "vitest": "^4.1.2"
   }

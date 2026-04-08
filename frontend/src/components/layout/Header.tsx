@@ -80,6 +80,10 @@ const HomePageHeader = () => {
   // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // If the click target was removed from the DOM (e.g. accepted friend request),
+      // don't close dropdowns — the element was inside the dropdown before removal.
+      if (!document.body.contains(event.target)) return;
+
       if (newsDropdownRef.current && !newsDropdownRef.current.contains(event.target)) {
         setNewsShowDropdown(false);
       }

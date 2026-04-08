@@ -40,13 +40,13 @@ const FriendRequestDropdown = ({ requests, isOpen, onFriendAction }) => {
                   </p>
                   <div className="mt-3 flex space-x-2">
                     <button
-                      onClick={() => onFriendAction(request.friendshipId, 'accept')}
+                      onClick={(e) => { e.stopPropagation(); onFriendAction(request.friendshipId, 'accept'); }}
                       className="flex-1 px-3 py-1.5 bg-stone-600 text-white rounded-md hover:bg-stone-700 transition text-xs font-medium"
                     >
                       Accept
                     </button>
                     <button
-                      onClick={() => onFriendAction(request.friendshipId, 'reject')}
+                      onClick={(e) => { e.stopPropagation(); onFriendAction(request.friendshipId, 'reject'); }}
                       className="flex-1 px-3 py-1.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition text-xs font-medium"
                     >
                       Decline
