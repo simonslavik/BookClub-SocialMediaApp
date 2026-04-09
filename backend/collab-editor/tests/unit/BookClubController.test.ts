@@ -111,7 +111,18 @@ describe('BookClubController', () => {
 
       await BookClubController.discoverClubs(req as any, res as any);
 
-      expect(mockBookClubService.discoverClubs).toHaveBeenCalledWith('user-1', 'Fiction');
+      expect(mockBookClubService.discoverClubs).toHaveBeenCalledWith('user-1', ['Fiction']);
+    });
+
+    it('should pass multiple category filters', async () => {
+      mockBookClubService.discoverClubs.mockResolvedValue([]);
+
+      const req = mockReq({ user: { userId: 'user-1' }, query: { category: 'Fiction,Romance' } });
+      const res = mockRes();
+
+      await BookClubController.discoverClubs(req as any, res as any);
+
+      expect(mockBookClubService.discoverClubs).toHaveBeenCalledWith('user-1', ['Fiction', 'Romance']);
     });
 
     it('should handle fetch failure gracefully', async () => {
