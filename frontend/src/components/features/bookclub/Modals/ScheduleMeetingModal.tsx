@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FiX, FiLink, FiClock, FiCalendar, FiAlignLeft } from 'react-icons/fi';
 import { bookclubAPI } from '@api/bookclub.api';
 import logger from '@utils/logger';
@@ -131,7 +132,7 @@ const ScheduleMeetingModal = ({ isOpen, onClose, bookClubId, meeting = null, onM
 
   const activePlatform = PLATFORMS.find(p => p.value === form.platform);
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
         className="bg-gray-800 rounded-xl w-full max-w-lg shadow-2xl border border-gray-700"
@@ -261,7 +262,8 @@ const ScheduleMeetingModal = ({ isOpen, onClose, bookClubId, meeting = null, onM
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FiX, FiHash, FiLock, FiVolume2 } from 'react-icons/fi';
 import { getProfileImageUrl } from '@config/constants';
 import logger from '@utils/logger';
@@ -104,7 +105,7 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, members, currentUserId
 
   const selectedTypeInfo = ROOM_TYPES.find(t => t.value === type);
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
         className="bg-gray-800 rounded-lg w-full max-w-md border border-gray-700 shadow-xl"
@@ -272,7 +273,8 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, members, currentUserId
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FiX, FiSearch, FiBook } from 'react-icons/fi';
 import apiClient from '@api/axios';
 import logger from '@utils/logger';
@@ -73,7 +74,7 @@ const SuggestBookModal = ({ isOpen, onClose, bookClubId, auth, onBookSuggested }
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
       <div className="bg-gray-800 p-6 rounded-lg max-w-2xl w-full mx-4 border border-gray-700 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
@@ -223,7 +224,8 @@ const SuggestBookModal = ({ isOpen, onClose, bookClubId, auth, onBookSuggested }
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

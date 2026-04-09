@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { FiX, FiHash, FiLock, FiVolume2, FiUsers, FiTrash2, FiAlertTriangle, FiSearch, FiUserPlus, FiUserMinus, FiSettings, FiShield } from 'react-icons/fi';
 import { bookclubAPI } from '@api/bookclub.api';
 import { getProfileImageUrl } from '@config/constants';
@@ -444,7 +445,7 @@ const RoomSettingsModal = ({ isOpen, onClose, room, bookClubId, allMembers, curr
 
   const RoomIcon = room.type === 'PRIVATE' ? FiLock : room.type === 'ANNOUNCEMENT' ? FiVolume2 : FiHash;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
         className="bg-gray-800 rounded-lg w-full max-w-lg border border-gray-700 shadow-xl flex flex-col max-h-[85vh]"
@@ -521,7 +522,8 @@ const RoomSettingsModal = ({ isOpen, onClose, room, bookClubId, allMembers, curr
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

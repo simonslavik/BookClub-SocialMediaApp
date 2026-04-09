@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { FiX, FiTrash2 } from 'react-icons/fi';
 import apiClient from '@api/axios';
 import logger from '@utils/logger';
@@ -35,7 +36,7 @@ const BookSuggestionDetailsModal = ({ suggestion, bookClubId, auth, members = []
   // Check if user is the one who suggested this book
   const isOwnSuggestion = auth?.user?.id === suggestion.suggestedById;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-gray-900 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
@@ -151,7 +152,8 @@ const BookSuggestionDetailsModal = ({ suggestion, bookClubId, auth, members = []
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

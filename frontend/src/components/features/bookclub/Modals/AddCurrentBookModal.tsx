@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
+import { createPortal } from 'react-dom';
 import { AuthContext } from '@context/index';
 import { FiX, FiSearch, FiCalendar, FiClock } from 'react-icons/fi';
 import apiClient from '@api/axios';
@@ -102,7 +103,7 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
     return Math.ceil(selectedBook.pageCount / readingDays);
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
@@ -302,7 +303,8 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

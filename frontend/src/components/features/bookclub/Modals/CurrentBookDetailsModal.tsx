@@ -1,4 +1,5 @@
 import { useState, useContext } from 'react';
+import { createPortal } from 'react-dom';
 import { AuthContext } from '@context/index';
 import { FiX, FiCalendar, FiBook, FiStar, FiTrash2 } from 'react-icons/fi';
 import apiClient from '@api/axios';
@@ -84,7 +85,7 @@ const CurrentBookDetailsModal = ({
     }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
@@ -146,7 +147,8 @@ const CurrentBookDetailsModal = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
