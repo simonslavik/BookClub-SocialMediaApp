@@ -172,21 +172,31 @@ jobs:
             echo "── Project: $COMPOSE_PROJECT_NAME | Dir: $DEPLOY_DIR ──"
 
             # ── Ensure SSL certificates exist ──
-            CERT_VOL="${COMPOSE_PROJECT_NAME}_certbot-certs"
-            CERT_EXISTS=$(docker run --rm -v "$CERT_VOL":/certs alpine sh -c \
-              "test -f /certs/live/mybookclub.win/fullchain.pem && echo yes || echo no" 2>/dev/null || echo "no")
+            # Use both naming conventions (compose v1 uses _, v2 uses -)
+            echo "── Checking SSL certificates ──"
+            CERT_EXISTS="no"
+            for CERT_VOL in "${COMPOSE_PROJECT_NAME}_certbot-certs" "${COMPOSE_PROJECT_NAME}-certbot-certs"; do
+              set +e
+              CERT_EXISTS=$(docker run --rm -v "$CERT_VOL":/certs alpine sh -c "test -f /certs/live/mybookclub.win/fullchain.pem && echo yes || echo no" 2>&1)
+              EXIT_CODE=$?
+              set -e
+              echo "── Checked volume $CERT_VOL → exit=$EXIT_CODE result=$CERT_EXISTS ──"
+              if [ "$CERT_EXISTS" = "yes" ]; then break; fi
+              CERT_EXISTS="no"
+            done
 
             if [ "$CERT_EXISTS" = "no" ]; then
               echo "── No Let's Encrypt certs found, generating self-signed for initial boot ──"
-              docker run --rm -v "$CERT_VOL":/etc/letsencrypt alpine sh -c "
-                apk add --no-cache openssl > /dev/null 2>&1
-                mkdir -p /etc/letsencrypt/live/mybookclub.win
-                openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-                  -keyout /etc/letsencrypt/live/mybookclub.win/privkey.pem \
-                  -out /etc/letsencrypt/live/mybookclub.win/fullchain.pem \
-                  -subj '/CN=mybookclub.win' 2>/dev/null
-              "
-              echo "── Self-signed cert created (replace with Let's Encrypt later) ──"
+              CERT_VOL="${COMPOSE_PROJECT_NAME}-certbot-certs"
+              set +e
+              docker run --rm -v "$CERT_VOL":/etc/letsencrypt alpine sh -c "apk add --no-cache openssl > /dev/null 2>&1 && mkdir -p /etc/letsencrypt/live/mybookclub.win && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/letsencrypt/live/mybookclub.win/privkey.pem -out /etc/letsencrypt/live/mybookclub.win/fullchain.pem -subj '/CN=mybookclub.win' 2>/dev/null"
+              CERT_RC=$?
+              set -e
+              if [ "$CERT_RC" -ne 0 ]; then
+                echo "⚠️  Self-signed cert generation failed (exit $CERT_RC) — continuing anyway"
+              else
+                echo "── Self-signed cert created (replace with Let's Encrypt later) ──"
+              fi
             else
               echo "── SSL certs found in volume $CERT_VOL ──"
             fi
