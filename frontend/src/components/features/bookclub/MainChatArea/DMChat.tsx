@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { FiSend, FiCornerUpLeft, FiX, FiBookOpen } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import FileUpload from '../../../common/FileUpload';
+import EmojiPickerButton from '../chat/EmojiPickerButton';
 import MessageAttachment from '../../../common/MessageAttachment';
 import MessageActions from '../chat/MessageActions';
 import ReactionBar from '../chat/ReactionBar';
@@ -407,13 +408,14 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs, r
             </button>
           </div>
         )}
-        <div className="relative flex gap-2">
+        <div className="relative flex gap-2 items-center">
           <FileUpload 
             ref={fileUploadRef}
             onFilesSelected={setSelectedFiles}
             auth={auth}
             disabled={uploadingFiles}
           />
+          <EmojiPickerButton onEmojiSelect={(emoji) => setNewMessage((prev) => prev + emoji)} />
           <input
             ref={inputRef}
             type="text"

@@ -33,7 +33,7 @@ const MemberAvatars = ({ members, memberCount, friendIds, onHoverMember }) => {
 
   return (
     <div className="flex items-center justify-between">
-      <div className="flex -space-x-2">
+      <div className="flex -space-x-2 overflow-visible py-1">
         {shown.map((m) => (
           <img
             key={m.id}

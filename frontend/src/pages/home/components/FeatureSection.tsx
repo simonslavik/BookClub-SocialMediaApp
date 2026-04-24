@@ -1,3 +1,5 @@
+import useScrollReveal from '@hooks/useScrollReveal';
+
 /**
  * Reusable feature section with an image placeholder and a
  * drop-cap-styled paragraph. Supports alternating layout via `reverse` prop.
@@ -14,16 +16,19 @@ const FeatureSection = ({
   reverse = false,
   bgClass = 'bg-parchment-dark dark:bg-gray-800',
   image = null,
-}) => (
-  <section className={`${bgClass} transition-colors duration-300`}>
+}) => {
+  const { ref, isVisible } = useScrollReveal(0.2);
+
+  return (
+  <section ref={ref} className={`${bgClass} transition-colors duration-300`}>
     <div className="max-w-6xl mx-auto px-6 md:px-16 py-16 md:py-24 flex flex-col md:flex-row items-center gap-10 md:gap-16">
       {/* Image placeholder */}
-      <div className={`w-full md:w-1/2 aspect-[4/3] bg-warmgray-400 dark:bg-gray-600 rounded-sm overflow-hidden ${reverse ? 'order-1 md:order-2' : ''}`}>
+      <div className={`w-full md:w-1/2 aspect-[4/3] bg-warmgray-400 dark:bg-gray-600 rounded-sm overflow-hidden transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-x-0' : `opacity-0 ${reverse ? 'translate-x-12' : '-translate-x-12'}`} ${reverse ? 'order-1 md:order-2' : ''}`}>
         <div className="w-full h-full bg-warmgray-400 dark:bg-gray-600" />
       </div>
 
       {/* Text */}
-      <div className={`w-full md:w-1/2 relative ${reverse ? 'order-2 md:order-1' : ''}`}>
+      <div className={`w-full md:w-1/2 relative transition-all duration-700 delay-200 ease-out ${isVisible ? 'opacity-100 translate-x-0' : `opacity-0 ${reverse ? '-translate-x-12' : 'translate-x-12'}`} ${reverse ? 'order-2 md:order-1' : ''}`}>
         <p className="text-xl md:text-2xl leading-relaxed text-stone-800 dark:text-warmgray-200 font-serif">
           <span className="text-5xl md:text-6xl font-display font-bold mr-1 leading-none align-baseline text-stone-900 dark:text-warmgray-100">
             {initial}
@@ -36,6 +41,7 @@ const FeatureSection = ({
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default FeatureSection;

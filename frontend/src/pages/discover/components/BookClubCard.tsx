@@ -1,86 +1,90 @@
-import { FiLock, FiUnlock, FiEyeOff } from 'react-icons/fi';
 import { getCollabImageUrl } from '@config/constants';
 import CurrentlyReading from './CurrentlyReading';
 import MemberAvatars from './MemberAvatars';
 
 const DEFAULT_IMAGE = '/images/default.webp';
 
-// ─── Visibility helpers ──────────────────────────────────
+// ─── Pastel palette (matches home card) ──────────────────
 
-const VISIBILITY_ICONS = {
-  PUBLIC:      <FiUnlock className="w-4 h-4" />,
-  PRIVATE:     <FiLock className="w-4 h-4" />,
-  INVITE_ONLY: <FiEyeOff className="w-4 h-4" />,
-};
+const PASTEL_PALETTES = [
+  { bg: '#E8E0D4', text: '#5C4A3A' },
+  { bg: '#D4DDE8', text: '#3A4A5C' },
+  { bg: '#D8E4D4', text: '#3A5C40' },
+  { bg: '#E4D4DE', text: '#5C3A52' },
+  { bg: '#DDD8CE', text: '#4A4438' },
+  { bg: '#D4DBD8', text: '#3A4A44' },
+  { bg: '#E0D9CE', text: '#54493A' },
+  { bg: '#D4D4E4', text: '#3A3A5C' },
+];
 
-const VISIBILITY_COLORS = {
-  PUBLIC:      'bg-green-100 text-green-700',
-  PRIVATE:     'bg-yellow-100 text-yellow-700',
-  INVITE_ONLY: 'bg-stone-100 text-stone-800',
+const getPastelForClub = (id: string) => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = ((hash << 5) - hash + id.charCodeAt(i)) | 0;
+  return PASTEL_PALETTES[Math.abs(hash) % PASTEL_PALETTES.length];
 };
 
 // ─── Component ───────────────────────────────────────────
 
-/**
- * A single discover-grid card.
- *
- * @param {{
- *   bookClub: object,
- *   bookIndex: number,
- *   onBookIndexChange: (id: string, idx: number) => void,
- *   friendIds: Set<string>,
- *   onClick: (e: Event) => void,
- *   onHoverMember: (m | null) => void,
- * }} props
- */
 const BookClubCard = ({ bookClub, bookIndex = 0, onBookIndexChange, friendIds, onClick, onHoverMember }) => {
-  const visIcon  = VISIBILITY_ICONS[bookClub.visibility]  ?? VISIBILITY_ICONS.PUBLIC;
-  const visColor = VISIBILITY_COLORS[bookClub.visibility] ?? 'bg-gray-100 text-gray-700';
+  const palette = getPastelForClub(bookClub.id);
 
   return (
     <article
       onClick={onClick}
-      className="group bg-white dark:bg-gray-800 rounded-2xl ring-1 ring-black/5 dark:ring-white/5 overflow-hidden cursor-pointer hover:-translate-y-1 hover:shadow-xl transition-all duration-300 flex flex-col h-[420px]"
+      className="flex-shrink-0 rounded-2xl flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 relative"
+      style={{
+        background: palette.bg,
+        boxShadow: '0 2px 12px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.03)',
+      }}
     >
       {/* Cover image */}
-      <div className="relative h-44 overflow-hidden bg-stone-200 dark:bg-gray-700">
-        <img
-          src={bookClub.imageUrl ? getCollabImageUrl(bookClub.imageUrl) : DEFAULT_IMAGE}
-          alt={bookClub.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading="lazy"
-          onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE; }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+      <div className="relative h-[220px] flex-shrink-0 overflow-hidden rounded-t-2xl">
+        {bookClub.imageUrl ? (
+          <img
+            src={getCollabImageUrl(bookClub.imageUrl)}
+            alt={bookClub.name}
+            className="w-full h-full object-cover transition-transform duration-500"
+            loading="lazy"
+            onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE; }}
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center text-5xl"
+            style={{ background: `linear-gradient(135deg, ${palette.text}22, ${palette.text}44)` }}
+          >
+            📚
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
 
-        {/* Badges */}
-        <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
-          {bookClub.category && (
-            <span className="bg-white/90 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-stone-700 font-outfit shadow-sm">
-              {bookClub.category}
-            </span>
-          )}
-          <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold backdrop-blur-sm shadow-sm ${visColor}`}>
-            {visIcon}
+        {/* Visibility badge */}
+        {bookClub.visibility && (
+          <span className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm text-stone-700 text-[11px] px-2 py-0.5 rounded-full font-semibold">
             {bookClub.visibility}
           </span>
-        </div>
+        )}
 
-        {bookClub.isMember && (
+        {/* Member / online indicator */}
+        {bookClub.isMember ? (
           <div className="absolute bottom-3 left-3 bg-green-500/90 backdrop-blur-sm text-white px-2.5 py-0.5 rounded-full text-[11px] font-semibold shadow-sm">
             ✓ Member
+          </div>
+        ) : (
+          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5">
+            <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+            <span className="text-white text-[11px] font-medium">{bookClub.activeUsers || 0} online</span>
           </div>
         )}
       </div>
 
-      {/* Body */}
-      <div className="p-4 flex-1 flex flex-col">
-        <h3 className="text-base font-bold text-stone-900 dark:text-gray-100 mb-1 line-clamp-2 font-display leading-snug">
+      {/* Card body */}
+      <div className="flex flex-col flex-1 px-4 pt-3 pb-5">
+        <h3 className="font-bold text-lg leading-tight line-clamp-2" style={{ color: palette.text }}>
           {bookClub.name}
         </h3>
 
         {bookClub.description && (
-          <p className="text-[13px] text-stone-500 dark:text-gray-400 mb-3 line-clamp-2 font-outfit leading-relaxed">
+          <p className="text-xs mt-1.5 line-clamp-2 leading-relaxed opacity-60" style={{ color: palette.text }}>
             {bookClub.description}
           </p>
         )}
@@ -93,15 +97,23 @@ const BookClubCard = ({ bookClub, bookIndex = 0, onBookIndexChange, friendIds, o
           />
         )}
 
-        {/* Members footer */}
-        <div className="mt-auto pt-2 border-t border-stone-100 dark:border-gray-700">
-          <MemberAvatars
-            members={bookClub.members}
-            memberCount={bookClub.memberCount}
-            friendIds={friendIds}
-            onHoverMember={onHoverMember}
-          />
-        </div>
+        {(!bookClub.currentBooks || bookClub.currentBooks.length === 0) && (
+          <div className="mt-3 flex-1 flex items-center justify-center">
+            <p className="text-sm italic opacity-30" style={{ color: palette.text }}>No book selected yet</p>
+          </div>
+        )}
+
+        {/* Members */}
+        {bookClub.members?.length > 0 && (
+          <div className="mt-auto pt-3">
+            <MemberAvatars
+              members={bookClub.members}
+              memberCount={bookClub.memberCount}
+              friendIds={friendIds}
+              onHoverMember={onHoverMember}
+            />
+          </div>
+        )}
       </div>
     </article>
   );

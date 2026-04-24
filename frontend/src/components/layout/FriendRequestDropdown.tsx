@@ -7,7 +7,7 @@ const DEFAULT_AVATAR = '/images/default.webp';
  * Desktop friend-request dropdown that appears on click.
  * Shows pending requests with accept/decline actions.
  */
-const FriendRequestDropdown = ({ requests, isOpen, onFriendAction }) => {
+const FriendRequestDropdown = ({ requests, isOpen, onFriendAction, onViewAll }) => {
   if (!isOpen) return null;
 
   return (
@@ -58,6 +58,14 @@ const FriendRequestDropdown = ({ requests, isOpen, onFriendAction }) => {
           ))}
         </div>
       )}
+      <div className="border-t border-gray-200 dark:border-gray-700">
+        <button
+          onClick={onViewAll}
+          className="w-full px-4 py-2.5 text-sm text-stone-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition text-center font-medium cursor-pointer"
+        >
+          View all friends
+        </button>
+      </div>
     </div>
   );
 };

@@ -12,7 +12,7 @@ const DEFAULT_IMAGE = '/images/default.webp';
 const CreateClubCard = ({ onClick, scale, opacity, zIndex, isCenter }) => (
   <div
     onClick={onClick}
-    className="w-[240px] sm:w-[300px] h-[360px] sm:h-[440px] flex-shrink-0 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-500 ease-out group"
+    className="w-[240px] sm:w-[300px] h-[400px] sm:h-[480px] flex-shrink-0 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-500 ease-out group"
     style={{
       transform: `scale(${scale})`,
       opacity,
@@ -159,7 +159,7 @@ const ClubCard = ({ bookClub, scale, opacity, zIndex, isCenter, cardBookIndex, o
   return (
     <div
       onClick={() => navigate(`/bookclub/${bookClub.id}`)}
-      className="w-[240px] sm:w-[300px] h-[360px] sm:h-[440px] flex-shrink-0 rounded-2xl flex flex-col cursor-pointer transition-all duration-500 ease-out relative overflow-hidden"
+      className="w-[240px] sm:w-[300px] h-[400px] sm:h-[480px] flex-shrink-0 rounded-2xl flex flex-col cursor-pointer transition-all duration-500 ease-out relative overflow-hidden"
       style={{
         transform: `scale(${scale})`,
         opacity,
@@ -170,20 +170,25 @@ const ClubCard = ({ bookClub, scale, opacity, zIndex, isCenter, cardBookIndex, o
           : '0 2px 12px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.03)',
       }}
     >
-      {/* Top section — club image or gradient */}
-      <div className="relative h-32 sm:h-40 overflow-hidden rounded-t-2xl">
+      {/* Top section — full-width image covering most of the card */}
+      <div className="relative h-[220px] sm:h-[270px] flex-shrink-0 overflow-hidden rounded-t-2xl">
         {bookClub.imageUrl ? (
           <img
             src={getCollabImageUrl(bookClub.imageUrl)}
             alt={bookClub.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-500"
             loading="lazy"
             onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE; }}
           />
         ) : (
-          <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${palette.bg}, ${palette.text}22)` }} />
+          <div
+            className="w-full h-full flex items-center justify-center text-5xl"
+            style={{ background: `linear-gradient(135deg, ${palette.text}22, ${palette.text}44)` }}
+          >
+            📚
+          </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
 
         {/* Owner badge */}
         {bookClub.creatorId === auth?.user?.id && (
@@ -213,16 +218,18 @@ const ClubCard = ({ bookClub, scale, opacity, zIndex, isCenter, cardBookIndex, o
 
         {/* Current books preview — text only */}
         {bookClub.currentBooks?.length > 0 && (
-          <CurrentBooksPreview
-            books={bookClub.currentBooks}
-            clubId={bookClub.id}
-            bookIdx={cardBookIndex[bookClub.id] || 0}
-            onChangeIndex={onChangeBookIndex}
-          />
+          <div className="w-full">
+            <CurrentBooksPreview
+              books={bookClub.currentBooks}
+              clubId={bookClub.id}
+              bookIdx={cardBookIndex[bookClub.id] || 0}
+              onChangeIndex={onChangeBookIndex}
+            />
+          </div>
         )}
 
         {/* Empty state */}
-        {(!bookClub.currentBooks || bookClub.currentBooks.length === 0) && !bookClub.description && (
+        {(!bookClub.currentBooks || bookClub.currentBooks.length === 0) && (
           <div className="mt-3 flex-1 flex items-center justify-center">
             <p className="text-sm italic opacity-30" style={{ color: palette.text }}>No book selected yet</p>
           </div>
@@ -319,7 +326,7 @@ const MyClubsCarousel = ({
           </p>
           <div
             onClick={createNewBookClub}
-            className="w-[300px] h-[440px] rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-500 ease-out group hover:shadow-xl"
+            className="w-[300px] h-[480px] rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-500 ease-out group hover:shadow-xl"
             style={{
               background: '#E4DDD4',
               border: '2px dashed',
@@ -432,7 +439,7 @@ const MyClubsCarousel = ({
         />
 
         {/* Dot indicators */}
-        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-2">
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
           {items.map((_, i) => (
             <button
               key={i}

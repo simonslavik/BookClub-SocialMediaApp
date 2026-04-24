@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { getCollabImageUrl } from '@config/constants';
+import useScrollReveal from '@hooks/useScrollReveal';
 
 const DEFAULT_IMAGE = '/images/default.webp';
 
@@ -56,20 +57,27 @@ const TopChartingSection = ({ bookClubs = [] }) => {
     .sort((a, b) => (b.memberCount || 0) - (a.memberCount || 0))
     .slice(0, 3);
 
+  const { ref, isVisible } = useScrollReveal(0.15);
+
   return (
-    <section className="px-6 md:px-16 py-16 md:py-24">
+    <section ref={ref} className="px-6 md:px-16 py-16 md:py-24">
       <div className="max-w-6xl mx-auto text-center">
-        <h2 className="font-display text-4xl md:text-5xl font-bold text-stone-900 dark:text-warmgray-100 mb-2 leading-tight">
+        <h2 className={`font-display text-4xl md:text-5xl font-bold text-stone-900 dark:text-warmgray-100 mb-11 leading-tight transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
           Top Charting
         </h2>
-        <p className="font-serif text-lg text-stone-500 dark:text-warmgray-400 mb-12 italic">
-          BookClubs people love right now
-        </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {topClubs.length === 0
             ? Array.from({ length: 3 }, (_, i) => <ClubCardSkeleton key={i} />)
-            : topClubs.map((club) => <TopClubCard key={club.id} club={club} />)}
+            : topClubs.map((club, i) => (
+                <div
+                  key={club.id}
+                  className={`transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                  style={{ transitionDelay: isVisible ? `${200 + i * 150}ms` : '0ms' }}
+                >
+                  <TopClubCard club={club} />
+                </div>
+              ))}
         </div>
       </div>
     </section>

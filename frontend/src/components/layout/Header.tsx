@@ -157,16 +157,33 @@ const HomePageHeader = () => {
                   requests={friendRequests}
                   isOpen={newsShowDropdown}
                   onFriendAction={handleFriendAction}
+                  onViewAll={() => { setNewsShowDropdown(false); navigate('/people'); }}
                 />
               </button>
             </div>
 
-            {/* "Open BookClubs" link */}
+            {/* Friends link */}
+            <button
+              onClick={() => navigate('/people')}
+              className="flex items-center ml-2 rounded-full cursor-pointer px-3 py-1 hover:bg-warmgray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <span className="font-medium text-sm text-stone-700 dark:text-gray-300">Friends</span>
+            </button>
+
+            {/* Discover link */}
+            <button
+              onClick={() => navigate('/discover')}
+              className="flex items-center ml-1 rounded-full cursor-pointer px-3 py-1 hover:bg-warmgray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <span className="font-medium text-sm text-stone-700 dark:text-gray-300">Discover</span>
+            </button>
+
+            {/* Open App link */}
             <button
               onClick={() => navigate('/dm')}
-              className="flex items-center ml-2 border border-warmgray-200 dark:border-gray-600 rounded-full cursor-pointer px-3 py-1 hover:bg-warmgray-100 dark:hover:bg-gray-700 transition-colors"
+              className="flex items-center ml-2 bg-stone-800 dark:bg-stone-700 rounded-full cursor-pointer px-4 py-1.5 hover:bg-stone-700 dark:hover:bg-stone-600 transition-colors"
             >
-              <span className="font-medium text-sm text-stone-700 dark:text-gray-300">OpenBookClubs</span>
+              <span className="font-medium text-sm text-white">Open App</span>
             </button>
 
             {/* Profile dropdown */}

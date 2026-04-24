@@ -32,6 +32,20 @@
     @apply bg-warmgray-50 text-gray-900 transition-colors duration-300;
   }
 
+  /* Ensure all interactive elements show pointer cursor */
+  button,
+  [role="button"],
+  a,
+  [onClick],
+  label[for],
+  select {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
   .dark body,
   html.dark body {
     @apply bg-gray-900 text-gray-100;
