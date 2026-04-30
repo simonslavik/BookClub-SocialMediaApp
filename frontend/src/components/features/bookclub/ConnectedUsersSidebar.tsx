@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { FiUsers, FiStar, FiShield, FiAward, FiHeart, FiSearch, FiX } from 'react-icons/fi';
 import { getProfileImageUrl } from '@config/constants';
@@ -115,7 +116,7 @@ const ConnectedUsersSidebar = ({
       </div>
 
       {/* Members Modal */}
-      {showMembersModal && (
+      {showMembersModal && createPortal(
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center" onClick={() => setShowMembersModal(false)}>
           <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
@@ -170,7 +171,8 @@ const ConnectedUsersSidebar = ({
               })}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       <div className="max-h-screen overflow-y-auto w-full space-y-2">
         {filteredMembers.length === 0 && searchQuery && (

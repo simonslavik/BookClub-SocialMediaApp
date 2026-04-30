@@ -7,10 +7,10 @@ import logger from '../utils/logger.js';
 export const createRoom = async (req: AuthRequest, res: Response) => {
   try {
     const { bookClubId } = req.params;
-    const { name, description, type, memberIds } = req.body;
+    const { name, type, memberIds } = req.body;
     const userId = req.user!.userId;
-    
-    const room = await RoomService.create(bookClubId, userId, { name, description, type, memberIds });
+
+    const room = await RoomService.create(bookClubId, userId, { name, type, memberIds });
     
     res.json({ room, message: 'Room created successfully' });
   } catch (error: any) {
@@ -58,9 +58,9 @@ export const updateRoom = async (req: AuthRequest, res: Response) => {
   try {
     const { bookClubId, roomId } = req.params;
     const userId = req.user!.userId;
-    const { name, description, type } = req.body;
-    
-    const room = await RoomService.update(bookClubId, roomId, userId, { name, description, type });
+    const { name, type } = req.body;
+
+    const room = await RoomService.update(bookClubId, roomId, userId, { name, type });
     
     res.json({ room, message: 'Room updated successfully' });
   } catch (error: any) {

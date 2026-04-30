@@ -12,7 +12,7 @@ const BookClubPage = () => {
         bookClub, members, connectedUsers,
         currentBooks, upcomingBooks, completedBooks,
         loading, error, totalBooks,
-        handleAction, actionLabel, navigate,
+        handleAction, actionLabel, actionDisabled, navigate,
     } = useBookClubPreview();
 
     const [openLogin, setOpenLogin] = useState(false);
@@ -74,6 +74,7 @@ const BookClubPage = () => {
                     totalBooks={totalBooks}
                     currentBooks={currentBooks}
                     actionLabel={actionLabel}
+                    actionDisabled={actionDisabled}
                     onAction={onAction}
                 />
 

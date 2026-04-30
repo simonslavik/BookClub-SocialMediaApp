@@ -3,9 +3,9 @@ import { FiHash, FiSettings, FiCalendar, FiUserPlus, FiVideo } from 'react-icons
 import { useNavigate } from 'react-router-dom';
 import logger from '@utils/logger';
 
-const BookclubHeader = ({ 
-  showBooksHistory, 
-  showCalendar, 
+const BookclubHeader = ({
+  showBooksHistory,
+  showCalendar,
   showSuggestions,
   showMeetings,
   showSettings,
@@ -13,7 +13,8 @@ const BookclubHeader = ({
   auth,
   onInviteClick,
   onSettingsClick,
-  userRole
+  userRole,
+  pendingRequestsCount = 0,
 }) => {
   
   return (
@@ -52,12 +53,20 @@ const BookclubHeader = ({
           </button>
         )}
         {auth?.user && !showSettings && (userRole === 'OWNER' || userRole === 'ADMIN') && (
-          <button 
+          <button
             onClick={onSettingsClick}
-            className="text-gray-400 hover:text-white transition-colors"
-            title="Bookclub Settings"
+            className="relative text-gray-400 hover:text-white transition-colors"
+            title={pendingRequestsCount > 0 ? `${pendingRequestsCount} pending join request${pendingRequestsCount === 1 ? '' : 's'}` : 'Bookclub Settings'}
           >
             <FiSettings size={20} />
+            {pendingRequestsCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-orange-500 text-white text-[10px] items-center justify-center font-semibold">
+                  {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount}
+                </span>
+              </span>
+            )}
           </button>
         )}
       </div>

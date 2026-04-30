@@ -63,6 +63,7 @@ export default function useBookClubPreview() {
     const handleAction = useCallback(async () => {
         if (!auth?.user) return 'login';
         if (bookClub?.isMember) { navigate(`/bookclub/${bookClubId}`); return; }
+        if (bookClub?.hasPendingRequest) return;
         try {
             if (bookClub?.visibility === 'PUBLIC') {
                 await apiClient.post(`/v1/bookclubs/${bookClubId}/join`);
@@ -70,7 +71,7 @@ export default function useBookClubPreview() {
             } else {
                 await apiClient.post(`/v1/bookclubs/${bookClubId}/request`);
                 toastSuccess('Join request sent! Wait for admin approval.');
-                window.location.reload();
+                setBookClub((prev) => prev ? { ...prev, hasPendingRequest: true, canRequest: false } : prev);
             }
         } catch (err) {
             logger.error('Error joining bookclub:', err);
@@ -78,12 +79,20 @@ export default function useBookClubPreview() {
         }
     }, [auth?.user, bookClub, bookClubId, navigate, toastSuccess, toastError]);
 
-    const actionLabel = !auth?.user ? 'Login to Join' : bookClub?.isMember ? 'Enter BookClub' : 'Join Club';
+    const actionLabel = !auth?.user
+        ? 'Login to Join'
+        : bookClub?.isMember
+            ? 'Enter BookClub'
+            : bookClub?.hasPendingRequest
+                ? 'Request Pending'
+                : 'Join Club';
+
+    const actionDisabled = !!bookClub?.hasPendingRequest && !bookClub?.isMember;
 
     return {
         bookClub, members, connectedUsers,
         currentBooks, upcomingBooks, completedBooks,
         loading, error, totalBooks,
-        handleAction, actionLabel, navigate,
+        handleAction, actionLabel, actionDisabled, navigate,
     };
 }

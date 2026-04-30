@@ -102,7 +102,7 @@ const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(({ onFilesSelec
     <>
       {/* File Preview Panel - Shows above message input when files are selected */}
       {selectedFiles.length > 0 && (
-        <div className="absolute bottom-full left-0 right-0 mb-2 px-4 py-3 bg-gradient-to-b from-gray-750 to-gray-800 border border-stone-500/30 rounded-t-lg shadow-xl animate-fadeIn">
+        <div className="absolute bottom-full left-0 right-0 mb-2 px-4 py-3 bg-gradient-to-b from-gray-700 to-gray-800 border border-stone-500/30 rounded-t-lg shadow-xl animate-fadeIn">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="bg-stone-700/20 p-1.5 rounded-lg">
@@ -117,7 +117,7 @@ const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(({ onFilesSelec
                 setSelectedFiles([]);
                 onFilesSelected([]);
               }}
-              className="text-gray-400 hover:text-red-400 text-xs font-medium transition-colors px-2 py-1 rounded hover:bg-red-400/10"
+              className="text-gray-200 hover:text-red-400 text-xs font-semibold transition-colors px-2.5 py-1 rounded bg-white/5 hover:bg-red-400/10 border border-white/10"
             >
               Clear all
             </button>
@@ -127,7 +127,7 @@ const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(({ onFilesSelec
             {selectedFiles.map((file, index) => (
               <div
                 key={index}
-                className="flex-shrink-0 relative group bg-gray-700 hover:bg-gray-650 rounded-xl p-2.5 w-36 border border-gray-600/50 hover:border-stone-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-stone-500/20"
+                className="flex-shrink-0 relative group bg-gray-700 hover:bg-gray-600 rounded-xl p-2.5 w-36 border border-gray-600/50 hover:border-stone-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-stone-500/20"
               >
                 {file.type.startsWith('image/') ? (
                   <div className="relative">

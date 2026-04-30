@@ -44,20 +44,6 @@ const GeneralTab = ({ form, setForm, room, saving, onSave, error, userRole }) =>
         </div>
       </div>
 
-      {/* Description */}
-      <div>
-        <label className="block text-gray-300 text-sm font-medium mb-1">Description</label>
-        <textarea
-          value={form.description}
-          onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))}
-          placeholder="What's this room for?"
-          maxLength={200}
-          rows={2}
-          className="w-full bg-gray-900 text-white px-3 py-2 rounded border border-gray-600 focus:border-stone-500 focus:outline-none text-sm resize-none"
-        />
-        <span className="text-[10px] text-gray-500">{form.description.length}/200</span>
-      </div>
-
       {/* Room Type */}
       {canChangeType && (
         <div>
@@ -384,7 +370,7 @@ const DangerZoneTab = ({ room, onDelete, userRole }) => {
 // ─── Main Modal ───────────────────────────────────────────────
 const RoomSettingsModal = ({ isOpen, onClose, room, bookClubId, allMembers, currentUserId, userRole, onRoomUpdated, onRoomDeleted }) => {
   const [activeTab, setActiveTab] = useState('general');
-  const [form, setForm] = useState({ name: '', description: '', type: 'PUBLIC' });
+  const [form, setForm] = useState({ name: '', type: 'PUBLIC' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -392,7 +378,6 @@ const RoomSettingsModal = ({ isOpen, onClose, room, bookClubId, allMembers, curr
     if (isOpen && room) {
       setForm({
         name: room.name || '',
-        description: room.description || '',
         type: room.type || 'PUBLIC',
       });
       setActiveTab('general');
@@ -412,7 +397,6 @@ const RoomSettingsModal = ({ isOpen, onClose, room, bookClubId, allMembers, curr
     try {
       const updates: Record<string, any> = {};
       if (form.name.trim() !== room.name) updates.name = form.name.trim();
-      if ((form.description || '') !== (room.description || '')) updates.description = form.description.trim();
       if (form.type !== room.type && !room.isDefault) updates.type = form.type;
 
       if (Object.keys(updates).length === 0) {

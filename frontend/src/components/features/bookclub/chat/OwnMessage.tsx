@@ -104,14 +104,16 @@ const OwnMessage = ({
         </div>
 
         {/* Reactions */}
-        <div className="flex justify-end">
-          <ReactionBar
-            reactions={msg.reactions}
-            currentUserId={auth?.user?.id}
-            onToggleReaction={(emoji, hasReacted) => onToggleReaction(msg.id, emoji, hasReacted)}
-            members={members}
-          />
-        </div>
+        {!msg.deletedAt && (
+          <div className="flex justify-end">
+            <ReactionBar
+              reactions={msg.reactions}
+              currentUserId={auth?.user?.id}
+              onToggleReaction={(emoji, hasReacted) => onToggleReaction(msg.id, emoji, hasReacted)}
+              members={members}
+            />
+          </div>
+        )}
 
         {/* Timestamp */}
         {isLastInGroup && (

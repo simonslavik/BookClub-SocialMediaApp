@@ -9,8 +9,6 @@ const presets = {
     description: "You haven't joined any book clubs. Discover one or create your own!",
     actionLabel: 'Discover Book Clubs',
     actionPath: '/discover',
-    secondaryLabel: 'Create One',
-    secondaryPath: '/create-bookclub',
   },
   'no-members': {
     icon: FiUsers,

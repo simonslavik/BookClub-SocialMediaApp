@@ -896,16 +896,19 @@ export const handleDeleteMessage = async (message: any, currentClient: Client | 
       return;
     }
 
-    // Soft delete the message and unpin if pinned
-    const deletedMessage = await prisma.message.update({
-      where: { id: messageId },
-      data: {
-        deletedAt: new Date(),
-        deletedBy: currentClient.userId,
-        content: '[Message deleted]',
-        isPinned: false
-      }
-    });
+    // Soft delete the message, unpin if pinned, and remove reactions
+    const [, deletedMessage] = await prisma.$transaction([
+      prisma.reaction.deleteMany({ where: { messageId } }),
+      prisma.message.update({
+        where: { id: messageId },
+        data: {
+          deletedAt: new Date(),
+          deletedBy: currentClient.userId,
+          content: '[Message deleted]',
+          isPinned: false
+        }
+      })
+    ]);
 
     // Broadcast deletion to users in the same room only
     activeClub.clients.forEach((client) => {

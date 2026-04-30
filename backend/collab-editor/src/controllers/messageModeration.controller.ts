@@ -40,16 +40,19 @@ export class MessageModerationController {
         });
       }
 
-      // Soft delete: mark as deleted and unpin if pinned
-      const updatedMessage = await prisma.message.update({
-        where: { id: messageId },
-        data: {
-          deletedAt: new Date(),
-          deletedBy: userId,
-          content: '[Message deleted]',
-          isPinned: false
-        }
-      });
+      // Soft delete: mark as deleted, unpin if pinned, remove reactions
+      const [, updatedMessage] = await prisma.$transaction([
+        prisma.reaction.deleteMany({ where: { messageId } }),
+        prisma.message.update({
+          where: { id: messageId },
+          data: {
+            deletedAt: new Date(),
+            deletedBy: userId,
+            content: '[Message deleted]',
+            isPinned: false
+          }
+        })
+      ]);
 
       logger.info('MESSAGE_DELETED', { 
         messageId, 

@@ -151,7 +151,10 @@ const DiscoverBookClubs = () => {
               preset={hasFilters ? 'no-results' : 'no-clubs'}
               description={hasFilters ? 'Try adjusting your search or filters' : 'Be the first to create a book club!'}
               actionLabel="Create a Book Club"
-              actionPath="/create-bookclub"
+              onAction={() => {
+                if (auth?.token) navigate('/create-bookclub');
+                else window.dispatchEvent(new Event('open-login'));
+              }}
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">

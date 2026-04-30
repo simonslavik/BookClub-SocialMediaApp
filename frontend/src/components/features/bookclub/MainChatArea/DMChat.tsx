@@ -167,7 +167,7 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs, r
       setMessages((prev) =>
         prev.map((m) =>
           m.id === messageId
-            ? { ...m, content: '[Message deleted]', deletedAt: new Date().toISOString(), attachments: [] }
+            ? { ...m, content: '[Message deleted]', deletedAt: new Date().toISOString(), attachments: [], reactions: [] }
             : m
         )
       );
@@ -369,15 +369,17 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs, r
                 </div>
 
                 {/* Reactions */}
-                <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                  <ReactionBar
-                    reactions={msg.reactions}
-                    currentUserId={currentUserId}
-                    onToggleReaction={(emoji, hasReacted) => handleToggleReaction(msg.id, emoji, hasReacted)}
-                    members={dmMembers}
-                    isOwn={isOwn}
-                  />
-                </div>
+                {!msg.deletedAt && (
+                  <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                    <ReactionBar
+                      reactions={msg.reactions}
+                      currentUserId={currentUserId}
+                      onToggleReaction={(emoji, hasReacted) => handleToggleReaction(msg.id, emoji, hasReacted)}
+                      members={dmMembers}
+                      isOwn={isOwn}
+                    />
+                  </div>
+                )}
               </div>
             </div>
             );
@@ -390,10 +392,10 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs, r
       <TypingIndicator typingUsers={typingUsers} />
 
       {/* Message Input */}
-      <form onSubmit={handleSubmit} className="bg-gray-800 border-t border-gray-700 p-4">
+      <form onSubmit={handleSubmit} className="bg-gray-800 border-t border-gray-700 relative">
         {/* Reply preview bar */}
         {replyingTo && (
-          <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-gray-700/60 border-l-2 border-stone-500 rounded-r-lg">
+          <div className="flex items-center gap-2 mx-4 mt-4 px-3 py-2 bg-gray-700/60 border-l-2 border-stone-500 rounded-r-lg">
             <FiCornerUpLeft className="w-4 h-4 text-stone-500 flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <span className="text-xs text-stone-300 font-medium">{replyingTo.senderName}</span>
@@ -408,7 +410,7 @@ const DMChat = ({ otherUser, messages, onSendMessage, auth, setMessages, dmWs, r
             </button>
           </div>
         )}
-        <div className="relative flex gap-2 items-center">
+        <div className="flex gap-2 items-center p-4">
           <FileUpload 
             ref={fileUploadRef}
             onFilesSelected={setSelectedFiles}

@@ -1,10 +1,11 @@
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { FiX } from 'react-icons/fi';
 import logger from '@utils/logger';
 
 const BookDetailsModal = ({ onClose, book }) => {
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col transition-colors duration-300">
         {/* Header */}
@@ -61,7 +62,8 @@ const BookDetailsModal = ({ onClose, book }) => {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

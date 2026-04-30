@@ -7,14 +7,12 @@ import logger from '../utils/logger.js';
 
 interface CreateRoomDto {
   name: string;
-  description?: string;
   type?: RoomType;
   memberIds?: string[];
 }
 
 interface UpdateRoomDto {
   name?: string;
-  description?: string;
   type?: RoomType;
 }
 
@@ -53,7 +51,6 @@ export class RoomService {
 
     const room = await RoomRepository.create({
       name: roomName,
-      description: data.description,
       type: roomType,
       bookClubId,
       createdBy: userId,
@@ -89,7 +86,6 @@ export class RoomService {
     return rooms.map(room => ({
       id: room.id,
       name: room.name,
-      description: room.description,
       type: room.type,
       isDefault: room.isDefault,
       createdBy: room.createdBy,
@@ -137,7 +133,6 @@ export class RoomService {
 
     const updateData: any = {};
     if (data.name) updateData.name = data.name.trim().toLowerCase().replace(/\s+/g, '-');
-    if (data.description !== undefined) updateData.description = data.description;
     if (data.type) updateData.type = data.type;
 
     const updated = await RoomRepository.update(roomId, updateData);

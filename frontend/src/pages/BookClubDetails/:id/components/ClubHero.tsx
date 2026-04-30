@@ -3,7 +3,7 @@ import { getCollabImageUrl } from '@config/constants';
 
 const DEFAULT_IMG = '/images/default.webp';
 
-export default function ClubHero({ bookClub, members, totalBooks, currentBooks, actionLabel, onAction }) {
+export default function ClubHero({ bookClub, members, totalBooks, currentBooks, actionLabel, actionDisabled, onAction }) {
     const now = new Date();
     const nearestEnd = currentBooks.length
         ? currentBooks.reduce((nearest, b) => {
@@ -48,10 +48,15 @@ export default function ClubHero({ bookClub, members, totalBooks, currentBooks, 
                 {/* CTA */}
                 <button
                     onClick={onAction}
-                    className="w-full md:w-auto px-7 py-3 bg-white text-stone-800 rounded-xl text-sm font-semibold hover:bg-stone-100 transition-colors flex items-center justify-center gap-2 flex-shrink-0"
+                    disabled={actionDisabled}
+                    className={`w-full md:w-auto px-7 py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 flex-shrink-0 ${
+                        actionDisabled
+                            ? 'bg-stone-600 text-stone-300 cursor-not-allowed'
+                            : 'bg-white text-stone-800 hover:bg-stone-100'
+                    }`}
                 >
                     {actionLabel}
-                    <FiArrowRight size={16} />
+                    {!actionDisabled && <FiArrowRight size={16} />}
                 </button>
             </div>
         </section>

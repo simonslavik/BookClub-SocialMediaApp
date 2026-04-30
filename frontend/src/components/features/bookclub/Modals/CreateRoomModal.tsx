@@ -30,7 +30,6 @@ const ROOM_TYPES = [
 
 const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, members, currentUserId }) => {
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const [type, setType] = useState('PUBLIC');
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [memberSearch, setMemberSearch] = useState('');
@@ -40,7 +39,6 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, members, currentUserId
   useEffect(() => {
     if (isOpen) {
       setName('');
-      setDescription('');
       setType('PUBLIC');
       setSelectedMembers([]);
       setMemberSearch('');
@@ -89,7 +87,6 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, members, currentUserId
       const roomData = {
         name: name.trim(),
         type,
-        ...(description.trim() && { description: description.trim() }),
         ...(type === 'PRIVATE' && selectedMembers.length > 0 && { memberIds: selectedMembers })
       };
 
@@ -138,21 +135,6 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, members, currentUserId
               maxLength={50}
               className="w-full bg-gray-900 text-white px-3 py-2 rounded border border-gray-600 focus:border-stone-500 focus:outline-none text-sm"
               autoFocus
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-gray-300 text-sm font-medium mb-1">
-              Description <span className="text-gray-500">(optional)</span>
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="What's this room for?"
-              maxLength={200}
-              className="w-full bg-gray-900 text-white px-3 py-2 rounded border border-gray-600 focus:border-stone-500 focus:outline-none text-sm"
             />
           </div>
 

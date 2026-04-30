@@ -117,13 +117,15 @@ const OtherMessage = ({
         </div>
 
         {/* Reactions */}
-        <ReactionBar
-          reactions={msg.reactions}
-          currentUserId={auth?.user?.id}
-          onToggleReaction={(emoji, hasReacted) => onToggleReaction(msg.id, emoji, hasReacted)}
-          members={members}
-          isOwn={false}
-        />
+        {!msg.deletedAt && (
+          <ReactionBar
+            reactions={msg.reactions}
+            currentUserId={auth?.user?.id}
+            onToggleReaction={(emoji, hasReacted) => onToggleReaction(msg.id, emoji, hasReacted)}
+            members={members}
+            isOwn={false}
+          />
+        )}
 
         {/* Timestamp */}
         {isLastInGroup && showFullDate && (

@@ -4,6 +4,7 @@ import { useBookclubData } from '@hooks/useBookclubData';
 import { useBookclubViews } from '@hooks/useBookclubViews';
 import { useModals } from '@hooks/useModals';
 import { useBookclubWebSocket } from '@hooks/useBookclubWebSocket';
+import { bookclubAPI } from '@api/bookclub.api';
 
 // Layout / chrome
 import MyBookClubsSidebar from '@components/features/bookclub/MyBookClubsSidebar';
@@ -80,6 +81,23 @@ const BookClub = () => {
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
   const fileUploadRef = useRef(null);
+
+  // ─── Pending join requests (admin-only badge on settings icon) ──
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const isAdmin = userRole === 'OWNER' || userRole === 'ADMIN';
+  const showSettingsView = is('settings');
+
+  useEffect(() => {
+    if (!bookClubId || !isAdmin) {
+      setPendingRequestsCount(0);
+      return;
+    }
+    let cancelled = false;
+    bookclubAPI.getPendingRequests(bookClubId)
+      .then((res) => { if (!cancelled) setPendingRequestsCount((res.data || []).length); })
+      .catch((err) => logger.error('Failed to fetch pending requests count:', err));
+    return () => { cancelled = true; };
+  }, [bookClubId, isAdmin, showSettingsView]);
 
   // ─── Mobile sidebar toggles ────────────────────────────
   const [showMobileLeftSidebar, setShowMobileLeftSidebar] = useState(false);
@@ -308,6 +326,7 @@ const BookClub = () => {
             onInviteClick={() => modals.open('invite')}
             onSettingsClick={openSettings}
             userRole={userRole}
+            pendingRequestsCount={pendingRequestsCount}
           />
 
           {/* ── View router ────────────────────────────── */}

@@ -26,6 +26,10 @@
 @config "../tailwind.config.js";
 
 @layer base {
+  html {
+    @apply overflow-x-hidden;
+  }
+
   body {
     /* Using Outfit - Modern geometric sans-serif */
     font-family: 'Outfit', sans-serif;
