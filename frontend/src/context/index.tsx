@@ -5,10 +5,22 @@ import { API_URL } from '@config/constants';
 import logger from '@utils/logger';
 import { clearCache } from '@utils/apiCache';
 
-interface AuthState {
-  user: any;
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  profileImage?: string | null;
+  role?: string;
+  emailVerified?: boolean;
+  authProvider?: 'local' | 'google';
+}
+
+// The refresh token lives in an HttpOnly cookie set by the backend, never in
+// JS-readable storage. This shape only tracks the in-memory access token and
+// the user record.
+export interface AuthState {
+  user: AuthUser | null;
   token: string | null;
-  refreshToken: string | null;
 }
 
 interface AuthContextValue {
@@ -17,16 +29,19 @@ interface AuthContextValue {
   logout: () => void;
 }
 
+const EMPTY: AuthState = { user: null, token: null };
+
 const AuthContext = createContext<AuthContextValue>({} as AuthContextValue);
 
 export const AuthProvider = ({ children }) => {
     // initialize from localStorage so auth persists across refresh
-    const [auth, setAuthState] = useState(() => {
+    const [auth, setAuthState] = useState<AuthState>(() => {
         try {
             const raw = localStorage.getItem('auth');
-            return raw ? JSON.parse(raw) : { user: null, token: null, refreshToken: null };
+            const parsed = raw ? JSON.parse(raw) : null;
+            return parsed ? { user: parsed.user ?? null, token: parsed.token ?? null } : EMPTY;
         } catch (e) {
-            return { user: null, token: null, refreshToken: null };
+            return EMPTY;
         }
     });
 
@@ -34,12 +49,14 @@ export const AuthProvider = ({ children }) => {
     const authRef = useRef(auth);
     authRef.current = auth;
 
+    // Single-flight refresh — multiple concurrent 401s share one refresh call
+    const refreshPromiseRef = useRef<Promise<string> | null>(null);
+
     // helper to set auth both in state and localStorage
-    const setAuth = useCallback((payload) => {
-        const next = {
-            user: payload?.user || null,
-            token: payload?.token || null,
-            refreshToken: payload?.refreshToken || null,
+    const setAuth = useCallback((payload: Partial<AuthState>) => {
+        const next: AuthState = {
+            user: payload?.user ?? null,
+            token: payload?.token ?? null,
         };
         setAuthState(next);
         try {
@@ -47,18 +64,19 @@ export const AuthProvider = ({ children }) => {
         } catch (e) {
             // ignore
         }
-        // apply axios default Authorization header
         if (next.token) axios.defaults.headers.common['Authorization'] = `Bearer ${next.token}`;
         else delete axios.defaults.headers.common['Authorization'];
     }, []);
 
     const logout = useCallback(() => {
         clearCache();
-        setAuth({ user: null, token: null, refreshToken: null });
+        // Best-effort cookie clear on the server; ignore failures (cookie still
+        // gets blown away client-side via setAuth → state reset).
+        apiClient.post('/v1/auth/logout').catch(() => {});
+        setAuth(EMPTY);
     }, [setAuth]);
 
     useEffect(() => {
-        // ensure axios has header if token exists on initial load
         if (auth?.token) axios.defaults.headers.common['Authorization'] = `Bearer ${auth.token}`;
         else delete axios.defaults.headers.common['Authorization'];
     }, [auth?.token]);
@@ -71,26 +89,43 @@ export const AuthProvider = ({ children }) => {
                 const originalRequest = error.config;
                 const currentAuth = authRef.current;
 
-                if (error.response?.status === 401 && currentAuth?.refreshToken && !originalRequest._retry) {
+                // We attempt refresh whenever a logged-in user gets a 401.
+                // The refresh token lives in an HttpOnly cookie, so we can't
+                // detect its presence directly — we use `user` as the signal
+                // that the user intended to be authenticated.
+                if (error.response?.status === 401 && currentAuth?.user && !originalRequest._retry) {
                     originalRequest._retry = true;
 
+                    if (!refreshPromiseRef.current) {
+                        refreshPromiseRef.current = axios
+                            .post(
+                                `${API_URL}/v1/auth/refresh`,
+                                {},
+                                { withCredentials: true },
+                            )
+                            .then(({ data }) => {
+                                const accessToken = data?.data?.accessToken ?? data?.accessToken;
+                                if (!accessToken) {
+                                    throw new Error('Refresh response missing accessToken');
+                                }
+                                setAuth({
+                                    user: authRef.current.user,
+                                    token: accessToken,
+                                });
+                                return accessToken as string;
+                            })
+                            .finally(() => {
+                                refreshPromiseRef.current = null;
+                            });
+                    }
+
                     try {
-                        // Use plain axios for refresh to avoid infinite loop through apiClient interceptor
-                        const { data } = await axios.post(`${API_URL}/v1/auth/refresh`, {
-                            refreshToken: currentAuth.refreshToken
-                        });
-
-                        setAuth({
-                            user: currentAuth.user,
-                            token: data.accessToken,
-                            refreshToken: data.refreshToken
-                        });
-
-                        originalRequest.headers['Authorization'] = `Bearer ${data.accessToken}`;
+                        const newToken = await refreshPromiseRef.current;
+                        originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
                         return apiClient(originalRequest);
                     } catch (refreshError) {
                         logger.error('Token refresh failed:', refreshError);
-                        setAuth({ user: null, token: null, refreshToken: null });
+                        setAuth(EMPTY);
                         return Promise.reject(refreshError);
                     }
                 }

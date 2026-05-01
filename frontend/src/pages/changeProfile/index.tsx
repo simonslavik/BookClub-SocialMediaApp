@@ -145,7 +145,6 @@ const ChangeProfilePage = () => {
                     profileImage: updatedImageUrl
                 },
                 token: auth.token,
-                refreshToken: auth.refreshToken
             });
 
             // Go back to previous page

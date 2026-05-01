@@ -32,19 +32,13 @@ export const loginSchema = joi.object({
     })
 });
 
-// Refresh token validation
-export const refreshTokenSchema = joi.object({
-    refreshToken: joi.string().required().messages({
-        'any.required': 'Refresh token is required'
-    })
-});
+// Refresh and logout no longer accept refresh tokens in the body — they read
+// the token from the HttpOnly `refresh_token` cookie. The schemas remain so
+// callers that still send (or omit) a body don't get rejected, but every
+// extra field is stripped.
+export const refreshTokenSchema = joi.object({}).unknown(true);
 
-// Logout validation
-export const logoutSchema = joi.object({
-    refreshToken: joi.string().required().messages({
-        'any.required': 'Refresh token is required'
-    })
-});
+export const logoutSchema = joi.object({}).unknown(true);
 
 // Friend request validation
 export const sendFriendRequestSchema = joi.object({

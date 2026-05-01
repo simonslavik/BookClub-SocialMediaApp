@@ -376,7 +376,6 @@ export class BookClubService {
           select: {
             id: true,
             name: true,
-            description: true,
             type: true,
             isDefault: true,
             createdAt: true,

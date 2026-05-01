@@ -116,7 +116,7 @@ export default function useProfileData() {
                 });
                 setProfile(prev => ({ ...prev, profileImage: data.imageUrl }));
                 if (auth?.user && isOwnProfile) {
-                    setAuth({ user: { ...auth.user, profileImage: data.imageUrl }, token: auth.token, refreshToken: auth.refreshToken });
+                    setAuth({ user: { ...auth.user, profileImage: data.imageUrl }, token: auth.token });
                 }
                 setImagePreview(null);
             } catch (err) {

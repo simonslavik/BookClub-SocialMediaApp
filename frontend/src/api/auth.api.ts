@@ -19,13 +19,14 @@ export const authAPI = {
     return response.data;
   },
 
-  // Refresh access token
-  refreshToken: async (refreshToken) => {
-    const response = await apiClient.post('/v1/auth/refresh', { refreshToken });
+  // Refresh access token — the refresh token rides as an HttpOnly cookie,
+  // so no body argument is needed (or accepted).
+  refreshToken: async () => {
+    const response = await apiClient.post('/v1/auth/refresh');
     return response.data;
   },
 
-  // Logout
+  // Logout — the cookie identifies the session; no body needed.
   logout: async () => {
     const response = await apiClient.post('/v1/auth/logout');
     return response.data;

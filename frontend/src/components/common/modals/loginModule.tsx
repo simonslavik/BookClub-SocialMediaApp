@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '@api/axios';
 import { useNavigate, useLocation } from "react-router-dom";
 import AuthContext from '@context/index';
 import { FiX } from 'react-icons/fi';
@@ -54,30 +54,21 @@ const Login = ({ onClose, onSwitchToRegister }) => {
         setErrors([]);
         setLoading(true);
         try {
-            const res = await axios.post('/v1/auth/login', formData);
-            
-            logger.debug('Login response:', res.data);
-            
-            // Extract token, refreshToken, and user from response
-            // Handle both nested and direct response formats
+            const res = await apiClient.post('/v1/auth/login', formData);
+
+            // Refresh token is now an HttpOnly cookie set by the response —
+            // we only extract the access token + user from the body.
             const responseData = res?.data?.data || res?.data;
             const accessToken = responseData?.accessToken || res?.data?.accessToken || res?.data?.token;
-            const refreshToken = responseData?.refreshToken || res?.data?.refreshToken;
             const user = responseData?.user || res?.data?.user;
-            
-            logger.debug('Extracted data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
-            
+
             if (!accessToken || !user) {
                 logger.error('Missing required data - accessToken:', !!accessToken, 'user:', !!user);
                 setErrors(['Login succeeded but received incomplete data from server']);
                 return;
             }
-            
-            setAuth({ 
-                token: accessToken,
-                refreshToken: refreshToken,
-                user: user
-            });
+
+            setAuth({ token: accessToken, user });
             
             onClose?.();
             window.location.reload();
@@ -98,27 +89,16 @@ const Login = ({ onClose, onSwitchToRegister }) => {
         setMessage('');
         
         try {
-            const res = await axios.post('/v1/auth/google', {
+            const res = await apiClient.post('/v1/auth/google', {
                 credential: credentialResponse.credential
             });
 
-            logger.debug('Google login response:', res.data);
-
-            // Handle both nested and direct response formats
             const responseData = res?.data?.data || res?.data;
             const accessToken = responseData?.accessToken || res?.data?.accessToken;
-            const refreshToken = responseData?.refreshToken || res?.data?.refreshToken;
             const user = responseData?.user || res?.data?.user;
 
-            logger.debug('Extracted Google data:', { accessToken: !!accessToken, refreshToken: !!refreshToken, user: !!user });
-
             if (accessToken && user) {
-                setAuth({ 
-                    token: accessToken,
-                    refreshToken: refreshToken,
-                    user: user
-                });
-                
+                setAuth({ token: accessToken, user });
                 onClose?.();
                 window.location.reload();
             } else {

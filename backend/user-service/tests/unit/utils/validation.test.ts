@@ -132,27 +132,30 @@ describe('Validation Schemas', () => {
     });
   });
 
+  // Refresh and logout no longer require a body — the refresh token rides
+  // as an HttpOnly cookie. The schemas still exist (for route symmetry) and
+  // accept any body shape.
   describe('refreshTokenSchema', () => {
-    it('should pass with valid refreshToken', () => {
-      const { error } = refreshTokenSchema.validate({ refreshToken: 'some-token' });
+    it('passes with an empty body', () => {
+      const { error } = refreshTokenSchema.validate({});
       expect(error).toBeUndefined();
     });
 
-    it('should fail without refreshToken', () => {
-      const { error } = refreshTokenSchema.validate({});
-      expect(error).toBeDefined();
+    it('passes with a body that includes legacy fields', () => {
+      const { error } = refreshTokenSchema.validate({ refreshToken: 'legacy' });
+      expect(error).toBeUndefined();
     });
   });
 
   describe('logoutSchema', () => {
-    it('should pass with valid refreshToken', () => {
-      const { error } = logoutSchema.validate({ refreshToken: 'some-token' });
+    it('passes with an empty body', () => {
+      const { error } = logoutSchema.validate({});
       expect(error).toBeUndefined();
     });
 
-    it('should fail without refreshToken', () => {
-      const { error } = logoutSchema.validate({});
-      expect(error).toBeDefined();
+    it('passes with a body that includes legacy fields', () => {
+      const { error } = logoutSchema.validate({ refreshToken: 'legacy' });
+      expect(error).toBeUndefined();
     });
   });
 

@@ -2,14 +2,20 @@ import { useEffect, useRef, useState, useCallback, useContext } from 'react';
 import { WS_URL } from '@config/constants';
 import logger from '@utils/logger';
 import UIFeedbackContext from '@context/UIFeedbackContext';
+import type {
+  ChatMessage,
+  ConnectedUser,
+  ServerMessage,
+} from './bookclubWebSocket/types';
+import { applyServerMessageToMessages } from './bookclubWebSocket/messageReducer';
 
 export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { onInit }: { onInit?: (...args: any[]) => void } = {}) => {
-  const ws = useRef(null);
-  const [messages, setMessages] = useState([]);
-  const [connectedUsers, setConnectedUsers] = useState([]);
-  const [bookClubMembers, setBookClubMembers] = useState([]);
-  const [unreadRooms, setUnreadRooms] = useState(new Set());
-  const [unreadSections, setUnreadSections] = useState(new Set());
+  const ws = useRef<WebSocket | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>([]);
+  const [bookClubMembers, setBookClubMembers] = useState<ConnectedUser[]>([]);
+  const [unreadRooms, setUnreadRooms] = useState<Set<string>>(new Set());
+  const [unreadSections, setUnreadSections] = useState<Set<string>>(new Set());
   const [lastReadAt, setLastReadAt] = useState(null);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
@@ -107,199 +113,96 @@ export const useBookclubWebSocket = (bookClub, currentRoom, auth, bookClubId, { 
 
       socket.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
-          
+          const data = JSON.parse(event.data) as ServerMessage;
+
+          // Pure transformation of the messages array
+          setMessages((prev) => applyServerMessageToMessages(prev, data));
+
+          // Side effects on the other state slices
           switch (data.type) {
             case 'init':
-              setMessages(data.messages.map(msg => ({
-                id: msg.id,
-                ...(msg.isSystem ? { type: 'system' } : {}),
-                username: msg.username,
-                profileImage: msg.profileImage,
-                text: msg.isSystem ? `${msg.username} ${msg.content}` : msg.content,
-                timestamp: msg.createdAt,
-                userId: msg.userId,
-                isPinned: msg.isPinned,
-                deletedAt: msg.deletedAt,
-                deletedBy: msg.deletedBy,
-                editedAt: msg.editedAt,
-                replyToId: msg.replyToId,
-                replyTo: msg.replyTo || null,
-                attachments: msg.attachments || [],
-                reactions: msg.reactions || []
-              })));
               setHasMoreMessages(data.hasMore || false);
               setConnectedUsers(data.users || []);
-              if (data.members) {
-                setBookClubMembers(data.members);
-              }
-              // Populate unread rooms from server
-              if (data.unreadRoomIds && data.unreadRoomIds.length > 0) {
-                setUnreadRooms(new Set(data.unreadRoomIds));
-              } else {
-                setUnreadRooms(new Set());
-              }
-              // Set lastReadAt for the current room
+              if (data.members) setBookClubMembers(data.members);
+              setUnreadRooms(
+                data.unreadRoomIds && data.unreadRoomIds.length > 0
+                  ? new Set(data.unreadRoomIds)
+                  : new Set(),
+              );
               setLastReadAt(data.lastReadAt || null);
-              // Populate unread sections from server
-              if (data.unreadSections && data.unreadSections.length > 0) {
-                setUnreadSections(new Set(data.unreadSections));
-              } else {
-                setUnreadSections(new Set());
-              }
-              // Notify parent about init data (rooms with types, user role)
+              setUnreadSections(
+                data.unreadSections && data.unreadSections.length > 0
+                  ? new Set(data.unreadSections)
+                  : new Set(),
+              );
               if (onInitRef.current) {
                 onInitRef.current({
                   rooms: data.bookClub?.rooms || [],
-                  userRole: data.userRole || null
+                  userRole: data.userRole || null,
                 });
               }
               break;
-            
-            case 'chat-message':
-              setMessages(prev => [...prev, {
-                id: data.message.id,
-                ...(data.message.isSystem ? { type: 'system' } : {}),
-                username: data.message.username,
-                profileImage: data.message.profileImage,
-                text: data.message.isSystem ? `${data.message.username} ${data.message.content}` : data.message.content,
-                timestamp: data.message.createdAt,
-                userId: data.message.userId,
-                isPinned: data.message.isPinned || false,
-                deletedAt: data.message.deletedAt,
-                deletedBy: data.message.deletedBy,
-                editedAt: data.message.editedAt,
-                replyToId: data.message.replyToId,
-                replyTo: data.message.replyTo || null,
-                attachments: data.message.attachments || [],
-                reactions: data.message.reactions || []
-              }]);
-              break;
-            
+
             case 'user-joined':
-              setConnectedUsers(prev => {
-                if (!prev.find(u => u.id === data.user.id)) {
-                  return [...prev, data.user];
-                }
-                return prev;
-              });
-              if (data.members) {
-                setBookClubMembers(data.members);
-              }
+              setConnectedUsers((prev) =>
+                prev.find((u) => u.id === data.user.id) ? prev : [...prev, data.user],
+              );
+              if (data.members) setBookClubMembers(data.members);
               break;
-            
+
             case 'user-left':
-              setConnectedUsers(prev => prev.filter(u => u.id !== data.userId));
+              setConnectedUsers((prev) => prev.filter((u) => u.id !== data.userId));
               break;
-            
+
             case 'room-switched':
-              // Clear unread for the room we just switched to
-              setUnreadRooms(prev => {
+              setUnreadRooms((prev) => {
                 const next = new Set(prev);
                 next.delete(data.roomId || currentRoomIdRef.current);
                 return next;
               });
-              // Set lastReadAt for the switched room
               setLastReadAt(data.lastReadAt || null);
               setHasMoreMessages(data.hasMore || false);
-              setMessages(data.messages.map(msg => ({
-                id: msg.id,
-                ...(msg.isSystem ? { type: 'system' } : {}),
-                username: msg.username,
-                profileImage: msg.profileImage,
-                text: msg.isSystem ? `${msg.username} ${msg.content}` : msg.content,
-                timestamp: msg.createdAt,
-                userId: msg.userId,
-                isPinned: msg.isPinned,
-                deletedAt: msg.deletedAt,
-                deletedBy: msg.deletedBy,
-                editedAt: msg.editedAt,
-                replyToId: msg.replyToId,
-                replyTo: msg.replyTo || null,
-                attachments: msg.attachments || [],
-                reactions: msg.reactions || []
-              })));
-              break;
-            
-            case 'reaction-updated':
-              setMessages(prev => prev.map(msg =>
-                msg.id === data.messageId
-                  ? { ...msg, reactions: data.reactions }
-                  : msg
-              ));
               break;
 
             case 'older-messages':
               setLoadingOlder(false);
               setHasMoreMessages(data.hasMore || false);
-              if (data.messages && data.messages.length > 0) {
-                const olderMsgs = data.messages.map(msg => ({
-                  id: msg.id,
-                  ...(msg.isSystem ? { type: 'system' } : {}),
-                  username: msg.username,
-                  profileImage: msg.profileImage,
-                  text: msg.isSystem ? `${msg.username} ${msg.content}` : msg.content,
-                  timestamp: msg.createdAt,
-                  userId: msg.userId,
-                  isPinned: msg.isPinned,
-                  deletedAt: msg.deletedAt,
-                  deletedBy: msg.deletedBy,
-                  editedAt: msg.editedAt,
-                  replyToId: msg.replyToId,
-                  replyTo: msg.replyTo || null,
-                  attachments: msg.attachments || [],
-                  reactions: msg.reactions || []
-                }));
-                setMessages(prev => [...olderMsgs, ...prev]);
-              }
               break;
 
-            case 'message-edited':
-              setMessages(prev => prev.map(msg =>
-                msg.id === data.messageId
-                  ? { ...msg, text: data.content, editedAt: data.editedAt }
-                  : msg
-              ));
-              break;
-            
             case 'error':
               logger.error('WebSocket error:', data.message);
               toastError(data.message);
               break;
 
             case 'room-activity':
-              // A message was posted in another room — mark it as unread
               if (data.roomId && data.roomId !== currentRoomIdRef.current) {
-                setUnreadRooms(prev => {
-                  const next = new Set(prev).add(data.roomId);
-                  return next;
-                });
+                setUnreadRooms((prev) => new Set(prev).add(data.roomId));
               }
               break;
 
             case 'section-activity':
-              // Something was added to a navigation section by another user
               if (data.section) {
-                setUnreadSections(prev => new Set([...prev, data.section]));
+                setUnreadSections((prev) => new Set([...prev, data.section]));
               }
               break;
 
             case 'typing': {
               const name = data.username;
               const id = data.userId;
-              // Skip own typing events
               if (id === auth?.user?.id) break;
-              // Add user to typing list
-              setTypingUsers(prev => prev.includes(name) ? prev : [...prev, name]);
-              // Clear previous timer for this user
+              setTypingUsers((prev) => (prev.includes(name) ? prev : [...prev, name]));
               if (typingTimersRef.current[id]) clearTimeout(typingTimersRef.current[id]);
-              // Remove after 3s of no typing events
               typingTimersRef.current[id] = setTimeout(() => {
-                setTypingUsers(prev => prev.filter(u => u !== name));
+                setTypingUsers((prev) => prev.filter((u) => u !== name));
                 delete typingTimersRef.current[id];
               }, 3000);
               break;
             }
+
+            // chat-message / reaction-updated / message-edited are handled
+            // entirely by the messages reducer above — no side effects.
+            default:
+              break;
           }
         } catch (err) {
           logger.error('Error processing WebSocket message:', err);
