@@ -72,7 +72,7 @@ const MentionAutocomplete = ({
             type="button"
             className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
               idx === selectedIndex
-                ? 'bg-stone-700/40 text-white'
+                ? 'bg-indigo-700/40 text-white'
                 : 'text-gray-200 hover:bg-gray-700'
             }`}
             onMouseDown={(e) => {

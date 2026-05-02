@@ -81,7 +81,7 @@ const MeetingsView = ({
       <div className="sticky top-0 z-10 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700/50 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <FiCalendar size={22} className="text-stone-500" />
+            <FiCalendar size={22} className="text-indigo-500" />
             <h2 className="text-xl font-bold text-white">Meetings</h2>
             <span className="text-sm text-gray-500">
               {liveMeetings.length + upcomingMeetings.length} upcoming
@@ -92,7 +92,7 @@ const MeetingsView = ({
               onClick={() => setShowPast(!showPast)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                 showPast
-                  ? 'bg-stone-700/20 text-stone-500 border-stone-500/30'
+                  ? 'bg-indigo-700/20 text-indigo-500 border-indigo-500/30'
                   : 'text-gray-400 border-gray-600 hover:bg-gray-800'
               }`}
             >
@@ -102,7 +102,7 @@ const MeetingsView = ({
             {canManage && (
               <button
                 onClick={onScheduleMeeting}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-700 text-white rounded-lg hover:bg-stone-500 transition-colors text-sm font-medium"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-700 text-white rounded-lg hover:bg-indigo-500 transition-colors text-sm font-medium"
               >
                 <FiPlus size={15} />
                 Schedule
@@ -134,7 +134,7 @@ const MeetingsView = ({
             {canManage && (
               <button
                 onClick={onScheduleMeeting}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-700 text-white rounded-lg hover:bg-stone-500 transition-colors font-medium"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-700 text-white rounded-lg hover:bg-indigo-500 transition-colors font-medium"
               >
                 <FiPlus size={16} />
                 Schedule First Meeting

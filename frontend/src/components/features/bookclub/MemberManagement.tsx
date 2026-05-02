@@ -6,8 +6,8 @@ import logger from '@utils/logger';
 import { useConfirm, useToast } from '@hooks/useUIFeedback';
 
 const ROLE_COLORS = {
-  OWNER: 'bg-stone-100 text-stone-800 border-stone-300',
-  ADMIN: 'bg-stone-100 text-stone-700 border-stone-300',
+  OWNER: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+  ADMIN: 'bg-indigo-100 text-indigo-700 border-indigo-300',
   MODERATOR: 'bg-green-100 text-green-700 border-green-300',
   MEMBER: 'bg-gray-100 text-gray-700 border-gray-300',
 };
@@ -94,9 +94,9 @@ const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUp
     return (
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex items-center gap-3 mb-6">
-          <FiUsers className="w-6 h-6 text-stone-700" />
+          <FiUsers className="w-6 h-6 text-indigo-700" />
           <h3 className="text-xl font-bold text-gray-900 font-display">Members</h3>
-          <span className="bg-stone-100 text-stone-800 px-3 py-1 rounded-full text-sm font-semibold">
+          <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-semibold">
             0
           </span>
         </div>
@@ -108,9 +108,9 @@ const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUp
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
       <div className="flex items-center gap-3 mb-6">
-        <FiUsers className="w-6 h-6 text-stone-700" />
+        <FiUsers className="w-6 h-6 text-indigo-700" />
         <h3 className="text-xl font-bold text-gray-900 font-display">Members</h3>
-        <span className="bg-stone-100 text-stone-800 px-3 py-1 rounded-full text-sm font-semibold">
+        <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-semibold">
           {sortedMembers.length}
         </span>
       </div>
@@ -128,7 +128,7 @@ const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUp
             <div
               key={member.id}
               className={`border-2 rounded-xl p-4 transition-colors ${
-                isCurrentUser ? 'border-stone-300 bg-stone-50' : 'border-gray-200 hover:border-stone-200'
+                isCurrentUser ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 hover:border-indigo-200'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -136,7 +136,7 @@ const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUp
                   <img
                     src={getProfileImageUrl(member.profileImage) || '/images/default.webp'}
                     alt={member.username}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-stone-200"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-indigo-200"
                     onError={(e) => { (e.target as HTMLImageElement).src = '/images/default.webp'; }}
                   />
                   <div className="flex-1">
@@ -145,7 +145,7 @@ const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUp
                         {member.username || 'Unknown User'}
                       </p>
                       {isCurrentUser && (
-                        <span className="bg-stone-200 text-stone-900 px-2 py-0.5 rounded text-xs font-semibold">
+                        <span className="bg-indigo-200 text-indigo-900 px-2 py-0.5 rounded text-xs font-semibold">
                           You
                         </span>
                       )}
@@ -181,7 +181,7 @@ const MemberManagement = ({ bookclub, currentUserId, currentUserRole, onMemberUp
                               key={role}
                               onClick={() => handleRoleChange(member.id, role)}
                               className={`w-full px-4 py-2 text-left text-sm font-semibold hover:bg-gray-50 transition-colors ${
-                                role === memberRole ? 'bg-stone-50 text-stone-800' : 'text-gray-700'
+                                role === memberRole ? 'bg-indigo-50 text-indigo-800' : 'text-gray-700'
                               } ${role === 'ADMIN' ? 'rounded-t-lg' : ''} ${role === 'MEMBER' ? 'rounded-b-lg' : ''}`}
                             >
                               {role}

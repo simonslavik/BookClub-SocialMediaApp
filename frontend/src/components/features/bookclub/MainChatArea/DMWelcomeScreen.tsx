@@ -26,7 +26,7 @@ const DMWelcomeScreen = ({ auth, friends = [], conversations = [], onSelectConve
     <div className="flex-1 flex items-center justify-center bg-gray-900 p-4">
       <div className="max-w-lg w-full text-center">
         {/* Welcome icon */}
-        <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-stone-600 to-stone-800 flex items-center justify-center mb-6 shadow-lg">
+        <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-indigo-600 to-indigo-800 flex items-center justify-center mb-6 shadow-lg">
           <FiMessageCircle className="w-10 h-10 text-white" />
         </div>
 
@@ -37,7 +37,7 @@ const DMWelcomeScreen = ({ auth, friends = [], conversations = [], onSelectConve
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
           <button
             onClick={() => navigate('/discover')}
-            className="flex flex-col items-center gap-2 p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-stone-600 rounded-xl transition-all group cursor-pointer"
+            className="flex flex-col items-center gap-2 p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-indigo-600 rounded-xl transition-all group cursor-pointer"
           >
             <div className="w-10 h-10 rounded-full bg-emerald-900/40 flex items-center justify-center group-hover:bg-emerald-900/60 transition-colors">
               <FiCompass className="w-5 h-5 text-emerald-400" />
@@ -48,7 +48,7 @@ const DMWelcomeScreen = ({ auth, friends = [], conversations = [], onSelectConve
 
           <button
             onClick={() => navigate('/create-bookclub')}
-            className="flex flex-col items-center gap-2 p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-stone-600 rounded-xl transition-all group cursor-pointer"
+            className="flex flex-col items-center gap-2 p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-indigo-600 rounded-xl transition-all group cursor-pointer"
           >
             <div className="w-10 h-10 rounded-full bg-blue-900/40 flex items-center justify-center group-hover:bg-blue-900/60 transition-colors">
               <FiPlusCircle className="w-5 h-5 text-blue-400" />
@@ -62,7 +62,7 @@ const DMWelcomeScreen = ({ auth, friends = [], conversations = [], onSelectConve
               const searchInput = document.querySelector<HTMLInputElement>('input[placeholder="Find or start a conversation"]');
               if (searchInput) { searchInput.focus(); searchInput.click(); }
             }}
-            className="flex flex-col items-center gap-2 p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-stone-600 rounded-xl transition-all group cursor-pointer"
+            className="flex flex-col items-center gap-2 p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-indigo-600 rounded-xl transition-all group cursor-pointer"
           >
             <div className="w-10 h-10 rounded-full bg-purple-900/40 flex items-center justify-center group-hover:bg-purple-900/60 transition-colors">
               <FiSearch className="w-5 h-5 text-purple-400" />
@@ -93,7 +93,7 @@ const DMWelcomeScreen = ({ auth, friends = [], conversations = [], onSelectConve
                     onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE; }}
                   />
                   <span className="text-sm text-gray-300 group-hover:text-white font-medium truncate">{friend.name || friend.username}</span>
-                  <FiMessageCircle className="w-4 h-4 text-gray-600 group-hover:text-stone-400 ml-auto flex-shrink-0 transition-colors" />
+                  <FiMessageCircle className="w-4 h-4 text-gray-600 group-hover:text-indigo-400 ml-auto flex-shrink-0 transition-colors" />
                 </button>
               ))}
             </div>
@@ -105,7 +105,7 @@ const DMWelcomeScreen = ({ auth, friends = [], conversations = [], onSelectConve
             <p className="text-xs text-gray-500 mb-4">Join a book club to meet fellow readers, or search for people you know.</p>
             <button
               onClick={() => navigate('/discover')}
-              className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white text-sm rounded-lg transition-colors font-medium cursor-pointer"
+              className="px-4 py-2 bg-indigo-700 hover:bg-indigo-600 text-white text-sm rounded-lg transition-colors font-medium cursor-pointer"
             >
               Browse Book Clubs
             </button>

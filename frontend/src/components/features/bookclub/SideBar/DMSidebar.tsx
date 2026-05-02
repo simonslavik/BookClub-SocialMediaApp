@@ -85,7 +85,7 @@ const DMSidebar = ({ conversations, friends = [], currentConversation, onSelectC
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setShowSearch(true)}
             placeholder="Find or start a conversation"
-            className="w-full pl-8 pr-7 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-stone-500"
+            className="w-full pl-8 pr-7 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
           {(searchQuery || showSearch) && (
             <button
@@ -114,18 +114,18 @@ const DMSidebar = ({ conversations, friends = [], currentConversation, onSelectC
             <button
               key={user.id}
               onClick={() => handleSelectUser(user.id)}
-              className="w-full px-3 py-2 text-left transition-colors hover:bg-gray-700 flex items-center gap-2.5"
+              className="w-full px-2 py-1.5 text-left transition-colors hover:bg-gray-700 flex items-center gap-2.5"
             >
               <img
                 src={getProfileImageUrl(user.profileImage) || '/images/default.webp'}
                 alt={user.name || user.username}
-                className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                className="w-7 h-7 rounded-full object-cover flex-shrink-0"
                 onError={(e) => { (e.target as HTMLImageElement).src = '/images/default.webp'; }}
               />
               <div className="flex-1 min-w-0">
-                <span className="text-white text-sm truncate block">{user.name || user.username}</span>
+                <span className="text-white text-[13px] truncate block">{user.name || user.username}</span>
                 {friendIds.has(user.id) && (
-                  <span className="text-xs text-stone-500">Friend</span>
+                  <span className="text-[11px] text-indigo-500">Friend</span>
                 )}
               </div>
             </button>
@@ -147,34 +147,34 @@ const DMSidebar = ({ conversations, friends = [], currentConversation, onSelectC
               <button
                 key={conv.friend.id}
                 onClick={() => onSelectConversation(conv.friend.id)}
-                className={`w-full p-3 rounded mb-1 text-left transition-colors ${
+                className={`w-full px-2 py-1.5 rounded mb-0.5 text-left transition-colors ${
                   currentConversation === conv.friend.id
                     ? 'bg-gray-700'
                     : 'hover:bg-gray-700'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <img 
+                <div className="flex items-center gap-2.5">
+                  <img
                     src={getProfileImageUrl(conv.friend.profileImage) || '/images/default.webp'}
                     alt={conv.friend.name || 'User'}
-                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                     onError={(e) => { (e.target as HTMLImageElement).src = '/images/default.webp'; }}
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-white font-semibold text-sm truncate">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white font-medium text-[13px] truncate">
                         {conv.friend.name || 'Unknown User'}
                       </span>
                       {conv.unreadCount > 0 && (
-                        <span className="bg-stone-700 text-white text-xs rounded-full px-2 py-0.5 flex-shrink-0 ml-2">
+                        <span className="bg-indigo-700 text-white text-[10px] rounded-full px-1.5 py-0.5 flex-shrink-0 ml-2 leading-none">
                           {conv.unreadCount}
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-400 text-xs truncate">
-                      {conv.lastMessage?.content || 
-                       (conv.lastMessage?.attachments && conv.lastMessage.attachments.length > 0 
-                         ? '📎 File sent' 
+                    <p className="text-gray-400 text-[11px] truncate mt-0.5">
+                      {conv.lastMessage?.content ||
+                       (conv.lastMessage?.attachments && conv.lastMessage.attachments.length > 0
+                         ? '📎 File sent'
                          : 'No messages yet')}
                     </p>
                   </div>

@@ -19,7 +19,7 @@ const BookClubImage = ({ bookClub, auth, uploadingImage, fileInputRef, handleIma
                         <button
                           onClick={() => fileInputRef.current?.click()}
                           disabled={uploadingImage}
-                          className="p-2 bg-stone-700 hover:bg-stone-800 text-white rounded-lg"
+                          className="p-2 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg"
                           title="Change Image"
                         >
                           <FiImage />

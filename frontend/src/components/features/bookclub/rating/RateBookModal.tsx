@@ -110,7 +110,7 @@ const RateBookModal = ({ isOpen, onClose, onRate, onRemoveRating, currentRating,
           <button
             onClick={handleSubmit}
             disabled={submitting || selectedRating < 1}
-            className="flex-1 px-4 py-2 bg-stone-700 hover:bg-stone-800 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            className="flex-1 px-4 py-2 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
           >
             {submitting ? 'Saving...' : currentRating ? 'Update Rating' : 'Rate Book'}
           </button>

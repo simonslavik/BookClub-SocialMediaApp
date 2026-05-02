@@ -8,7 +8,7 @@ import logger from '@utils/logger';
 const ROOM_TYPES = [
   { value: 'PUBLIC', label: 'Public', icon: FiHash, description: 'Anyone in the book club can see and send messages', color: 'text-gray-400' },
   { value: 'PRIVATE', label: 'Private', icon: FiLock, description: 'Everyone can see this room, but only invited members can access it', color: 'text-yellow-400' },
-  { value: 'ANNOUNCEMENT', label: 'Announcement', icon: FiVolume2, description: 'Everyone can read, only moderators+ can post', color: 'text-stone-400' },
+  { value: 'ANNOUNCEMENT', label: 'Announcement', icon: FiVolume2, description: 'Everyone can read, only moderators+ can post', color: 'text-indigo-400' },
 ];
 
 const TABS = [
@@ -36,7 +36,7 @@ const GeneralTab = ({ form, setForm, room, saving, onSave, error, userRole }) =>
             value={form.name}
             onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
             maxLength={50}
-            className="w-full bg-gray-900 text-white px-3 py-2 rounded border border-gray-600 focus:border-stone-500 focus:outline-none text-sm"
+            className="w-full bg-gray-900 text-white px-3 py-2 rounded border border-gray-600 focus:border-indigo-500 focus:outline-none text-sm"
           />
           <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">
             {form.name.length}/50
@@ -58,12 +58,12 @@ const GeneralTab = ({ form, setForm, room, saving, onSave, error, userRole }) =>
                   type="button"
                   onClick={() => setForm(p => ({ ...p, type: rt.value }))}
                   className={`w-full flex items-start gap-3 p-3 rounded border transition-colors text-left ${
-                    isSelected ? 'border-stone-500 bg-stone-500/10' : 'border-gray-600 bg-gray-900 hover:border-gray-500'
+                    isSelected ? 'border-indigo-500 bg-indigo-500/10' : 'border-gray-600 bg-gray-900 hover:border-gray-500'
                   }`}
                 >
-                  <Icon size={18} className={`mt-0.5 flex-shrink-0 ${isSelected ? 'text-stone-500' : rt.color}`} />
+                  <Icon size={18} className={`mt-0.5 flex-shrink-0 ${isSelected ? 'text-indigo-500' : rt.color}`} />
                   <div>
-                    <p className={`text-sm font-medium ${isSelected ? 'text-stone-300' : 'text-white'}`}>{rt.label}</p>
+                    <p className={`text-sm font-medium ${isSelected ? 'text-indigo-300' : 'text-white'}`}>{rt.label}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{rt.description}</p>
                   </div>
                 </button>
@@ -79,7 +79,7 @@ const GeneralTab = ({ form, setForm, room, saving, onSave, error, userRole }) =>
           <label className="block text-gray-300 text-sm font-medium mb-1">Room Type</label>
           <div className="flex items-center gap-2 text-gray-400 text-sm bg-gray-900 px-3 py-2 rounded border border-gray-700">
             {room.type === 'PRIVATE' ? <FiLock size={14} className="text-yellow-400" /> :
-             room.type === 'ANNOUNCEMENT' ? <FiVolume2 size={14} className="text-stone-400" /> :
+             room.type === 'ANNOUNCEMENT' ? <FiVolume2 size={14} className="text-indigo-400" /> :
              <FiHash size={14} />}
             {ROOM_TYPES.find(t => t.value === room.type)?.label || room.type}
             {room.isDefault && <span className="ml-auto text-xs text-gray-500 bg-gray-700 px-2 py-0.5 rounded">Default</span>}
@@ -92,7 +92,7 @@ const GeneralTab = ({ form, setForm, room, saving, onSave, error, userRole }) =>
         <button
           onClick={onSave}
           disabled={saving || !form.name.trim()}
-          className="px-4 py-2 text-sm bg-stone-700 hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded transition-colors"
+          className="px-4 py-2 text-sm bg-indigo-700 hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded transition-colors"
         >
           {saving ? 'Saving...' : 'Save Changes'}
         </button>
@@ -193,7 +193,7 @@ const MembersTab = ({ room, bookClubId, allMembers, currentUserId, userRole }) =
           {canManageMembers && (
             <button
               onClick={() => setShowAddSection(!showAddSection)}
-              className="flex items-center gap-1 text-xs text-stone-500 hover:text-stone-300 transition-colors"
+              className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-300 transition-colors"
             >
               <FiUserPlus size={12} />
               {showAddSection ? 'Hide' : 'Add Members'}
@@ -259,7 +259,7 @@ const MembersTab = ({ room, bookClubId, allMembers, currentUserId, userRole }) =
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search book club members..."
-              className="w-full bg-gray-900 text-white pl-8 pr-3 py-2 rounded border border-gray-600 focus:border-stone-500 focus:outline-none text-sm"
+              className="w-full bg-gray-900 text-white pl-8 pr-3 py-2 rounded border border-gray-600 focus:border-indigo-500 focus:outline-none text-sm"
             />
           </div>
           <div className="space-y-1 max-h-40 overflow-y-auto rounded border border-gray-700 bg-gray-900">
@@ -282,7 +282,7 @@ const MembersTab = ({ room, bookClubId, allMembers, currentUserId, userRole }) =
                   <button
                     onClick={() => handleAddMember(member.id)}
                     disabled={addingMember === member.id}
-                    className="px-2 py-1 text-xs bg-stone-700 hover:bg-stone-800 text-white rounded transition-colors disabled:opacity-50"
+                    className="px-2 py-1 text-xs bg-indigo-700 hover:bg-indigo-800 text-white rounded transition-colors disabled:opacity-50"
                   >
                     {addingMember === member.id ? '...' : 'Add'}
                   </button>
@@ -308,7 +308,7 @@ const DangerZoneTab = ({ room, onDelete, userRole }) => {
       {room.isDefault && (
         <div className="bg-gray-700/40 border border-gray-600 rounded-lg p-4">
           <div className="flex items-center gap-2 text-gray-300 text-sm">
-            <FiShield size={16} className="text-stone-400 flex-shrink-0" />
+            <FiShield size={16} className="text-indigo-400 flex-shrink-0" />
             <span>This is the default room and cannot be deleted.</span>
           </div>
         </div>
@@ -440,7 +440,7 @@ const RoomSettingsModal = ({ isOpen, onClose, room, bookClubId, allMembers, curr
           <div className="flex items-center gap-2 min-w-0">
             <RoomIcon size={18} className={
               room.type === 'PRIVATE' ? 'text-yellow-400' :
-              room.type === 'ANNOUNCEMENT' ? 'text-stone-400' :
+              room.type === 'ANNOUNCEMENT' ? 'text-indigo-400' :
               'text-gray-400'
             } />
             <h2 className="text-white font-semibold text-lg truncate">Room Settings</h2>
@@ -464,7 +464,7 @@ const RoomSettingsModal = ({ isOpen, onClose, room, bookClubId, allMembers, curr
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 ${
                   isActive
-                    ? 'text-stone-500 border-stone-500'
+                    ? 'text-indigo-500 border-indigo-500'
                     : 'text-gray-400 border-transparent hover:text-gray-200 hover:border-gray-600'
                 }`}
               >

@@ -11,8 +11,8 @@ import logger from '@utils/logger';
 const RoleBadge = ({ role }) => {
   const roleConfig = {
     OWNER: { icon: FiStar, color: 'text-yellow-400', bg: 'bg-yellow-400/10', label: 'Owner' },
-    ADMIN: { icon: FiShield, color: 'text-stone-500', bg: 'bg-stone-500/10', label: 'Admin' },
-    MODERATOR: { icon: FiAward, color: 'text-stone-400', bg: 'bg-stone-400/10', label: 'Mod' },
+    ADMIN: { icon: FiShield, color: 'text-indigo-500', bg: 'bg-indigo-500/10', label: 'Admin' },
+    MODERATOR: { icon: FiAward, color: 'text-indigo-400', bg: 'bg-indigo-400/10', label: 'Mod' },
     MEMBER: { icon: null, color: '', bg: '', label: '' }
   };
 
@@ -86,11 +86,11 @@ const ConnectedUsersSidebar = ({
         onClick={() => setShowMembersModal(true)}
         className="flex items-center gap-2 px-2 py-1.5 mb-2 w-full rounded-md hover:bg-gray-700 transition-colors group cursor-pointer"
       >
-        <FiUsers className="text-gray-400 group-hover:text-stone-500 transition-colors" size={14} />
-        <h3 className="text-gray-400 group-hover:text-stone-500 text-xs font-semibold uppercase transition-colors">
+        <FiUsers className="text-gray-400 group-hover:text-indigo-500 transition-colors" size={14} />
+        <h3 className="text-gray-400 group-hover:text-indigo-500 text-xs font-semibold uppercase transition-colors">
           Members
         </h3>
-        <span className="ml-auto bg-gray-700 group-hover:bg-stone-500/20 text-gray-300 group-hover:text-stone-500 text-xs font-bold px-1.5 py-0.5 rounded-full transition-colors">
+        <span className="ml-auto bg-gray-700 group-hover:bg-indigo-500/20 text-gray-300 group-hover:text-indigo-500 text-xs font-bold px-1.5 py-0.5 rounded-full transition-colors">
           {bookClubMembers.length}
         </span>
       </button>
@@ -103,7 +103,7 @@ const ConnectedUsersSidebar = ({
           placeholder="Search members..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-gray-700/50 border border-gray-600 rounded-md py-1 pl-7 pr-6 text-xs text-gray-300 placeholder-gray-500 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-500/30 transition-colors"
+          className="w-full bg-gray-700/50 border border-gray-600 rounded-md py-1 pl-7 pr-6 text-xs text-gray-300 placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 transition-colors"
         />
         {searchQuery && (
           <button
@@ -121,9 +121,9 @@ const ConnectedUsersSidebar = ({
           <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
               <div className="flex items-center gap-2">
-                <FiUsers className="text-stone-500" size={18} />
+                <FiUsers className="text-indigo-500" size={18} />
                 <h2 className="text-white font-semibold text-lg">All Members</h2>
-                <span className="bg-stone-500/20 text-stone-500 text-xs font-bold px-2 py-0.5 rounded-full">{bookClubMembers.length}</span>
+                <span className="bg-indigo-500/20 text-indigo-500 text-xs font-bold px-2 py-0.5 rounded-full">{bookClubMembers.length}</span>
               </div>
               <button onClick={() => setShowMembersModal(false)} className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-700 rounded-md">
                 <FiX size={18} />
@@ -138,7 +138,7 @@ const ConnectedUsersSidebar = ({
                   <div
                     key={user.id}
                     onClick={() => { navigate(`/profile/${user.id}`); setShowMembersModal(false); }}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-700/60 cursor-pointer transition-colors"
+                    className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-700/60 cursor-pointer transition-colors"
                   >
                     <div className="relative">
                       <UserHoverCard
@@ -151,11 +151,11 @@ const ConnectedUsersSidebar = ({
                         <img
                           src={getProfileImageUrl(user.profileImage) || '/images/default.webp'}
                           alt={user.username}
-                          className="w-10 h-10 rounded-full object-cover"
+                          className="w-8 h-8 rounded-full object-cover"
                           onError={(e) => { (e.target as HTMLImageElement).src = '/images/default.webp'; }}
                         />
                       </UserHoverCard>
-                      <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-gray-800 ${getStatusColor(isOnline ? (user.status || 'ONLINE') : 'OFFLINE')}`} />
+                      <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-gray-800 ${getStatusColor(isOnline ? (user.status || 'ONLINE') : 'OFFLINE')}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -220,17 +220,17 @@ const ConnectedUsersSidebar = ({
                     isOnline={isOnline}
                     onSendFriendRequest={onSendFriendRequest}
                   >
-                    <img 
-                      src={getProfileImageUrl(user.profileImage) || '/images/default.webp'} 
-                      alt={user.username} 
-                      className="w-8 h-8 rounded-full object-cover"
+                    <img
+                      src={getProfileImageUrl(user.profileImage) || '/images/default.webp'}
+                      alt={user.username}
+                      className="w-7 h-7 rounded-full object-cover"
                       onError={(e) => { (e.target as HTMLImageElement).src = '/images/default.webp'; }}
                     />
                   </UserHoverCard>
-                  <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-gray-800 ${getStatusColor(isOnline ? (user.status || 'ONLINE') : 'OFFLINE')}`}></div>
+                  <div className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 border-gray-800 ${getStatusColor(isOnline ? (user.status || 'ONLINE') : 'OFFLINE')}`}></div>
                 </div>
                 <div className="flex-1 flex items-center gap-1.5 min-w-0">
-                  <span className="truncate">{user.username}</span>
+                  <span className="truncate text-[13px]">{user.username}</span>
                   <RoleBadge role={user.role} />
                 </div>
                 {isFriend && (

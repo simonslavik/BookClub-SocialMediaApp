@@ -223,10 +223,10 @@ const MessageInput = ({
     <form onSubmit={handleSubmit} className="bg-gray-800 border-t border-gray-700 relative">
       {/* Reply Preview Bar */}
       {replyingTo && (
-        <div className="flex items-center gap-2 px-4 pt-3 pb-1">
-          <FiCornerUpLeft className="w-4 h-4 text-stone-500 flex-shrink-0" />
-          <div className="flex-1 bg-gray-700/50 border-l-2 border-stone-500 rounded-r-lg px-3 py-1.5 min-w-0">
-            <span className="text-xs text-stone-300 font-medium block">Replying to {replyingTo.username}</span>
+        <div className="flex items-center gap-2 px-3 pt-2 pb-1">
+          <FiCornerUpLeft className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
+          <div className="flex-1 bg-white/[0.03] border-l-2 border-indigo-500 rounded-r-lg px-3 py-1 min-w-0">
+            <span className="text-xs text-indigo-300 font-medium block">Replying to {replyingTo.username}</span>
             <span className="text-xs text-gray-400 truncate block">{replyingTo.text || '[attachment]'}</span>
           </div>
           <button
@@ -234,16 +234,15 @@ const MessageInput = ({
             onClick={onCancelReply}
             className="p-1 rounded hover:bg-gray-700 text-gray-400 hover:text-white transition-colors flex-shrink-0"
           >
-            <FiX className="w-4 h-4" />
+            <FiX className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
-      {/* File Upload Preview */}
-      
-      <div className="flex gap-1.5 md:gap-2 p-2 md:p-4 items-center">
-        <FileUpload 
+
+      <div className="flex gap-1.5 p-2 md:p-3 items-center">
+        <FileUpload
         ref={fileUploadRef}
-        onFilesSelected={onFilesSelected} 
+        onFilesSelected={onFilesSelected}
         auth={auth}
         disabled={!currentRoom}
         />
@@ -266,13 +265,13 @@ const MessageInput = ({
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             placeholder={`Message #${currentRoom?.name}`}
-            className="w-full px-3 md:px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm md:text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-stone-500"
+            className="w-full px-3 py-1.5 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
         <button
           type="submit"
           disabled={(!newMessage.trim() && selectedFiles.length === 0) || uploadingFiles}
-          className="px-3 md:px-6 py-2 bg-stone-700 hover:bg-stone-800 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium text-sm md:text-base"
+          className="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-800 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm"
         >
           {uploadingFiles ? '...' : 'Send'}
         </button>

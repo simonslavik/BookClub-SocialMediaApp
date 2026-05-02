@@ -68,7 +68,7 @@ const ReactionPicker = ({ onSelectEmoji, position = 'top', currentUserEmoji = nu
                 onClick={() => handleSelect(emoji)}
                 className={`text-xl p-1.5 rounded-lg transition-colors flex items-center justify-center ${
                   emoji === currentUserEmoji
-                    ? 'bg-stone-700/40 ring-2 ring-stone-500'
+                    ? 'bg-indigo-700/40 ring-2 ring-indigo-500'
                     : 'hover:bg-gray-700'
                 }`}
               >

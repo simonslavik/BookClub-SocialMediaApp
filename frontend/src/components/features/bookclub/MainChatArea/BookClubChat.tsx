@@ -91,8 +91,8 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws, 
     const el = document.getElementById(`msg-${messageId}`);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('ring-2', 'ring-stone-500', 'ring-opacity-75');
-      setTimeout(() => el.classList.remove('ring-2', 'ring-stone-500', 'ring-opacity-75'), 2000);
+      el.classList.add('ring-2', 'ring-indigo-500', 'ring-opacity-75');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-indigo-500', 'ring-opacity-75'), 2000);
     }
   }, []);
 
@@ -237,17 +237,17 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws, 
 
   // ── Render ──────────────────────────────────────────────
   return (
-    <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-1 space-y-1">
+    <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5">
       {loadingOlder && (
         <div className="flex justify-center py-3">
-          <div className="w-5 h-5 border-2 border-stone-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
         </div>
       )}
       {messages.length === 0 ? (
-        <div className="text-center text-gray-500 mt-8">
-          <FiHash className="mx-auto text-4xl mb-2 opacity-30" />
+        <div className="text-center text-gray-500 mt-12">
+          <FiHash className="mx-auto text-2xl mb-2 opacity-30" />
           <p className="text-sm">Welcome to #{currentRoom?.name}</p>
-          <p className="text-xs mt-1">Start a conversation!</p>
+          <p className="text-xs mt-1 text-gray-600">Start a conversation</p>
         </div>
       ) : (
         messages.map((msg, idx) => {
@@ -267,7 +267,7 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws, 
               )}
               <div
                 id={`msg-${msg.id}`}
-                className={`flex flex-col ${msg.userId === currentUserId ? 'items-end' : 'items-start'} ${groupWithPrevious ? 'mt-1' : 'mt-1'} transition-all duration-300 rounded-lg`}
+                className={`flex flex-col ${msg.userId === currentUserId ? 'items-end' : 'items-start'} ${groupWithPrevious ? 'mt-0.5' : 'mt-3'} transition-all duration-300 rounded-lg`}
               >
               {msg.type === 'system' ? (
                 <div className="flex items-center justify-center gap-2 py-1 w-full">
@@ -281,6 +281,7 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws, 
                 <OwnMessage
                   msg={msg}
                   isLastInGroup={isLastInGroup}
+                  groupWithPrevious={groupWithPrevious}
                   isMenuOpen={messageMenuId === msg.id}
                   editingMessageId={editingMessageId}
                   editingText={editingText}
@@ -295,6 +296,7 @@ const BookClubChat = ({ messages, setMessages, currentRoom, auth, userRole, ws, 
                 <OtherMessage
                   msg={msg}
                   isLastInGroup={isLastInGroup}
+                  groupWithPrevious={groupWithPrevious}
                   isMenuOpen={messageMenuId === msg.id}
                   {...actionProps}
                 />

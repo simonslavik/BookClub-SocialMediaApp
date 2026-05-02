@@ -74,6 +74,9 @@
     --color-gray-900: #1c1814;
     --color-gray-950: #14110e;
 
+    /* Warm brown stone palette — used for "outside the chat" pages
+       (homepage, discover, bookclub details, friends/people, profile).
+       The chat experience uses indigo accents instead. */
     --color-stone-50:  #f2ece5;
     --color-stone-100: #e5ded6;
     --color-stone-200: #c0b7ab;

@@ -107,7 +107,7 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
     <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b bg-stone-700 text-white">
+        <div className="flex items-center justify-between p-6 border-b bg-indigo-700 text-white">
           <h2 className="text-2xl font-bold">
             {step === 1 ? '📚 Search for a Book' : '📅 Set Reading Schedule'}
           </h2>
@@ -133,7 +133,7 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search by title, author, or ISBN..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 outline-none"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                     autoFocus
                   />
                 </div>
@@ -148,7 +148,7 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
                   <button
                     key={book.googleBooksId}
                     onClick={() => handleSelectBook(book)}
-                    className="flex gap-4 p-4 border rounded-lg hover:border-stone-500 hover:shadow-lg transition-all text-left"
+                    className="flex gap-4 p-4 border rounded-lg hover:border-indigo-500 hover:shadow-lg transition-all text-left"
                   >
                     <img
                       src={book.coverUrl || '/images/default.webp'}
@@ -186,7 +186,7 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
             // Step 2: Set Schedule
             <div className="max-w-2xl mx-auto">
               {/* Selected Book Preview */}
-              <div className="flex gap-6 mb-8 p-6 bg-stone-50 rounded-lg">
+              <div className="flex gap-6 mb-8 p-6 bg-indigo-50 rounded-lg">
                 <img
                   src={selectedBook.coverUrl || '/images/default.webp'}
                   alt={selectedBook.title}
@@ -221,7 +221,7 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 outline-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                   />
                 </div>
 
@@ -246,7 +246,7 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
                       max="90"
                       value={readingDays}
                       onChange={(e) => setReadingDays(parseInt(e.target.value))}
-                      className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 outline-none"
+                      className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                     />
                   </div>
                 </div>
@@ -260,7 +260,7 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 outline-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                   />
                 </div>
 
@@ -268,13 +268,13 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
                 {selectedBook.pageCount && readingDays > 0 && (
                   <div className="grid grid-cols-2 gap-4 p-6 bg-gray-50 rounded-lg">
                     <div className="text-center">
-                      <p className="text-3xl font-bold text-stone-700">
+                      <p className="text-3xl font-bold text-indigo-700">
                         {calculatePagesPerDay()}
                       </p>
                       <p className="text-sm text-gray-600 mt-1">Pages per day</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-3xl font-bold text-stone-600">
+                      <p className="text-3xl font-bold text-indigo-600">
                         {readingDays}
                       </p>
                       <p className="text-sm text-gray-600 mt-1">Days to complete</p>
@@ -294,7 +294,7 @@ const AddCurrentBookModal = ({ bookClubId, onClose, onBookAdded }) => {
                 <button
                   onClick={handleSubmit}
                   disabled={submitting || !startDate || !endDate}
-                  className="flex-1 px-6 py-3 bg-stone-700 text-white rounded-lg hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+                  className="flex-1 px-6 py-3 bg-indigo-700 text-white rounded-lg hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
                 >
                   {submitting ? 'Adding Book...' : 'Start Reading!'}
                 </button>

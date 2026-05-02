@@ -89,7 +89,7 @@ const CurrentBookDetailsModal = ({
     <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b bg-stone-700 text-white">
+        <div className="flex items-center justify-between p-6 border-b bg-indigo-700 text-white">
           <h2 className="text-2xl font-bold">📖 Current Book</h2>
           <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
             <FiX size={24} />
@@ -104,7 +104,7 @@ const CurrentBookDetailsModal = ({
               onClick={() => setActiveTab(key)}
               className={`flex-1 px-6 py-3 font-medium transition-colors ${
                 activeTab === key
-                  ? 'bg-white text-stone-700 border-b-2 border-stone-700'
+                  ? 'bg-white text-indigo-700 border-b-2 border-indigo-700'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >

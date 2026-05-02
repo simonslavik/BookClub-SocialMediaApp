@@ -12,7 +12,7 @@ import { renderMessageContent, formatTimestamp } from './messageUtils';
  */
 const OwnMessage = ({
   msg, auth, members, canModerate,
-  isLastInGroup, copiedMessageId,
+  isLastInGroup, groupWithPrevious, copiedMessageId,
   // editing
   editingMessageId, editingText, setEditingText, editInputRef,
   onEditKeyDown, onEditSave, onCancelEdit,
@@ -24,6 +24,8 @@ const OwnMessage = ({
   friends = [], onSendFriendRequest, connectedUsers = [],
 }) => {
   const isEditing = editingMessageId === msg.id;
+  // Asymmetric "tail" corner only on the first message of a group
+  const tailCorner = groupWithPrevious ? '' : 'rounded-tr-sm';
 
   return (
     <div className="flex gap-1 justify-end group w-full">
@@ -42,7 +44,7 @@ const OwnMessage = ({
         <div className="relative w-fit max-w-[65%] ml-auto">
         {/* Message body */}
         {isEditing ? (
-          <div className="bg-gray-800 rounded-2xl px-2 py-3 shadow-lg mb-1 border border-stone-500">
+          <div className="bg-gray-800 rounded-xl px-3 py-2 mb-0.5 border border-indigo-500">
             <textarea
               ref={editInputRef}
               value={editingText}
@@ -55,16 +57,16 @@ const OwnMessage = ({
               <button onClick={onCancelEdit} className="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 flex items-center gap-1">
                 <FiX className="w-3 h-3" /> Cancel
               </button>
-              <button onClick={() => onEditSave(msg.id)} className="px-2 py-1 rounded bg-stone-700 hover:bg-stone-500 text-white flex items-center gap-1">
+              <button onClick={() => onEditSave(msg.id)} className="px-2 py-1 rounded bg-indigo-700 hover:bg-indigo-500 text-white flex items-center gap-1">
                 <FiCheck className="w-3 h-3" /> Save
               </button>
             </div>
           </div>
         ) : msg.text && (
-          <div className={`overflow-hidden bg-stone-700 rounded-2xl px-2 py-3 shadow-lg mb-1 ${msg.deletedAt ? 'opacity-60 italic' : ''}`}>
-            <p className="text-sm text-white font-medium" style={{ overflowWrap: 'break-word' }}>
+          <div className={`overflow-hidden bg-indigo-700 rounded-xl ${tailCorner} px-3 py-2 mb-0.5 ${msg.deletedAt ? 'opacity-60 italic' : ''}`}>
+            <p className="text-sm text-white" style={{ overflowWrap: 'break-word' }}>
               {renderMessageContent(msg.text, members, auth?.user?.id, { friends, connectedUsers, onSendFriendRequest })}
-              {msg.editedAt && <span className="text-xs text-stone-200 italic ml-1">(edited)</span>}
+              {msg.editedAt && <span className="text-xs text-indigo-200 italic ml-1">(edited)</span>}
             </p>
             {copiedMessageId === msg.id && (
               <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs px-2 py-1 rounded-md shadow-lg whitespace-nowrap z-10">

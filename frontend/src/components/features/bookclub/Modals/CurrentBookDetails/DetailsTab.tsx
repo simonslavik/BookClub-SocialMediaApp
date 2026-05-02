@@ -37,7 +37,7 @@ const DetailsTab = ({ book, currentBookData }) => (
     )}
 
     {/* Reading Timeline */}
-    <div className="bg-stone-50 rounded-lg p-6">
+    <div className="bg-indigo-50 rounded-lg p-6">
       <h4 className="text-lg font-semibold text-gray-900 mb-4">Reading Timeline</h4>
       <div className="grid grid-cols-2 gap-4">
         <div>

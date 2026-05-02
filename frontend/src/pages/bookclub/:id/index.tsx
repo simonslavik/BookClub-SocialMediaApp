@@ -242,7 +242,7 @@ const BookClub = () => {
           <h2 className="text-xl font-semibold text-gray-200 mb-2 font-display">Failed to Load</h2>
           <p className="text-sm text-gray-400 mb-6 font-outfit">{error}</p>
           <div className="flex items-center justify-center gap-3">
-            <button onClick={() => window.location.reload()} className="px-5 py-2.5 bg-stone-700 text-white rounded-xl text-sm font-semibold hover:bg-stone-800 transition-colors font-outfit">Retry</button>
+            <button onClick={() => window.location.reload()} className="px-5 py-2.5 bg-indigo-700 text-white rounded-xl text-sm font-semibold hover:bg-indigo-800 transition-colors font-outfit">Retry</button>
             <button onClick={() => navigate('/')} className="px-5 py-2.5 bg-white/10 text-gray-300 rounded-xl text-sm font-medium hover:bg-white/15 transition-colors font-outfit">Go Home</button>
           </div>
         </div>
@@ -421,7 +421,7 @@ const BookClub = () => {
           ) : !isSpecialView ? (
             <div className="bg-gray-800 border-t border-gray-700 p-4 text-center">
               <p className="text-gray-400">
-                Please <button onClick={() => navigate('/login', { state: { from: `/bookclub/${bookClubId}` } })} className="text-stone-500 hover:underline">log in</button> to chat
+                Please <button onClick={() => navigate('/login', { state: { from: `/bookclub/${bookClubId}` } })} className="text-indigo-500 hover:underline">log in</button> to chat
               </p>
             </div>
           ) : null}

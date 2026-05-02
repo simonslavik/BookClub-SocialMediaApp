@@ -102,12 +102,12 @@ const BookClubBookView = ({
 
             {/* Date info */}
             {bookClubBook.status === 'current' && bookClubBook.startDate && bookClubBook.endDate && (
-              <p className="text-xs text-stone-500 mt-1">
+              <p className="text-xs text-indigo-500 mt-1">
                 {new Date(bookClubBook.startDate).toLocaleDateString()} - {new Date(bookClubBook.endDate).toLocaleDateString()}
               </p>
             )}
             {bookClubBook.status === 'upcoming' && bookClubBook.startDate && (
-              <p className="text-xs text-stone-400 mt-1">
+              <p className="text-xs text-indigo-400 mt-1">
                 Starts: {new Date(bookClubBook.startDate).toLocaleDateString()}
               </p>
             )}
@@ -139,7 +139,7 @@ const BookClubBookView = ({
   return (
     <div className="space-y-6">
         {canManageBooks && (
-        <div className="px-6 py-3 bg-stone-700 hover:bg-stone-800 text-white font-semibold rounded-xl shadow-lg transition-all transform hover:scale-105 flex items-center gap-2 cursor-pointer"
+        <div className="px-6 py-3 bg-indigo-700 hover:bg-indigo-800 text-white font-semibold rounded-xl shadow-lg transition-all transform hover:scale-105 flex items-center gap-2 cursor-pointer"
             onClick={() => setShowAddBookModal(true)}
             >
             <FiPlus size={20} />
@@ -153,7 +153,7 @@ const BookClubBookView = ({
             <span className="text-2xl">📖</span> Currently Reading
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {bookclubBooks.current.map(b => renderBookCard(b, 'border-stone-500', 'focus:ring-stone-500'))}
+            {bookclubBooks.current.map(b => renderBookCard(b, 'border-indigo-500', 'focus:ring-indigo-500'))}
             </div>
         </div>
         )}
@@ -165,7 +165,7 @@ const BookClubBookView = ({
             <span className="text-2xl">📚</span> Coming Up Next
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {bookclubBooks.upcoming.map(b => renderBookCard(b, 'border-stone-500', 'focus:ring-stone-500'))}
+            {bookclubBooks.upcoming.map(b => renderBookCard(b, 'border-indigo-500', 'focus:ring-indigo-500'))}
             </div>
         </div>
         )}

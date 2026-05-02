@@ -88,7 +88,7 @@ const InviteLinkManager = ({ bookclubId, userRole }) => {
     return (
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex items-center justify-center py-8">
-          <div className="w-8 h-8 border-2 border-stone-700 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-indigo-700 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -98,12 +98,12 @@ const InviteLinkManager = ({ bookclubId, userRole }) => {
     <div className="bg-white rounded-xl shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <FiLink className="w-6 h-6 text-stone-700" />
+          <FiLink className="w-6 h-6 text-indigo-700" />
           <h3 className="text-xl font-bold text-gray-900 font-display">Invite Links</h3>
         </div>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
-          className="px-4 py-2 bg-stone-700 text-white rounded-lg font-semibold hover:bg-stone-800 transition-colors font-outfit flex items-center gap-2"
+          className="px-4 py-2 bg-indigo-700 text-white rounded-lg font-semibold hover:bg-indigo-800 transition-colors font-outfit flex items-center gap-2"
         >
           <FiPlus className="w-4 h-4" />
           Create Invite
@@ -112,7 +112,7 @@ const InviteLinkManager = ({ bookclubId, userRole }) => {
 
       {/* Create form */}
       {showCreateForm && (
-        <div className="bg-stone-50 rounded-xl p-4 mb-4 border-2 border-stone-200">
+        <div className="bg-indigo-50 rounded-xl p-4 mb-4 border-2 border-indigo-200">
           <h4 className="font-semibold text-gray-900 mb-3 font-outfit">Create New Invite</h4>
           <div className="space-y-3">
             <div>
@@ -125,7 +125,7 @@ const InviteLinkManager = ({ bookclubId, userRole }) => {
                 onChange={(e) => setMaxUses(e.target.value)}
                 placeholder="Unlimited"
                 min="1"
-                className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-stone-500 focus:outline-none font-outfit"
+                className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none font-outfit"
               />
             </div>
             <div>
@@ -138,7 +138,7 @@ const InviteLinkManager = ({ bookclubId, userRole }) => {
                 onChange={(e) => setExpiresInDays(e.target.value)}
                 placeholder="Never expires"
                 min="1"
-                className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-stone-500 focus:outline-none font-outfit"
+                className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none font-outfit"
               />
             </div>
             <div className="flex gap-2">
@@ -148,7 +148,7 @@ const InviteLinkManager = ({ bookclubId, userRole }) => {
                 className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-colors font-outfit ${
                   creating
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-stone-700 text-white hover:bg-stone-800'
+                    : 'bg-indigo-700 text-white hover:bg-indigo-800'
                 }`}
               >
                 {creating ? 'Creating...' : 'Create'}
@@ -181,14 +181,14 @@ const InviteLinkManager = ({ bookclubId, userRole }) => {
               <div
                 key={invite.id}
                 className={`border-2 rounded-xl p-4 ${
-                  isInvalid ? 'border-gray-200 bg-gray-50' : 'border-stone-200 bg-white'
+                  isInvalid ? 'border-gray-200 bg-gray-50' : 'border-indigo-200 bg-white'
                 }`}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <code className={`px-3 py-1 rounded-lg font-mono text-sm ${
-                        isInvalid ? 'bg-gray-200 text-gray-500' : 'bg-stone-100 text-stone-800'
+                        isInvalid ? 'bg-gray-200 text-gray-500' : 'bg-indigo-100 text-indigo-800'
                       }`}>
                         {invite.code}
                       </code>
@@ -236,7 +236,7 @@ const InviteLinkManager = ({ bookclubId, userRole }) => {
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : copiedCode === invite.code
                           ? 'bg-green-500 text-white'
-                          : 'bg-stone-100 text-stone-800 hover:bg-stone-200'
+                          : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'
                       }`}
                       disabled={isInvalid}
                       title="Copy invite link"

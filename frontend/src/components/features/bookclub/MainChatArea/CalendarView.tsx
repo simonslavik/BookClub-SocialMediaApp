@@ -104,11 +104,11 @@ const CalendarView = ({ bookClubId }) => {
 
   const getMeetingPlatformColor = (platform) => {
     const colors = {
-      zoom: 'bg-stone-500',
+      zoom: 'bg-indigo-500',
       google_meet: 'bg-green-500',
-      teams: 'bg-stone-500',
+      teams: 'bg-indigo-500',
       discord: 'bg-violet-500',
-      custom: 'bg-stone-500'
+      custom: 'bg-indigo-500'
     };
     return colors[platform] || colors.custom;
   };
@@ -151,7 +151,7 @@ const CalendarView = ({ bookClubId }) => {
   const getBookStatusColor = (status) => {
     const colors = {
       current: 'bg-emerald-600',
-      upcoming: 'bg-stone-600',
+      upcoming: 'bg-indigo-600',
       completed: 'bg-slate-600'
     };
     return colors[status] || 'bg-gray-600';
@@ -250,14 +250,14 @@ const CalendarView = ({ bookClubId }) => {
               className={`min-h-[100px] p-2 rounded border ${
                 date
                   ? today
-                    ? 'bg-stone-950 bg-opacity-30 border-stone-500'
+                    ? 'bg-indigo-950 bg-opacity-30 border-indigo-500'
                     : 'bg-gray-700 border-gray-600 hover:bg-gray-650'
                   : 'bg-transparent border-transparent'
               }`}
             >
               {date && (
                 <>
-                  <div className={`text-sm font-semibold mb-1 ${today ? 'text-stone-500' : 'text-gray-300'}`}>
+                  <div className={`text-sm font-semibold mb-1 ${today ? 'text-indigo-500' : 'text-gray-300'}`}>
                     {date.getDate()}
                   </div>
                   <div className="space-y-1">
@@ -301,7 +301,7 @@ const CalendarView = ({ bookClubId }) => {
           <div className="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4 border border-gray-700" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-white text-xl font-bold flex items-center gap-2">
-                <FiVideo className="text-stone-500" />
+                <FiVideo className="text-indigo-500" />
                 {selectedMeeting.title}
               </h3>
               <button onClick={() => setSelectedMeeting(null)} className="text-gray-400 hover:text-white">✕</button>
@@ -341,7 +341,7 @@ const CalendarView = ({ bookClubId }) => {
                 <div className={`inline-block ml-2 px-2 py-1 rounded text-xs ${
                   selectedMeeting.status === 'LIVE' ? 'bg-green-500' :
                   selectedMeeting.status === 'CANCELLED' ? 'bg-red-500' :
-                  selectedMeeting.status === 'ENDED' ? 'bg-gray-500' : 'bg-stone-500'
+                  selectedMeeting.status === 'ENDED' ? 'bg-gray-500' : 'bg-indigo-500'
                 } text-white`}>
                   {selectedMeeting.status}
                 </div>
@@ -363,7 +363,7 @@ const CalendarView = ({ bookClubId }) => {
                 href={selectedMeeting.meetingUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full text-center px-4 py-2 bg-stone-700 hover:bg-stone-800 text-white rounded transition-colors"
+                className="block w-full text-center px-4 py-2 bg-indigo-700 hover:bg-indigo-800 text-white rounded transition-colors"
               >
                 Join Meeting
               </a>

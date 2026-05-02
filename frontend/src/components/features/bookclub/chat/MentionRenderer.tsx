@@ -17,7 +17,7 @@ const MentionBadge = ({ label, isHighlighted }) => (
     className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold cursor-default ${
       isHighlighted
         ? 'bg-yellow-500/30 text-yellow-200 ring-1 ring-yellow-500/50'
-        : 'bg-stone-500/30 text-stone-200 ring-1 ring-stone-500/50'
+        : 'bg-indigo-500/30 text-indigo-200 ring-1 ring-indigo-500/50'
     }`}
   >
     @{label}

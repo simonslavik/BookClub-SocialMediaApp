@@ -51,7 +51,7 @@ const ReactionBar = ({ reactions, currentUserId, onToggleReaction, members = [],
               }}
               className={`inline-flex items-center gap-0.5 px-1.5 py-0 rounded-full text-[10px] transition-all border ${
                 hasReacted
-                  ? 'bg-stone-700/30 border-stone-500 text-stone-200 hover:bg-stone-700/40'
+                  ? 'bg-indigo-700/30 border-indigo-500 text-indigo-200 hover:bg-indigo-700/40'
                   : 'bg-gray-700/50 border-gray-600 text-gray-300 hover:bg-gray-700'
               }`}
               title={`${emoji} ${count}`}
@@ -90,7 +90,7 @@ const ReactionBar = ({ reactions, currentUserId, onToggleReaction, members = [],
                 onClick={() => setActiveEmoji(null)}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                   !activeEmoji
-                    ? 'bg-stone-700 text-white'
+                    ? 'bg-indigo-700 text-white'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               >
@@ -102,7 +102,7 @@ const ReactionBar = ({ reactions, currentUserId, onToggleReaction, members = [],
                   onClick={() => setActiveEmoji(emoji)}
                   className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                     activeEmoji === emoji
-                      ? 'bg-stone-700 text-white'
+                      ? 'bg-indigo-700 text-white'
                       : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   }`}
                 >

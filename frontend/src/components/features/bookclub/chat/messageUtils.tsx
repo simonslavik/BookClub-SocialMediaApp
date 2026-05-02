@@ -17,7 +17,7 @@ export const linkifyText = (text) => {
           href={part}
           target="_blank"
           rel="noopener noreferrer"
-          className="underline hover:text-stone-300"
+          className="underline hover:text-indigo-300"
           onClick={(e) => e.stopPropagation()}
         >
           {part}
@@ -92,7 +92,7 @@ export const MentionRendererWithLinks = ({ content, members, currentUserId, hove
               className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold cursor-pointer hover:brightness-125 transition-all no-underline ${
                 isSelf
                   ? 'bg-yellow-500/30 text-yellow-200 ring-1 ring-yellow-500/50'
-                  : 'bg-stone-500/30 text-stone-200 ring-1 ring-stone-500/50'
+                  : 'bg-indigo-500/30 text-indigo-200 ring-1 ring-indigo-500/50'
               }`}
             >
               @{name}

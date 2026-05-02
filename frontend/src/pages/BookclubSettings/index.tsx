@@ -109,7 +109,7 @@ const BookclubSettings = () => {
             <p className="text-gray-600 mb-6 font-outfit">Only admins and owners can access settings</p>
             <button
               onClick={() => navigate(`/bookclubpage/${id}`)}
-              className="px-6 py-3 bg-stone-700 text-white rounded-xl font-semibold hover:bg-stone-800 transition-colors font-outfit"
+              className="px-6 py-3 bg-indigo-700 text-white rounded-xl font-semibold hover:bg-indigo-800 transition-colors font-outfit"
             >
               Back to Book Club
             </button>
@@ -129,13 +129,13 @@ const BookclubSettings = () => {
           <div className="mb-8">
             <button
               onClick={() => navigate(`/bookclubpage/${id}`)}
-              className="flex items-center gap-2 text-stone-700 hover:text-stone-800 font-semibold mb-4 font-outfit"
+              className="flex items-center gap-2 text-indigo-700 hover:text-indigo-800 font-semibold mb-4 font-outfit"
             >
               <FiArrowLeft className="w-5 h-5" />
               Back to Book Club
             </button>
             <div className="flex items-center gap-3">
-              <FiSettings className="w-8 h-8 text-stone-700" />
+              <FiSettings className="w-8 h-8 text-indigo-700" />
               <h1 className="text-4xl font-display font-bold text-gray-900">{bookclub.name} Settings</h1>
             </div>
           </div>
@@ -152,7 +152,7 @@ const BookclubSettings = () => {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-stone-500 focus:outline-none font-outfit"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none font-outfit"
                   required
                 />
               </div>
@@ -165,7 +165,7 @@ const BookclubSettings = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-stone-500 focus:outline-none font-outfit resize-none"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none font-outfit resize-none"
                 />
               </div>
 
@@ -176,7 +176,7 @@ const BookclubSettings = () => {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-stone-500 focus:outline-none font-outfit"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none font-outfit"
                 >
                   <option value="General">General</option>
                   <option value="Fiction">Fiction</option>
@@ -197,7 +197,7 @@ const BookclubSettings = () => {
                 </label>
                 <div className="space-y-3">
                   <label className={`flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-colors ${
-                    visibility === 'PUBLIC' ? 'border-stone-500 bg-stone-50' : 'border-gray-200 hover:border-stone-200'
+                    visibility === 'PUBLIC' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-indigo-200'
                   }`}>
                     <input
                       type="radio"
@@ -217,7 +217,7 @@ const BookclubSettings = () => {
                   </label>
 
                   <label className={`flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-colors ${
-                    visibility === 'PRIVATE' ? 'border-stone-500 bg-stone-50' : 'border-gray-200 hover:border-stone-200'
+                    visibility === 'PRIVATE' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-indigo-200'
                   }`}>
                     <input
                       type="radio"
@@ -237,7 +237,7 @@ const BookclubSettings = () => {
                   </label>
 
                   <label className={`flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-colors ${
-                    visibility === 'INVITE_ONLY' ? 'border-stone-500 bg-stone-50' : 'border-gray-200 hover:border-stone-200'
+                    visibility === 'INVITE_ONLY' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-indigo-200'
                   }`}>
                     <input
                       type="radio"
@@ -249,7 +249,7 @@ const BookclubSettings = () => {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <FiEyeOff className="w-5 h-5 text-stone-700" />
+                        <FiEyeOff className="w-5 h-5 text-indigo-700" />
                         <span className="font-semibold text-gray-900 font-outfit">Invite Only</span>
                       </div>
                       <p className="text-sm text-gray-600 font-outfit">Only visible to members, join via invite</p>
@@ -278,7 +278,7 @@ const BookclubSettings = () => {
                 className={`w-full px-6 py-3 rounded-xl font-semibold transition-colors font-outfit ${
                   saving
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-stone-700 text-white hover:bg-stone-800'
+                    : 'bg-indigo-700 text-white hover:bg-indigo-800'
                 }`}
               >
                 {saving ? 'Saving...' : 'Save Settings'}

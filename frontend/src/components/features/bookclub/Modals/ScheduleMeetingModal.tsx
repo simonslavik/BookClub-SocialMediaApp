@@ -5,9 +5,9 @@ import { bookclubAPI } from '@api/bookclub.api';
 import logger from '@utils/logger';
 
 const PLATFORMS = [
-  { value: 'zoom', label: 'Zoom', icon: '📹', color: 'bg-stone-500/20 text-stone-400 border-stone-500/30' },
+  { value: 'zoom', label: 'Zoom', icon: '📹', color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' },
   { value: 'google_meet', label: 'Google Meet', icon: '🟢', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'teams', label: 'Teams', icon: '🟣', color: 'bg-stone-500/20 text-stone-500 border-stone-500/30' },
+  { value: 'teams', label: 'Teams', icon: '🟣', color: 'bg-indigo-500/20 text-indigo-500 border-indigo-500/30' },
   { value: 'discord', label: 'Discord', icon: '🎮', color: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
   { value: 'custom', label: 'Other', icon: '🔗', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
 ];
@@ -141,8 +141,8 @@ const ScheduleMeetingModal = ({ isOpen, onClose, bookClubId, meeting = null, onM
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-gray-700">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-stone-700/20 rounded-lg">
-              <FiCalendar className="text-stone-500" size={20} />
+            <div className="p-2 bg-indigo-700/20 rounded-lg">
+              <FiCalendar className="text-indigo-500" size={20} />
             </div>
             <h2 className="text-lg font-bold text-white">
               {isEditing ? 'Edit Meeting' : 'Schedule Meeting'}
@@ -170,7 +170,7 @@ const ScheduleMeetingModal = ({ isOpen, onClose, bookClubId, meeting = null, onM
               onChange={(e) => setForm(p => ({ ...p, title: e.target.value }))}
               placeholder="Book Discussion: Chapters 5-8"
               maxLength={200}
-              className="w-full bg-gray-900 text-white px-3 py-2.5 rounded-lg border border-gray-600 focus:border-stone-500 focus:outline-none text-sm"
+              className="w-full bg-gray-900 text-white px-3 py-2.5 rounded-lg border border-gray-600 focus:border-indigo-500 focus:outline-none text-sm"
               autoFocus
             />
           </div>
@@ -186,7 +186,7 @@ const ScheduleMeetingModal = ({ isOpen, onClose, bookClubId, meeting = null, onM
               value={form.meetingUrl}
               onChange={handleUrlChange}
               placeholder="https://zoom.us/j/123456789 or https://meet.google.com/abc-defg-hij"
-              className="w-full bg-gray-900 text-white px-3 py-2.5 rounded-lg border border-gray-600 focus:border-stone-500 focus:outline-none text-sm"
+              className="w-full bg-gray-900 text-white px-3 py-2.5 rounded-lg border border-gray-600 focus:border-indigo-500 focus:outline-none text-sm"
             />
             {form.meetingUrl.trim() && activePlatform && (
               <div className={`mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border ${activePlatform.color}`}>
@@ -207,7 +207,7 @@ const ScheduleMeetingModal = ({ isOpen, onClose, bookClubId, meeting = null, onM
                 type="datetime-local"
                 value={form.scheduledAt}
                 onChange={(e) => setForm(p => ({ ...p, scheduledAt: e.target.value }))}
-                className="w-full bg-gray-900 text-white px-3 py-2.5 rounded-lg border border-gray-600 focus:border-stone-500 focus:outline-none text-sm [color-scheme:dark]"
+                className="w-full bg-gray-900 text-white px-3 py-2.5 rounded-lg border border-gray-600 focus:border-indigo-500 focus:outline-none text-sm [color-scheme:dark]"
               />
             </div>
             <div>
@@ -218,7 +218,7 @@ const ScheduleMeetingModal = ({ isOpen, onClose, bookClubId, meeting = null, onM
               <select
                 value={form.duration}
                 onChange={(e) => setForm(p => ({ ...p, duration: Number(e.target.value) }))}
-                className="w-full bg-gray-900 text-white px-3 py-2.5 rounded-lg border border-gray-600 focus:border-stone-500 focus:outline-none text-sm appearance-none"
+                className="w-full bg-gray-900 text-white px-3 py-2.5 rounded-lg border border-gray-600 focus:border-indigo-500 focus:outline-none text-sm appearance-none"
               >
                 {DURATION_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -239,7 +239,7 @@ const ScheduleMeetingModal = ({ isOpen, onClose, bookClubId, meeting = null, onM
               placeholder="What will be discussed..."
               maxLength={1000}
               rows={2}
-              className="w-full bg-gray-900 text-white px-3 py-2.5 rounded-lg border border-gray-600 focus:border-stone-500 focus:outline-none text-sm resize-none"
+              className="w-full bg-gray-900 text-white px-3 py-2.5 rounded-lg border border-gray-600 focus:border-indigo-500 focus:outline-none text-sm resize-none"
             />
           </div>
 
@@ -255,7 +255,7 @@ const ScheduleMeetingModal = ({ isOpen, onClose, bookClubId, meeting = null, onM
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 bg-stone-700 text-white rounded-lg hover:bg-stone-500 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2.5 bg-indigo-700 text-white rounded-lg hover:bg-indigo-500 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Schedule Meeting'}
             </button>

@@ -79,7 +79,7 @@ const ScheduleTab = ({
           {!editingSchedule && (
             <button
               onClick={() => setEditingSchedule(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-stone-700 text-white rounded-lg hover:bg-stone-800 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-700 text-white rounded-lg hover:bg-indigo-800 transition-colors"
             >
               <FiEdit2 size={16} />
               Edit Schedule
@@ -99,7 +99,7 @@ const ScheduleTab = ({
                 type="date"
                 value={startDate}
                 onChange={(e) => handleStartDateChange(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 outline-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
               />
             </div>
 
@@ -124,7 +124,7 @@ const ScheduleTab = ({
                   max="90"
                   value={readingDays}
                   onChange={(e) => handleReadingDaysChange(e.target.value)}
-                  className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 outline-none"
+                  className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
             </div>
@@ -138,7 +138,7 @@ const ScheduleTab = ({
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-stone-500 focus:border-stone-500 outline-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
               />
             </div>
 
@@ -153,14 +153,14 @@ const ScheduleTab = ({
               <button
                 onClick={handleSave}
                 disabled={submitting || !startDate || !endDate}
-                className="flex-1 px-6 py-3 bg-stone-700 text-white rounded-lg hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+                className="flex-1 px-6 py-3 bg-indigo-700 text-white rounded-lg hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
               >
                 {submitting ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
         ) : (
-          <div className="bg-stone-50 rounded-lg p-6">
+          <div className="bg-indigo-50 rounded-lg p-6">
             <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
                 <p className="text-sm text-gray-600 mb-2">Start Date</p>
@@ -181,13 +181,13 @@ const ScheduleTab = ({
             </div>
 
             {book?.pageCount && (
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-stone-200">
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-indigo-200">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-stone-700">{calculatePagesPerDay()}</p>
+                  <p className="text-3xl font-bold text-indigo-700">{calculatePagesPerDay()}</p>
                   <p className="text-sm text-gray-600 mt-1">Pages per day</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-stone-600">{calculateDaysRemaining()}</p>
+                  <p className="text-3xl font-bold text-indigo-600">{calculateDaysRemaining()}</p>
                   <p className="text-sm text-gray-600 mt-1">Days remaining</p>
                 </div>
               </div>

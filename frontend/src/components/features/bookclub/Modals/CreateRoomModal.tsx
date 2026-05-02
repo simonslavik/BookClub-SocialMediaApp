@@ -24,7 +24,7 @@ const ROOM_TYPES = [
     label: 'Announcement',
     icon: FiVolume2,
     description: 'Everyone can read, only moderators+ can post',
-    color: 'text-stone-400'
+    color: 'text-indigo-400'
   }
 ];
 
@@ -133,7 +133,7 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, members, currentUserId
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. discussion, spoilers, off-topic"
               maxLength={50}
-              className="w-full bg-gray-900 text-white px-3 py-2 rounded border border-gray-600 focus:border-stone-500 focus:outline-none text-sm"
+              className="w-full bg-gray-900 text-white px-3 py-2 rounded border border-gray-600 focus:border-indigo-500 focus:outline-none text-sm"
               autoFocus
             />
           </div>
@@ -152,13 +152,13 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, members, currentUserId
                     onClick={() => setType(roomType.value)}
                     className={`w-full flex items-start gap-3 p-3 rounded border transition-colors text-left ${
                       isSelected
-                        ? 'border-stone-500 bg-stone-500/10'
+                        ? 'border-indigo-500 bg-indigo-500/10'
                         : 'border-gray-600 bg-gray-900 hover:border-gray-500'
                     }`}
                   >
-                    <Icon size={18} className={`mt-0.5 flex-shrink-0 ${isSelected ? 'text-stone-500' : roomType.color}`} />
+                    <Icon size={18} className={`mt-0.5 flex-shrink-0 ${isSelected ? 'text-indigo-500' : roomType.color}`} />
                     <div>
-                      <p className={`text-sm font-medium ${isSelected ? 'text-stone-300' : 'text-white'}`}>
+                      <p className={`text-sm font-medium ${isSelected ? 'text-indigo-300' : 'text-white'}`}>
                         {roomType.label}
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">{roomType.description}</p>
@@ -184,7 +184,7 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, members, currentUserId
                     return (
                       <span
                         key={memberId}
-                        className="inline-flex items-center gap-1 bg-stone-500/20 text-stone-300 text-xs px-2 py-1 rounded-full border border-stone-500/30"
+                        className="inline-flex items-center gap-1 bg-indigo-500/20 text-indigo-300 text-xs px-2 py-1 rounded-full border border-indigo-500/30"
                       >
                         {member?.username || 'Unknown'}
                         <button
@@ -206,7 +206,7 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, members, currentUserId
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
                 placeholder="Search members..."
-                className="w-full bg-gray-900 text-white px-3 py-2 rounded border border-gray-600 focus:border-stone-500 focus:outline-none text-sm mb-2"
+                className="w-full bg-gray-900 text-white px-3 py-2 rounded border border-gray-600 focus:border-indigo-500 focus:outline-none text-sm mb-2"
               />
 
               {/* Member List */}
@@ -248,7 +248,7 @@ const CreateRoomModal = ({ isOpen, onClose, onCreateRoom, members, currentUserId
             <button
               type="submit"
               disabled={loading || !name.trim()}
-              className="px-4 py-2 text-sm bg-stone-700 hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded transition-colors"
+              className="px-4 py-2 text-sm bg-indigo-700 hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded transition-colors"
             >
               {loading ? 'Creating...' : 'Create Room'}
             </button>

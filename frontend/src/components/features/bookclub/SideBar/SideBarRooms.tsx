@@ -18,7 +18,7 @@ const getRoomIconColor = (room, isActive) => {
   if (isActive) return 'text-white';
   switch (room.type) {
     case 'PRIVATE': return 'text-yellow-400';
-    case 'ANNOUNCEMENT': return 'text-stone-400';
+    case 'ANNOUNCEMENT': return 'text-indigo-400';
     default: return '';
   }
 };
@@ -112,19 +112,19 @@ const SideBarRooms = ({
           <>
           <div className="w-full bg-gray-800 border-r border-gray-700 flex flex-col h-full  overflow-y-auto">
             {/* Bookclub Header with Image */}
-            <div className="p-4 border-b border-gray-700 flex-shrink-0">
+            <div className="p-3 border-b border-gray-700 flex-shrink-0">
               {/* Bookclub Image */}
-              <BookClubImage 
-                bookClub={bookClub} 
-                auth={auth} 
-                uploadingImage={uploadingImage} 
-                fileInputRef={fileInputRef} 
-                handleImageUpload={handleImageUpload} 
+              <BookClubImage
+                bookClub={bookClub}
+                auth={auth}
+                uploadingImage={uploadingImage}
+                fileInputRef={fileInputRef}
+                handleImageUpload={handleImageUpload}
                 handleDeleteImage={handleDeleteImage}
               />
-              
-              <h2 
-                className="text-white font-bold text-lg truncate cursor-pointer hover:text-stone-500"
+
+              <h2
+                className="text-white font-semibold text-sm truncate cursor-pointer hover:text-indigo-500 mt-2"
                 onClick={() => navigate(`/bookclubpage/${bookClub?.id}`)}
               >
                 {bookClub?.name}
@@ -149,7 +149,7 @@ const SideBarRooms = ({
                 <FiMessageSquare size={16} className="flex-shrink-0 text-green-400" />
                 <span className="truncate flex-1">Book Suggestions</span>
                 {!showSuggestions && unreadSections.has('suggestions') && (
-                  <span className="w-2 h-2 rounded-full bg-stone-500 flex-shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-indigo-500 flex-shrink-0" />
                 )}
               </button>
               <button
@@ -165,7 +165,7 @@ const SideBarRooms = ({
                 <FiBook size={16} className="flex-shrink-0 text-orange-400" />
                 <span className="truncate flex-1">BookClub Books</span>
                 {!showBooksHistory && unreadSections.has('books') && (
-                  <span className="w-2 h-2 rounded-full bg-stone-500 flex-shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-indigo-500 flex-shrink-0" />
                 )}
               </button>
               <button
@@ -178,10 +178,10 @@ const SideBarRooms = ({
                       : 'text-gray-400 hover:bg-gray-700 hover:text-white'
                 }`}
               >
-                <FiCalendar size={16} className="flex-shrink-0 text-stone-500" />
+                <FiCalendar size={16} className="flex-shrink-0 text-indigo-500" />
                 <span className="truncate flex-1">BookClub Calendar</span>
                 {!showCalendar && unreadSections.has('calendar') && (
-                  <span className="w-2 h-2 rounded-full bg-stone-500 flex-shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-indigo-500 flex-shrink-0" />
                 )}
               </button>
               <button
@@ -197,7 +197,7 @@ const SideBarRooms = ({
                 <FiVideo size={16} className="flex-shrink-0 text-pink-400" />
                 <span className="truncate flex-1">Meetings</span>
                 {!showMeetings && unreadSections.has('meetings') && (
-                  <span className="w-2 h-2 rounded-full bg-stone-500 flex-shrink-0" />
+                  <span className="w-2 h-2 rounded-full bg-indigo-500 flex-shrink-0" />
                 )}
               </button>
             </div>
@@ -247,7 +247,7 @@ const SideBarRooms = ({
                         <Icon size={16} className={`flex-shrink-0 ${isLocked ? 'text-gray-600' : iconColor}`} />
                         <span className="truncate flex-1">{room.name}</span>
                         {hasUnread && (
-                          <span className="w-2 h-2 rounded-full bg-stone-500 flex-shrink-0" />
+                          <span className="w-2 h-2 rounded-full bg-indigo-500 flex-shrink-0" />
                         )}
                       </button>
                       {/* Three-dot menu on hover (for mods+) */}

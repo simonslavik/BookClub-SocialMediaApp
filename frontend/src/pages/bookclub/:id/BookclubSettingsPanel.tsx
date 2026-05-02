@@ -34,7 +34,7 @@ const BookclubSettingsPanel = ({
     {/* Header */}
     <div className="flex items-center justify-between mb-4 md:mb-6">
       <div className="flex items-center gap-2 md:gap-3">
-        <FiSettingsIcon className="w-5 h-5 md:w-6 md:h-6 text-stone-500" />
+        <FiSettingsIcon className="w-5 h-5 md:w-6 md:h-6 text-indigo-500" />
         <h2 className="text-lg md:text-2xl font-bold text-white">Bookclub Settings</h2>
       </div>
       <button
@@ -65,7 +65,7 @@ const BookclubSettingsPanel = ({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingImage}
-                className="px-2 py-1 bg-stone-700 hover:bg-stone-800 text-white rounded-lg text-sm font-medium flex items-center gap-1.5"
+                className="px-2 py-1 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-sm font-medium flex items-center gap-1.5"
               >
                 <FiImage size={14} />
                 {uploadingImage ? 'Uploading...' : 'Change'}
@@ -99,7 +99,7 @@ const BookclubSettingsPanel = ({
             type="text"
             value={settingsForm.name}
             onChange={(e) => setSettingsForm({ ...settingsForm, name: e.target.value })}
-            className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-stone-500 outline-none"
+            className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
             required
           />
         </div>
@@ -112,7 +112,7 @@ const BookclubSettingsPanel = ({
             value={settingsForm.description}
             onChange={(e) => setSettingsForm({ ...settingsForm, description: e.target.value })}
             rows={4}
-            className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-stone-500 outline-none resize-none"
+            className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
           />
         </div>
 
@@ -123,7 +123,7 @@ const BookclubSettingsPanel = ({
             id="settings-category"
             value={settingsForm.category}
             onChange={(e) => setSettingsForm({ ...settingsForm, category: e.target.value })}
-            className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-stone-500 outline-none"
+            className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
           >
             <option value="">Select a category</option>
             {BOOKCLUB_CATEGORIES.map((cat) => (
@@ -139,7 +139,7 @@ const BookclubSettingsPanel = ({
             {[
               { value: 'PUBLIC', icon: FiUnlock, color: 'text-green-400', label: 'Public', desc: 'Anyone can see and join instantly' },
               { value: 'PRIVATE', icon: FiLock, color: 'text-yellow-400', label: 'Private', desc: 'Anyone can see, join requires approval' },
-              { value: 'INVITE_ONLY', icon: FiEyeOff, color: 'text-stone-500', label: 'Invite Only', desc: 'Only visible to members, join via invite' },
+              { value: 'INVITE_ONLY', icon: FiEyeOff, color: 'text-indigo-500', label: 'Invite Only', desc: 'Only visible to members, join via invite' },
             ].map((opt) => {
               const VisIcon = opt.icon;
               return (
@@ -184,7 +184,7 @@ const BookclubSettingsPanel = ({
           className={`w-full px-6 py-3 rounded-xl font-semibold transition-colors ${
             savingSettings
               ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-              : 'bg-stone-700 text-white hover:bg-stone-800'
+              : 'bg-indigo-700 text-white hover:bg-indigo-800'
           }`}
         >
           {savingSettings ? 'Saving...' : 'Save Settings'}

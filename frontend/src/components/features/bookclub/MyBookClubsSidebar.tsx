@@ -44,7 +44,7 @@ const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, onSelectBookClub, on
           {/* Home Button */}
           <button
             onClick={() => navigate('/')}
-            className="w-12 h-12 rounded-full bg-gray-700 hover:bg-stone-700 flex items-center justify-center text-white transition-colors flex-shrink-0"
+            className="w-12 h-12 rounded-full bg-gray-700 hover:bg-indigo-700 flex items-center justify-center text-white transition-colors flex-shrink-0"
             title="Home"
           >
             <FiHome size={20} />
@@ -54,8 +54,8 @@ const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, onSelectBookClub, on
               onClick={onOpenDM}
               className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors flex-shrink-0 ${
                 isOnDMPage
-                  ? 'bg-stone-700 ring-2 ring-stone-500'
-                  : 'bg-gray-700 hover:bg-stone-700'
+                  ? 'bg-indigo-700 ring-2 ring-indigo-500'
+                  : 'bg-gray-700 hover:bg-indigo-700'
               }`}
               title="Direct Messages"
             >
@@ -75,8 +75,8 @@ const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, onSelectBookClub, on
               onMouseLeave={handleMouseLeave}
               className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${
                 !isOnDMPage && club.id === currentBookClubId
-                  ? 'bg-stone-700 ring-2 ring-stone-500'
-                  : 'bg-gray-700 hover:bg-stone-700'
+                  ? 'bg-indigo-700 ring-2 ring-indigo-500'
+                  : 'bg-gray-700 hover:bg-indigo-700'
               }`}
               title=""
             >
@@ -154,7 +154,7 @@ const MyBookClubsSidebar = ({ bookClubs, currentBookClubId, onSelectBookClub, on
                     onError={(e) => { (e.target as HTMLImageElement).src = '/images/default.webp'; }}
                   />
                 ) : (
-                  <div className="w-9 h-9 rounded-full bg-stone-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                     {hoveredClub.name.substring(0, 2).toUpperCase()}
                   </div>
                 )}

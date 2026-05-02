@@ -37,7 +37,7 @@ const AutoThemeIcon = ({ size = 20 }) => (
 /** Helper to render the correct theme icon. */
 const ThemeIcon = ({ mode, isDark, size = 20 }) => {
   if (mode === 'auto') return <AutoThemeIcon size={size} />;
-  if (isDark) return <FiMoon size={size} className="text-indigo-400" />;
+  if (isDark) return <FiMoon size={size} className="text-stone-400" />;
   return <FiSun size={size} className="text-amber-500" />;
 };
 

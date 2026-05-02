@@ -14,7 +14,7 @@ import UserHoverCard from '../UserHoverCard';
  */
 const OtherMessage = ({
   msg, auth, members, canModerate,
-  isLastInGroup, copiedMessageId,
+  isLastInGroup, groupWithPrevious, copiedMessageId,
   // actions
   isMenuOpen, menuRef,
   onToggleReaction, onToggleMenu,
@@ -35,38 +35,48 @@ const OtherMessage = ({
     status: msg.status,
   };
 
+  // Asymmetric "tail" corner only on the first message of a group
+  const tailCorner = groupWithPrevious ? '' : 'rounded-tl-sm';
+
   return (
-    <div className="flex gap-1 group w-full">
-      <UserHoverCard
-        user={hoverUser}
-        currentUserId={auth?.user?.id}
-        isFriend={isFriend}
-        isOnline={isOnline}
-        onSendFriendRequest={onSendFriendRequest}
-        className="flex-shrink-0 self-end"
-      >
-        <img
-          src={getProfileImageUrl(msg.profileImage) || '/images/default.webp'}
-          alt={msg.username}
-          className="w-7 h-7 rounded-[50%] object-cover cursor-pointer hover:ring-2 hover:ring-stone-500 transition-all"
-          onClick={() => msg.userId && navigate(`/profile/${msg.userId}`)}
-          onError={(e) => { (e.target as HTMLImageElement).src = '/images/default.webp'; }}
-        />
-      </UserHoverCard>
-      <div className="w-full min-w-0">
-        {/* Username + Pinned badge */}
-        <div className="flex items-baseline">
-          <span
-            className="text-gray-400 text-xs font-light cursor-pointer hover:text-stone-500 hover:underline transition-colors"
+    <div className="flex gap-1.5 group w-full">
+      {groupWithPrevious ? (
+        // Spacer to keep the bubble column aligned with the avatar above it
+        <div className="w-6 flex-shrink-0" />
+      ) : (
+        <UserHoverCard
+          user={hoverUser}
+          currentUserId={auth?.user?.id}
+          isFriend={isFriend}
+          isOnline={isOnline}
+          onSendFriendRequest={onSendFriendRequest}
+          className="flex-shrink-0 self-end"
+        >
+          <img
+            src={getProfileImageUrl(msg.profileImage) || '/images/default.webp'}
+            alt={msg.username}
+            className="w-6 h-6 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-indigo-500 transition-all"
             onClick={() => msg.userId && navigate(`/profile/${msg.userId}`)}
-          >{msg.username}</span>
-          {msg.isPinned && (
-            <span className="flex items-center gap-1 text-xs text-yellow-400">
-              <BsPinAngle className="w-3 h-3" />
-              Pinned
-            </span>
-          )}
-        </div>
+            onError={(e) => { (e.target as HTMLImageElement).src = '/images/default.webp'; }}
+          />
+        </UserHoverCard>
+      )}
+      <div className="w-full min-w-0">
+        {/* Username + Pinned badge — only on the first message of a group */}
+        {!groupWithPrevious && (
+          <div className="flex items-baseline">
+            <span
+              className="text-gray-400 text-[13px] font-light cursor-pointer hover:text-indigo-500 hover:underline transition-colors"
+              onClick={() => msg.userId && navigate(`/profile/${msg.userId}`)}
+            >{msg.username}</span>
+            {msg.isPinned && (
+              <span className="flex items-center gap-1 text-xs text-yellow-400 ml-2">
+                <BsPinAngle className="w-3 h-3" />
+                Pinned
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Reply quote */}
         <ReplyPreview replyTo={msg.replyTo} onScrollTo={onScrollToMessage} />
@@ -75,7 +85,7 @@ const OtherMessage = ({
         <div className="relative w-fit max-w-[65%]">
         <div
           onClick={() => setShowFullDate((v) => !v)}
-          className="overflow-hidden bg-gray-800 rounded-2xl px-2 py-3 shadow-md cursor-pointer hover:bg-gray-750 transition-colors"
+          className={`overflow-hidden bg-white/[0.04] rounded-xl ${tailCorner} px-3 py-2 cursor-pointer hover:bg-white/[0.06] transition-colors`}
         >
           {msg.text && (
             <p className={`text-sm text-gray-200 leading-relaxed ${msg.deletedAt ? 'italic text-gray-500' : ''}`} style={{ overflowWrap: 'break-word' }}>
