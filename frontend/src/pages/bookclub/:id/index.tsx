@@ -56,6 +56,7 @@ const BookClub = () => {
     settingsForm, setSettingsForm, savingSettings, handleSaveSettings,
     uploadingImage, fileInputRef, handleImageUpload, handleDeleteImage,
     handleCreateRoomSubmit, handleRoomUpdated, handleRoomDeleted,
+    handleDeleteBookclub,
     handleSendFriendRequest, handleMemberUpdate,
     roleUpdateCounter, extractUserRole, buildMappedMembers,
     toastError,
@@ -342,6 +343,10 @@ const BookClub = () => {
               bookClubId={bookClubId} mappedBookClubMembers={mappedBookClubMembers}
               userRole={userRole} auth={auth}
               onMemberUpdate={handleMemberUpdate} onClose={closeSettings}
+              onDeleteBookclub={async () => {
+                const ok = await handleDeleteBookclub();
+                if (ok) navigate('/');
+              }}
             />
           ) : is('calendar') ? (
             <div className="flex-1 overflow-hidden">

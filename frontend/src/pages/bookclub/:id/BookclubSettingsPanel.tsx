@@ -1,4 +1,5 @@
-import { FiSettings as FiSettingsIcon, FiLock, FiUnlock, FiEyeOff, FiImage, FiTrash2, FiX } from 'react-icons/fi';
+import { useState } from 'react';
+import { FiSettings as FiSettingsIcon, FiLock, FiUnlock, FiEyeOff, FiImage, FiTrash2, FiX, FiAlertTriangle } from 'react-icons/fi';
 import { getCollabImageUrl, BOOKCLUB_CATEGORIES } from '@config/constants';
 import AdminApprovalPanel from '@components/features/bookclub/AdminApprovalPanel';
 import MemberManagement from '@components/features/bookclub/MemberManagement';
@@ -29,7 +30,14 @@ const BookclubSettingsPanel = ({
   auth,
   onMemberUpdate,
   onClose,
-}) => (
+  onDeleteBookclub,
+}) => {
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deletingBookclub, setDeletingBookclub] = useState(false);
+  const isOwner = userRole === 'OWNER';
+  const expectedConfirm = bookClub?.name || '';
+
+  return (
   <div className="flex-1 overflow-y-auto bg-gray-900 p-3 md:p-4">
     {/* Header */}
     <div className="flex items-center justify-between mb-4 max-w-3xl mx-auto">
@@ -213,8 +221,56 @@ const BookclubSettingsPanel = ({
       currentUserRole={userRole}
       onMemberUpdate={onMemberUpdate}
     />
+
+    {/* Danger zone — owner only */}
+    {isOwner && (
+      <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-4 mt-4 space-y-4">
+        <div className="flex items-start gap-3">
+          <FiAlertTriangle size={20} className="text-red-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-red-400 font-medium text-sm">Delete Bookclub</h3>
+            <p className="text-gray-400 text-xs mt-1">
+              This will permanently delete <span className="text-white font-medium">{expectedConfirm}</span>,
+              including all rooms, messages, books, meetings and members. This action cannot be undone.
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="delete-confirm" className="block text-gray-400 text-xs mb-1">
+            Type <span className="text-white font-mono">{expectedConfirm}</span> to confirm
+          </label>
+          <input
+            id="delete-confirm"
+            type="text"
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            placeholder={expectedConfirm}
+            className="w-full bg-gray-900 text-white px-3 py-2 rounded border border-red-500/30 focus:border-red-500 focus:outline-none text-sm"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={async () => {
+            setDeletingBookclub(true);
+            try {
+              await onDeleteBookclub?.();
+            } finally {
+              setDeletingBookclub(false);
+            }
+          }}
+          disabled={deletingBookclub || deleteConfirmText !== expectedConfirm || !expectedConfirm}
+          className="w-full px-4 py-2 text-sm bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded transition-colors flex items-center justify-center gap-2"
+        >
+          <FiTrash2 size={14} />
+          {deletingBookclub ? 'Deleting…' : 'Permanently Delete Bookclub'}
+        </button>
+      </div>
+    )}
     </div>
   </div>
-);
+  );
+};
 
 export default BookclubSettingsPanel;

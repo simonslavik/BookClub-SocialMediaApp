@@ -268,6 +268,18 @@ export function useBookclubData(bookClubId) {
     setCurrentRoom((prev) => (prev?.id === updatedRoom.id ? { ...prev, ...updatedRoom } : prev));
   }, []);
 
+  const handleDeleteBookclub = useCallback(async () => {
+    try {
+      await bookclubAPI.deleteBookclub(bookClubId);
+      toastSuccess('Bookclub deleted');
+      return true;
+    } catch (err) {
+      logger.error('Error deleting bookclub:', err);
+      toastError(err.response?.data?.error || err.response?.data?.message || 'Failed to delete bookclub');
+      return false;
+    }
+  }, [bookClubId, toastSuccess, toastError]);
+
   const handleRoomDeleted = useCallback((deletedRoom) => {
     setRooms((prev) => {
       const remaining = prev.filter((r) => r.id !== deletedRoom.id);
@@ -330,6 +342,9 @@ export function useBookclubData(bookClubId) {
 
     // Room handlers
     handleCreateRoomSubmit, handleRoomUpdated, handleRoomDeleted,
+
+    // Bookclub deletion
+    handleDeleteBookclub,
 
     // Social
     handleSendFriendRequest,
