@@ -182,10 +182,15 @@ const ClubCard = ({ bookClub, scale, opacity, zIndex, isCenter, cardBookIndex, o
           />
         ) : (
           <div
-            className="w-full h-full flex items-center justify-center text-5xl"
+            className="w-full h-full flex items-center justify-center"
             style={{ background: `linear-gradient(135deg, ${palette.text}22, ${palette.text}44)` }}
           >
-            📚
+            <span
+              className="font-display font-bold tracking-tight select-none"
+              style={{ fontSize: '5rem', color: palette.text, opacity: 0.55 }}
+            >
+              {bookClub.name.charAt(0).toUpperCase()}
+            </span>
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
