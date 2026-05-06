@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
 import { createClubSchema, updateClubSchema } from '../utils/validation.js';
-import { bookClubImageUpload } from '../config/multer.js';
+import { bookClubImageUpload, wrapMulter } from '../config/multer.js';
 import {
   uploadBookClubImage,
   deleteBookClubImage
@@ -71,7 +71,7 @@ router.delete('/:id/members/:userId', authMiddleware, BookClubController.removeM
 router.put('/:id/members/:userId/role', authMiddleware, BookClubController.updateMemberRole);
 
 // ===== BOOK CLUB IMAGE MANAGEMENT =====
-router.post('/:id/image', authMiddleware, bookClubImageUpload.single('image'), uploadBookClubImage);
+router.post('/:id/image', authMiddleware, wrapMulter(bookClubImageUpload.single('image')), uploadBookClubImage);
 router.delete('/:id/image', authMiddleware, deleteBookClubImage);
 
 export default router;

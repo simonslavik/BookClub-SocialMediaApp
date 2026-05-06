@@ -16,6 +16,11 @@ module.exports = {
         'mono': ['JetBrains Mono', 'monospace'],
       },
       colors: {
+        parchment: {
+          DEFAULT: '#ece4d8',
+          light: '#f2ece2',
+          dark: '#e2d8ca',
+        },
         warmgray: {
           50: '#faf9f7',
           100: '#f5f3f0',

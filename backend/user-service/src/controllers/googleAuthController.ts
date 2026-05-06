@@ -3,6 +3,7 @@ import { OAuth2Client } from 'google-auth-library';
 import prisma from '../config/database.js';
 import { generateTokens } from '../utils/tokenUtils.js';
 import { logger, logError } from '../utils/logger.js';
+import { setRefreshCookie } from '../utils/cookieUtils.js';
 
 const googleClient = new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID,
@@ -147,11 +148,13 @@ export const googleAuth = async (req: Request, res: Response) => {
             name: user.name
         });
 
+        // Refresh token rides as an HttpOnly cookie — never in the JSON body.
+        setRefreshCookie(res, refreshToken);
+
         res.status(200).json({
             message: 'Google authentication successful',
             user,
-            accessToken,
-            refreshToken
+            accessToken
         });
 
     } catch (error: any) {

@@ -12,9 +12,19 @@ export class BookClubController {
       const userId = (req as any).user?.userId; // Optional - from optionalAuth middleware
       const { category } = req.query;
 
+      // Support multi-category: ?category=Fiction,Romance or ?category=Fiction&category=Romance
+      let categories: string[] | undefined;
+      if (category) {
+        if (Array.isArray(category)) {
+          categories = category.map(String);
+        } else {
+          categories = String(category).split(',').map(c => c.trim()).filter(Boolean);
+        }
+      }
+
       const clubs = await BookClubService.discoverClubs(
         userId,
-        category as string | undefined
+        categories
       );
 
       // Fetch current books for all clubs from books-service

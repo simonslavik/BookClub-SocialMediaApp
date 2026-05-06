@@ -1,6 +1,6 @@
-import multer from 'multer';
+import multer, { MulterError } from 'multer';
 import path from 'path';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/user.service.js';
 import { logger, logError } from '../utils/logger.js';
 import { uploadToCloudinary, deleteFromCloudinary, extractPublicId } from '../config/cloudinary.js';
@@ -13,7 +13,7 @@ export const upload = multer({
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
-    
+
     if (extname && mimetype) {
       cb(null, true);
     } else {
@@ -21,6 +21,33 @@ export const upload = multer({
     }
   }
 });
+
+// Wraps multer so its errors return the right HTTP status instead of bubbling up as 500s.
+export const uploadProfileImageMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  upload.single('image')(req, res, (err: any) => {
+    if (err instanceof MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'Image is too large. Max size is 5MB.' });
+      }
+      return res.status(400).json({ error: err.message });
+    }
+    if (err) {
+      return res.status(400).json({ error: err.message || 'Invalid file upload.' });
+    }
+    next();
+  });
+};
+
+function isCloudinaryAuthError(error: any): boolean {
+  const msg = String(error?.message || '').toLowerCase();
+  return (
+    error?.http_code === 401 ||
+    msg.includes('api_key') ||
+    msg.includes('api_secret') ||
+    msg.includes('cloud_name') ||
+    msg.includes('must supply')
+  );
+}
 
 
 // Add or update profile image (requires authentication)
@@ -62,8 +89,14 @@ export const addProfileImage = async (req: Request, res: Response) => {
       }
       throw error;
     }
-  } catch (error) {
+  } catch (error: any) {
     logError(error, 'Error uploading profile image', { userId: req.user?.userId });
+    if (isCloudinaryAuthError(error)) {
+      return res.status(503).json({ error: 'Image upload service is temporarily unavailable. Please try again later.' });
+    }
+    if (error?.http_code && error.http_code >= 400 && error.http_code < 500) {
+      return res.status(400).json({ error: error.message || 'Invalid image file.' });
+    }
     res.status(500).json({ error: 'Failed to upload profile image' });
   }
 };

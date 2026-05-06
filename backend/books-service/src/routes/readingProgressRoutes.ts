@@ -20,10 +20,23 @@ router.get(
   progressController.getReadingProgress
 );
 
+// All members' progress (used by the modal's Progress tab)
+router.get(
+  '/:bookClubBookId/progress/all',
+  validate({ params: bookClubBookIdParamSchema }),
+  progressController.getAllReadingProgress
+);
+
 router.post(
   '/:bookClubBookId/progress',
   validate({ params: bookClubBookIdParamSchema, body: postsBookProgressSchema }),
   progressController.updateReadingProgress
+);
+
+router.delete(
+  '/:bookClubBookId/progress',
+  validate({ params: bookClubBookIdParamSchema }),
+  progressController.deleteReadingProgress
 );
 
 // Review routes

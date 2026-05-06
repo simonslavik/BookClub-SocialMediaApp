@@ -12,7 +12,7 @@ export const requestTimeout = (timeout: number = TIMEOUTS.DEFAULT) => {
     let effectiveTimeout = timeout;
 
     // Longer timeout for file operations
-    if (req.path.includes('/upload') || req.path.includes('/download')) {
+    if (req.path.includes('/upload') || req.path.includes('/download') || req.path.includes('/image')) {
       effectiveTimeout = TIMEOUTS.UPLOAD;
     }
 

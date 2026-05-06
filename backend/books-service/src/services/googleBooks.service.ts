@@ -1,6 +1,29 @@
 import axios from 'axios';
 import logger from '../utils/logger';
 import { getRedisClient } from '../config/redis';
+import { ValidationError, TooManyRequestsError, BadGatewayError, NotFoundError } from '../utils/errors';
+
+function mapGoogleBooksError(status: number | undefined, context: 'search' | 'details'): Error {
+  if (status === 400) {
+    return new ValidationError(
+      context === 'search'
+        ? "Couldn't process that search query. Try simpler keywords without special characters or operators."
+        : 'Invalid book identifier.',
+    );
+  }
+  if (status === 404 && context === 'details') {
+    return new NotFoundError('Book');
+  }
+  if (status === 429) {
+    return new TooManyRequestsError('Too many book searches right now — please try again in a moment.');
+  }
+  if (status && status >= 500) {
+    return new BadGatewayError('Book search is temporarily unavailable. Please try again shortly.');
+  }
+  return new BadGatewayError(
+    context === 'search' ? 'Failed to search books.' : 'Failed to fetch book details.',
+  );
+}
 
 const GOOGLE_BOOKS_API = 'https://www.googleapis.com/books/v1/volumes';
 const API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
@@ -122,7 +145,7 @@ export class GoogleBooksService {
         }
       }
       logger.error('Google Books API search error:', { error: error.message, status, query });
-      throw new Error(status === 503 ? 'Google Books service is temporarily unavailable. Please try again.' : 'Failed to search books');
+      throw mapGoogleBooksError(status, 'search');
     }
   }
 
@@ -172,8 +195,9 @@ export class GoogleBooksService {
 
       return bookData;
     } catch (error: any) {
-      logger.error('Google Books API get book error:', { error: error.message, googleBooksId });
-      throw new Error('Failed to fetch book details');
+      const status = error.response?.status;
+      logger.error('Google Books API get book error:', { error: error.message, status, googleBooksId });
+      throw mapGoogleBooksError(status, 'details');
     }
   }
 }

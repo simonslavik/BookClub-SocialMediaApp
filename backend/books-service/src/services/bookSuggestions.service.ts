@@ -156,19 +156,25 @@ export class BookSuggestionsService {
   }
 
   /**
-   * Delete a suggestion (only by the user who suggested it)
+   * Delete a suggestion. The suggester can delete their own; OWNER/ADMIN/
+   * MODERATOR can delete anyone's. Caller resolves the bookclub role and
+   * passes it in (the route's `requireBookClubRole('MEMBER')` middleware
+   * stashes it on `req.bookClubRole`).
    */
-  static async deleteSuggestion(suggestionId: string, userId: string) {
+  static async deleteSuggestion(suggestionId: string, userId: string, bookClubRole?: string) {
     const suggestion = await BookSuggestionsRepository.findById(suggestionId);
     if (!suggestion) {
       throw new NotFoundError('Suggestion', suggestionId);
     }
 
-    if (suggestion.suggestedById !== userId) {
+    const isSuggester = suggestion.suggestedById === userId;
+    const isModerator = bookClubRole === 'OWNER' || bookClubRole === 'ADMIN' || bookClubRole === 'MODERATOR';
+
+    if (!isSuggester && !isModerator) {
       throw new ForbiddenError('You can only delete your own suggestions');
     }
 
     await BookSuggestionsRepository.delete(suggestionId);
-    logger.info('Book suggestion deleted:', { suggestionId, userId });
+    logger.info('Book suggestion deleted:', { suggestionId, userId, bookClubRole, byModerator: !isSuggester });
   }
 }

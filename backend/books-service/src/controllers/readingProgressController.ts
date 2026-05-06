@@ -16,6 +16,32 @@ export const getReadingProgress = async (req: AuthRequest, res: Response, next: 
 };
 
 /**
+ * Get all members' reading progress for a bookclub book
+ */
+export const getAllReadingProgress = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const bookClubBookId = req.params.bookClubBookId as string;
+    const data = await ReadingProgressService.getAllProgress(bookClubBookId);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Delete the current user's reading progress (reset)
+ */
+export const deleteReadingProgress = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const bookClubBookId = req.params.bookClubBookId as string;
+    await ReadingProgressService.deleteProgress(req.user!.userId, bookClubBookId);
+    res.json({ success: true, message: 'Reading progress reset' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Update reading progress
  */
 export const updateReadingProgress = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {

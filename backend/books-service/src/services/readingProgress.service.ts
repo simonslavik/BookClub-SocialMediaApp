@@ -22,6 +22,44 @@ export class ReadingProgressService {
   }
 
   /**
+   * Get all members' reading progress for a bookclub book.
+   * Each progress record gets a computed percentage derived from book.pageCount.
+   */
+  static async getAllProgress(bookClubBookId: string) {
+    const [bookClubBook, progressRecords] = await Promise.all([
+      BookClubBooksRepository.findById(bookClubBookId),
+      ReadingProgressRepository.findByBookClubBook(bookClubBookId),
+    ]);
+
+    if (!bookClubBook) {
+      throw new NotFoundError('Book in bookclub');
+    }
+
+    const totalPages = bookClubBook.book?.pageCount || null;
+
+    const enriched = progressRecords.map((p: any) => ({
+      ...p,
+      percentage: totalPages
+        ? Math.min(Math.round((p.pagesRead / totalPages) * 100), 100)
+        : null,
+    }));
+
+    return {
+      progress: enriched,
+      totalPages,
+      totalReaders: enriched.length,
+    };
+  }
+
+  /**
+   * Delete the current user's progress record (e.g. user wants to reset).
+   */
+  static async deleteProgress(userId: string, bookClubBookId: string) {
+    await ReadingProgressRepository.deleteUserProgress(userId, bookClubBookId);
+    logger.info('Reading progress deleted:', { userId, bookClubBookId });
+  }
+
+  /**
    * Update (upsert) reading progress
    */
   static async updateProgress(

@@ -70,7 +70,7 @@ export class BookClubService {
   /**
    * Discover book clubs - Returns list based on visibility and user access
    */
-  static async discoverClubs(userId?: string, category?: string) {
+  static async discoverClubs(userId?: string, categories?: string[]) {
     const where: any = {
       OR: [
         { visibility: ClubVisibility.PUBLIC },
@@ -96,8 +96,8 @@ export class BookClubService {
       });
     }
 
-    if (category) {
-      where.category = category;
+    if (categories && categories.length > 0) {
+      where.category = { in: categories };
     }
 
     const clubs = await prisma.bookClub.findMany({
@@ -376,7 +376,6 @@ export class BookClubService {
           select: {
             id: true,
             name: true,
-            description: true,
             type: true,
             isDefault: true,
             createdAt: true,

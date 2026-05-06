@@ -26,10 +26,28 @@
 @config "../tailwind.config.js";
 
 @layer base {
+  html {
+    @apply overflow-x-hidden;
+  }
+
   body {
     /* Using Outfit - Modern geometric sans-serif */
     font-family: 'Outfit', sans-serif;
     @apply bg-warmgray-50 text-gray-900 transition-colors duration-300;
+  }
+
+  /* Ensure all interactive elements show pointer cursor */
+  button,
+  [role="button"],
+  a,
+  [onClick],
+  label[for],
+  select {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
   }
 
   .dark body,
@@ -56,6 +74,9 @@
     --color-gray-900: #1c1814;
     --color-gray-950: #14110e;
 
+    /* Warm brown stone palette — used for "outside the chat" pages
+       (homepage, discover, bookclub details, friends/people, profile).
+       The chat experience uses indigo accents instead. */
     --color-stone-50:  #f2ece5;
     --color-stone-100: #e5ded6;
     --color-stone-200: #c0b7ab;

@@ -43,9 +43,12 @@ router.post(
   suggestionsController.acceptSuggestion
 );
 
-// Delete suggestion - any member can delete their own (service-layer check)
+// Delete suggestion — the suggester can delete their own; OWNER/ADMIN/MODERATOR
+// can delete anyone's. Member-level role gate fetches the role and stashes it
+// on `req.bookClubRole`; the service-layer check then allows or rejects.
 router.delete(
   '/:bookClubId/suggestions/:suggestionId',
+  requireBookClubRole('MEMBER'),
   validate({ params: suggestionIdParamSchema }),
   suggestionsController.deleteSuggestion
 );

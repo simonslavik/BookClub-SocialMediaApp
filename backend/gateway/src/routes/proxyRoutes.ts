@@ -3,7 +3,7 @@ import { Express, Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 import logger from '../utils/logger.js';
 import authHandler, { optionalAuth } from '../middleware/authHandler.js';
-import { TIMEOUTS, HTTP_STATUS } from '../config/constants.js';
+import { BODY_LIMITS, TIMEOUTS, HTTP_STATUS } from '../config/constants.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
@@ -30,6 +30,7 @@ interface ServiceConfig {
  * Proxy configuration interface
  */
 interface ProxyConfig {
+  limit: string;
   proxyReqPathResolver: (req: Request) => string;
   proxyReqOptDecorator: (proxyReqOpts: any, srcReq: Request) => any;
   userResHeaderDecorator: (headers: import('http').IncomingHttpHeaders, userReq: Request, userRes: Response, proxyReq: any, proxyRes: any) => import('http').OutgoingHttpHeaders;
@@ -152,6 +153,8 @@ const createProxyConfig = (
   serviceName: string, 
   pathTransform?: (path: string) => string
 ): ProxyConfig => ({
+  // Allow large uploads (images, files) to pass through the proxy
+  limit: BODY_LIMITS.UPLOAD,
   /**
    * Resolve the path to forward to the service
    */
@@ -257,7 +260,7 @@ const createProxyConfig = (
     });
   },
 
-  timeout: TIMEOUTS.DEFAULT,
+  timeout: TIMEOUTS.UPLOAD,
 });
 
 /**

@@ -5,10 +5,9 @@ export class RoomRepository {
   /**
    * Create a new room
    */
-  static async create(data: { 
-    name: string; 
-    bookClubId: string; 
-    description?: string;
+  static async create(data: {
+    name: string;
+    bookClubId: string;
     type?: RoomType;
     isDefault?: boolean;
     createdBy?: string;

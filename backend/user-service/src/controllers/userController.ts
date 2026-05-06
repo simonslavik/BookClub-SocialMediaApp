@@ -4,28 +4,32 @@ import { verifyRefreshToken, generateTokens, revokeRefreshToken } from '../utils
 import logger, { logError } from '../utils/logger.js';
 import { sendVerificationEmail } from './authController.js';
 import { ConflictError, UnauthorizedError, NotFoundError } from '../utils/errors.js';
-import { 
-    sendCreated, 
-    sendSuccess, 
-    sendServerError 
+import {
+    sendCreated,
+    sendSuccess,
+    sendServerError
 } from '../utils/responseHelpers.js';
-import { 
+import {
     LogType,
-    SuccessMessage 
+    SuccessMessage
 } from '../constants/index.js';
+import { REFRESH_COOKIE_NAME, setRefreshCookie, clearRefreshCookie } from '../utils/cookieUtils.js';
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
         const { name, email, password } = req.body;
 
-        const result = await AuthService.register(name, email, password);
+        const { user, accessToken, refreshToken } = await AuthService.register(name, email, password);
 
         // Send verification email (don't block response)
-        sendVerificationEmail(result.user.id, result.user.email).catch(err => {
-            logError(err, 'Failed to send verification email', { userId: result.user.id });
+        sendVerificationEmail(user.id, user.email).catch(err => {
+            logError(err, 'Failed to send verification email', { userId: user.id });
         });
 
-        return sendCreated(res, result, SuccessMessage.USER_REGISTERED);
+        // Refresh token rides as an HttpOnly cookie — never in the JSON body.
+        setRefreshCookie(res, refreshToken);
+
+        return sendCreated(res, { user, accessToken }, SuccessMessage.USER_REGISTERED);
     } catch (error: any) {
         // AppError instances will be handled by errorHandler middleware
         if (error instanceof ConflictError || error instanceof UnauthorizedError) {
@@ -44,9 +48,11 @@ export const loginUser = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
 
-        const result = await AuthService.login(email, password);
+        const { user, accessToken, refreshToken } = await AuthService.login(email, password);
 
-        return sendSuccess(res, result, SuccessMessage.LOGIN_SUCCESS);
+        setRefreshCookie(res, refreshToken);
+
+        return sendSuccess(res, { user, accessToken }, SuccessMessage.LOGIN_SUCCESS);
     } catch (error: any) {
         if (error instanceof UnauthorizedError) {
             throw error;
@@ -61,13 +67,21 @@ export const loginUser = async (req: Request, res: Response) => {
 };
 
 /**
- * Refresh access token using refresh token
+ * Refresh access token using refresh token (read from HttpOnly cookie)
  */
 export const refreshAccessToken = async (req: Request, res: Response) => {
     try {
-        const { refreshToken } = req.body;
+        const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
 
-        // Verify refresh token
+        if (!refreshToken) {
+            logger.warn({
+                type: LogType.REFRESH_TOKEN_INVALID,
+                action: 'REFRESH_TOKEN',
+                reason: 'missing_cookie'
+            });
+            throw new UnauthorizedError('Refresh token missing');
+        }
+
         const user = await verifyRefreshToken(refreshToken);
 
         if (!user) {
@@ -75,6 +89,8 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
                 type: LogType.REFRESH_TOKEN_INVALID,
                 action: 'REFRESH_TOKEN'
             });
+            // Clear the bad cookie so the browser stops sending it
+            clearRefreshCookie(res);
             throw new UnauthorizedError('Invalid or expired refresh token');
         }
 
@@ -82,13 +98,16 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
         await revokeRefreshToken(refreshToken);
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await generateTokens(user);
 
+        // New refresh token replaces the old cookie
+        setRefreshCookie(res, newRefreshToken);
+
         logger.info({
             type: LogType.TOKEN_REFRESHED,
             userId: user.id,
             email: user.email
         });
 
-        return sendSuccess(res, { accessToken: newAccessToken, refreshToken: newRefreshToken }, SuccessMessage.TOKEN_REFRESHED);
+        return sendSuccess(res, { accessToken: newAccessToken }, SuccessMessage.TOKEN_REFRESHED);
     } catch (error: any) {
         if (error instanceof UnauthorizedError) {
             throw error;
@@ -99,13 +118,22 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
 };
 
 /**
- * Logout user (revoke refresh token)
+ * Logout user (revoke refresh token, clear cookie)
  */
 export const logoutUser = async (req: Request, res: Response) => {
     try {
-        const { refreshToken } = req.body;
+        const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
 
-        await AuthService.logout(refreshToken);
+        // Always clear the cookie, even if the DB delete fails — prevents
+        // a stale cookie from haunting the user after logout.
+        clearRefreshCookie(res);
+
+        if (refreshToken) {
+            // Best-effort revoke; ignore "not found" since the cookie is already gone.
+            await AuthService.logout(refreshToken).catch((err: any) => {
+                if (err?.message !== 'TOKEN_NOT_FOUND') throw err;
+            });
+        }
 
         logger.info({
             type: LogType.USER_LOGOUT,
@@ -114,15 +142,6 @@ export const logoutUser = async (req: Request, res: Response) => {
 
         return sendSuccess(res, null, SuccessMessage.LOGOUT_SUCCESS);
     } catch (error: any) {
-        if (error.message === 'TOKEN_NOT_FOUND') {
-            logger.warn({
-                type: LogType.VALIDATION_ERROR,
-                action: 'LOGOUT',
-                error: 'Refresh token not found'
-            });
-            throw new NotFoundError('Refresh token');
-        }
-
         logError(error, 'Logout error');
         return sendServerError(res, 'Error logging out');
     }

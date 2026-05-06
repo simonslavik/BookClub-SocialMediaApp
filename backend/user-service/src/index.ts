@@ -7,6 +7,7 @@ import { dirname } from 'path';
 // Third-party middleware
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 
 // Routes
 import userRoutes from './routes/userRoutes.js';
@@ -68,6 +69,7 @@ app.use(cors({
 
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(cookieParser());
 
 // ============================================================================
 // Static Files

@@ -104,7 +104,7 @@ export const deleteSuggestion = async (req: AuthRequest, res: Response, next: Ne
   try {
     const suggestionId = req.params.suggestionId as string;
 
-    await BookSuggestionsService.deleteSuggestion(suggestionId, req.user!.userId);
+    await BookSuggestionsService.deleteSuggestion(suggestionId, req.user!.userId, req.bookClubRole);
     res.json({ success: true, message: 'Suggestion deleted successfully' });
   } catch (error) {
     next(error);

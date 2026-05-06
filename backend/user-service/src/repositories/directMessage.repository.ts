@@ -220,12 +220,22 @@ export class DirectMessageRepository {
   }
 
   /**
-   * Delete message
+   * Soft-delete message: keep the row as a tombstone, blank content/attachments,
+   * and remove reactions so the bookclub-style "[Message deleted]" placeholder
+   * survives a page refresh.
    */
   static async delete(messageId: string) {
-    return await prisma.directMessage.delete({
-      where: { id: messageId },
-    });
+    return await prisma.$transaction([
+      prisma.dMReaction.deleteMany({ where: { messageId } }),
+      prisma.directMessage.update({
+        where: { id: messageId },
+        data: {
+          deletedAt: new Date(),
+          content: '[Message deleted]',
+          attachments: [],
+        },
+      }),
+    ]);
   }
 
   /**

@@ -40,3 +40,15 @@ export class ConflictError extends AppError {
     super(message, 409);
   }
 }
+
+export class TooManyRequestsError extends AppError {
+  constructor(message: string = 'Too many requests — please slow down and try again shortly') {
+    super(message, 429);
+  }
+}
+
+export class BadGatewayError extends AppError {
+  constructor(message: string = 'An upstream service is temporarily unavailable') {
+    super(message, 502);
+  }
+}

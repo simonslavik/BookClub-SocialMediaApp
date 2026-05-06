@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { registerUser, loginUser, refreshAccessToken, logoutUser, logoutAllDevices } from '../controllers/userController.js';
 import { getProfileById, updateMyProfile, updateMyStatus, getUserById, listUsers, getUsersByIds, searchUsers, getSuggestedUsers } from '../controllers/profileController.js';
 import { authMiddleware, optionalAuthMiddleware } from '../middleware/authMiddleware.js';
-import { addProfileImage, deleteProfileImage, upload } from '../controllers/profileImageController.js';
+import { addProfileImage, deleteProfileImage, uploadProfileImageMiddleware } from '../controllers/profileImageController.js';
 import { sendFriendRequest, acceptFriendRequest, rejectFriendRequest, removeFriend, listFriends, listFriendRequests} from '../controllers/friendsController.js';
 import { getDirectMessages, sendDirectMessage, getConversations, deleteDirectMessage, markConversationAsRead, addDMReaction, removeDMReaction } from '../controllers/directMessagesController.js';
 import { googleAuth } from '../controllers/googleAuthController.js';
@@ -62,7 +62,7 @@ userRoutes.put('/auth/change-password', validateRequest(changePasswordSchema), a
 userRoutes.get('/profile/:userId', validateRequest(uuidParamSchema, 'params'), optionalAuthMiddleware, asyncHandler(getProfileById));
 userRoutes.put('/profile', validateRequest(updateProfileSchema), authMiddleware, asyncHandler(updateMyProfile));
 userRoutes.patch('/profile/status', validateRequest(updateStatusSchema), authMiddleware, asyncHandler(updateMyStatus));
-userRoutes.post('/profile/image', authMiddleware, upload.single('image'), asyncHandler(addProfileImage));
+userRoutes.post('/profile/image', authMiddleware, uploadProfileImageMiddleware, asyncHandler(addProfileImage));
 userRoutes.delete('/profile/image', authMiddleware, asyncHandler(deleteProfileImage));
 
 // Admin routes (requires authentication)

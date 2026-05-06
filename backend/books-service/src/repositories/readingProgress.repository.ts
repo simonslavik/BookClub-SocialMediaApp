@@ -67,4 +67,14 @@ export class ReadingProgressRepository {
       data,
     });
   }
+
+  /**
+   * Delete a user's progress record for a specific book.
+   * Silently no-ops if the record doesn't exist.
+   */
+  static async deleteUserProgress(userId: string, bookClubBookId: string) {
+    return await prisma.readingProgress.deleteMany({
+      where: { userId, bookClubBookId },
+    });
+  }
 }

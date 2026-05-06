@@ -127,16 +127,27 @@ export const getMyBookClubs = async (req: AuthRequest, res: Response) => {
   }
 };
 
+function isCloudinaryAuthError(error: any): boolean {
+  const msg = String(error?.message || '').toLowerCase();
+  return (
+    error?.http_code === 401 ||
+    msg.includes('api_key') ||
+    msg.includes('api_secret') ||
+    msg.includes('cloud_name') ||
+    msg.includes('must supply')
+  );
+}
+
 // Upload bookclub image (legacy endpoint)
 export const uploadBookClubImage = async (req: AuthRequest, res: Response) => {
   try {
     const bookClubId = req.params.id;
     const userId = req.user!.userId;
-    
+
     if (!req.file) {
       return res.status(400).json({ error: 'No image file provided' });
     }
-    
+
     // Check permission and update image
     const hasPermission = await BookClubService.checkPermission(bookClubId, userId, BookClubRole.ADMIN);
     if (!hasPermission) {
@@ -144,19 +155,27 @@ export const uploadBookClubImage = async (req: AuthRequest, res: Response) => {
     }
 
     // Upload to Cloudinary
-    const { uploadToCloudinary, deleteFromCloudinary, extractPublicId } = await import('../config/cloudinary.js');
+    const { uploadToCloudinary } = await import('../config/cloudinary.js');
 
     const { url: imageUrl } = await uploadToCloudinary(req.file.buffer, 'bookclub/bookclub-images');
     await BookClubService.updateClub(bookClubId, userId, { imageUrl });
-    
+
     res.json({ message: 'Image uploaded successfully', imageUrl });
   } catch (error: any) {
-    logger.error('ERROR_UPLOAD_IMAGE', { error: error.message });
-    let statusCode = 500;
-    if (error.message === 'Book club not found') statusCode = 404;
-    if (error.message.includes('permission')) statusCode = 403;
-    if (error.message === 'No image file provided') statusCode = 400;
-    res.status(statusCode).json({ error: error.message || 'Failed to upload image' });
+    logger.error('ERROR_UPLOAD_IMAGE', { error: error.message, http_code: error?.http_code });
+    if (error.message === 'Book club not found') {
+      return res.status(404).json({ error: error.message });
+    }
+    if (error.message?.includes('permission')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (isCloudinaryAuthError(error)) {
+      return res.status(503).json({ error: 'Image upload service is temporarily unavailable. Please try again later.' });
+    }
+    if (error?.http_code && error.http_code >= 400 && error.http_code < 500) {
+      return res.status(400).json({ error: error.message || 'Invalid image file.' });
+    }
+    res.status(500).json({ error: 'Failed to upload image' });
   }
 };
 

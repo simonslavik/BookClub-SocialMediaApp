@@ -118,7 +118,6 @@ model Room {
   bookClubId  String
   bookClub    BookClub @relation(fields: [bookClubId], references: [id], onDelete: Cascade)
   name        String   @default("general")
-  description String?
   type        RoomType @default(PUBLIC)
   isDefault   Boolean  @default(false)
   createdBy   String?
